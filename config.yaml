@@ -1,0 +1,18 @@
+baseURL: "/"
+disablePathToLower: true
+languageCode: en-us
+title: Cesar
+theme: sam
+pygmentsCodefences: true
+pygmentsStyle: monokai
+googleAnalytics: UA-110580110-1 
+
+params:
+  footerText: My cloud native blog ;) 
+  mainMenu:
+  - text: writing
+    link: /post 
+  - text: about 
+    link: /about 
+  - text: code 
+    link: https://github.com/cesarvr 
