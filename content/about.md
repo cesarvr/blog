@@ -28,7 +28,7 @@ Here are some of my open source projects:
 
 ## Graphics 
 
-I'm also love graphics programming and every now and then I like to teach my self some of the math behind computer graphics here are some of my hobby projects: 
+I'm also love graphics programming and every now and then I like to teach my self some of the math behind computer graphics. Here are some of my hobby projects: 
 
 #### WebGL 
 
