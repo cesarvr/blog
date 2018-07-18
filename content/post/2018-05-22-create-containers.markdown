@@ -6,21 +6,21 @@ toc: true
 
 # What is this post about
 
-Is basically about how to create your own container program using C. In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux, the steps are base in this excellent [talk](https://www.youtube.com/watch?v=_TsSmSu57Zo) done by [Liz Rice](https://twitter.com/lizrice).
+This post is basically about how to create your own container program using C. In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux, the steps are based on this excellent [talk](https://www.youtube.com/watch?v=_TsSmSu57Zo) by [Liz Rice](https://twitter.com/lizrice).
 
 ## Why C
-Because I love the simplicity of that language (maybe I'm just a [romantic](https://pragprog.com/magazines/2011-03/punk-rock-languages)) and also is the lingua franca of Linux, which means that it helps to get a better understanding about how things work at system level. 
+Because I love the simplicity of the language (maybe I'm just a [romantic](https://pragprog.com/magazines/2011-03/punk-rock-languages)) and also it is the lingua franca of Linux, which means that it helps to get a better understanding about how things work at a system level. 
 
 
 ## Why you might care about it
 
-I've always loved to learn how works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical question like Can I run a binary from another CPU architecture in a container? is there any performance penalty? what's the difference between containers and VM? and so on. 
+I've always loved to learn how works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical questions, such as "Can I run a binary from another CPU architecture in a container?", "Is there any performance penalty?", "What's the difference between containers and VM?" and so on. 
 
 
 
 ## Hello World!
 
-Enough of introduction let's write our container, in other words, a program that isolate other programs. We are going to start by writing the obligatory *Hello World*. 
+Enough with the introduction let's write our container, in other words, a program that isolates other programs. We are going to start by writing the obligatory *Hello World*. 
 
 ```c
 #include <iostream>
@@ -35,7 +35,7 @@ To compile the code, we just call:
 g++ container.cc -o container  
 ```
 
-This will generate our binary called *container*, that we should execute by doing:
+This will generate our binary called *container*, that we can now execute by doing:
 
 ```sh
 ./container   
@@ -45,7 +45,7 @@ This will generate our binary called *container*, that we should execute by doin
 
 ## How to create a process
 
-The first functionality we need to implement in our program is a way to execute other programs, but when you execute a program in Linux the program take control of the process, which mean you are no longer in control, to solve this we are going create a new process and execute the program there. 
+The first functionality we need to implement in our program is a way to execute other programs, but when you execute a program in Linux the program takes control of the process, which means you are no longer in control, to solve this we are going to create a new process and execute the program there. 
 
 Right now our process looks like this:  
 
@@ -58,7 +58,7 @@ Right now our process looks like this:
 ```
 
 
-To create a new process we need to clone the actual process and provide a function to be executed in it. Let's start by writing the function let's called ```jail```. 
+To create a new process we need to clone the actual process and provide a function to be executed in it. Let's start by writing the function, we'll call it ```jail```. 
 
 ```c
 int jail(void *args) {
@@ -79,7 +79,7 @@ Now our process will look something like this:
   +--------+ 
 ```
 
-Next step is to invoke the system call to create the child process, for this we are going to use [clone](http://man7.org/linux/man-pages/man2/clone.2.html) system call. 
+Our next step is to invoke the system call to create the child process, for this we are going to use the [clone](http://man7.org/linux/man-pages/man2/clone.2.html) system call. 
 
 ```c
 #include <iostream>
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 }
 ``` 
 
-First parameter is our entry point function, *second* parameter requires a pointer to allocated memory, *third* (SIGCHLD) this flag tell the process to emit a signal when finish and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```. 
+The first parameter is our entry point function, *second* parameter requires a pointer to allocated memory, *third* (SIGCHLD) this flag tells the process to emit a signal when finished and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```. 
 
 
 ``` 
@@ -115,13 +115,13 @@ First parameter is our entry point function, *second* parameter requires a point
   +--------+                
 ```
 
-After creating the new process we need to tell the parent process to wait until the child finish execution, otherwise the child can become a [zombie](https://en.wikipedia.org/wiki/Zombie_process). The [wait](http://man7.org/linux/man-pages/man2/wait.2.html) system call does just that.
+After creating the new process we need to tell the parent process to wait until the child finishes execution, otherwise the child can become a [zombie](https://en.wikipedia.org/wiki/Zombie_process). The [wait](http://man7.org/linux/man-pages/man2/wait.2.html) system call does just that.
 
 ```c
  wait(nullptr); //wait for every child.
 ``` 
 
-We update the code will look like this:
+The updated code will look like this:
 
 ```c++
 #include <iostream>
@@ -152,13 +152,13 @@ Compile and execute.
 #Hello !! ( child )
 ```
 
-Here our program send the first greeting (parent), then we clone the process and run the ```jail``` function inside and it end up printing a greeting as well.
+Here our program sends the first greeting (parent), then we clone the process and run the ```jail``` function inside and it ends up printing a greeting as well.
 
 
 
 ## Running programs   
 
-It's time to load a real program. Let's chose [shell](https://en.wikipedia.org/wiki/Unix_shell), so we can test what's happening inside our container. To load a program we are going to use [execvp](https://linux.die.net/man/3/execvp), this function will replace the current process in this case the child with a instance of the program.
+It's time to load a real program. Let's chose [shell](https://en.wikipedia.org/wiki/Unix_shell), so we can test what's happening inside our container. To load a program we are going to use [execvp](https://linux.die.net/man/3/execvp), this function will replace the current process in this case, the child with a instance of the program.
 
 ```c++
 execvp("<path-to-executable>", {array-of-parameters-including-executable});
@@ -180,7 +180,7 @@ int run(const char *name) {
 }
 ```
 
-This version is enough for our purposes, but it doesn't support multiple parameters, so just for fun I write this alternative version that accepts multiple parameters using some C++ templates black magic. 
+This version is enough for our purposes, but it doesn't support multiple parameters, so just for fun I wrote this alternative version that accepts multiple parameters using some C++ templates black magic. 
 
 ```c++ 
 //we can call it like this: run("/bin/sh","-c", "echo hello!");  
@@ -214,9 +214,9 @@ sh-4.4$
 
 ## Environment variables
 
-After playing around with ```sh``` we are noticing that is far from being isolate. To understand how changing the execution context change how the underlying process behave, we are going to run a simple example by clearing the environment variables for the ```sh``` process.
+After playing around with ```sh``` we are noticing that is far from being isolate. To understand how changing the execution context changes how the underlying process behave, we are going to run a simple example by clearing the environment variables for the ```sh``` process.
 
-This is easy we just need to clear the variables before we passing the control to ```/bin/sh```. We can delete all the environment variables for the child context using the function [clearenv](https://linux.die.net/man/3/clearenv). 
+This is easy we just need to clear the variables before passing the control to ```/bin/sh```. We can delete all the environment variables for the child context using the function [clearenv](https://linux.die.net/man/3/clearenv). 
 
 ```c++
 int jail(void *args) {
@@ -235,7 +235,7 @@ We run the code again and inside the shell we run the command ```env```:
   PWD=/
 ```
 
-Not bad, we solved the information leak from the guest and we are able to observe that performing changes in the context of the child process stay local to the child process. 
+Not bad, we solved the information leak from the guest and we are able to observe that performing changes in the context of the child process stays local to the child process. 
 
 
 
@@ -244,7 +244,7 @@ Not bad, we solved the information leak from the guest and we are able to observ
 
 ### Universal Time Sharing
 
-Imagine an scenario where we have to deal with a program that need to change the host name of the machine to work, if you execute this program in your machine it can mess with other programs like for example your network file sharing services. Imagine that somebody give us the task to look for the most efficient way to do this, first option coming to mind is using a VM, but we need to provision the VM (Memory, Storage, CPU, etc..), install the OS, etc. It can take a couple of hour. It won't be nice if your Operative System can deal with that isolation for you? Here is when [Linux Namespaces](https://en.wikipedia.org/wiki/Linux_namespaces) come into the picture. 
+Imagine a scenario where we have to deal with a program that needs to change the host name of the machine to work, if you execute this program in your machine it can mess with other programs like for example your network file sharing services. Imagine that somebody gives us the task to look for the most efficient way to do this, the first option that comes to mind is using a VM, but we need to provision the VM (Memory, Storage, CPU, etc..), install the OS, etc. It can take a couple of hours. It won't be nice if your Operative System can deal with that isolation for you? This is where [Linux Namespaces](https://en.wikipedia.org/wiki/Linux_namespaces) come into the picture. 
 
 
 Here is a quick illustration. 
@@ -310,7 +310,7 @@ Now lets prove our hypothesis, we recompile and execute our program:
 error: clone(): Operation not permitted
 ```
 
-This happens because, what we try to do (cloning the UTS namespace) requires [CAP_SYS_ADMIN](https://lwn.net/Articles/486306/), or in other words; we need elevated privileges.
+This happens because what we're trying to do (cloning the UTS namespace) requires [CAP_SYS_ADMIN](https://lwn.net/Articles/486306/), or in other words; we need elevated privileges.
 
 ```
 sudo ./container                                      
@@ -319,14 +319,14 @@ process created with pid: 12906
 sh-4.4#
 ```
 
-It works!, now let's see what happen when we modify the host name:
+It works! Now let's see what happen when we modify the host name:
 
 ![alt text](https://raw.githubusercontent.com/cesarvr/cesarvr.github.io/master/static/containers/uts.gif "Cloning UTS Namespace")
 
 
 ### New Process Tree  
 
-This time we are going to isolate our shell process from the rest of processes, from it's point of view it will be running solo in the machine, this one like the example above require to pass just a flag ```CLONE_NEWPID``` in this case. To illustrate the effect of this flag we are going to display the process identifier using [getpid](http://man7.org/linux/man-pages/man2/getpid.2.html):
+This time we are going to isolate our shell process from the rest of the processes, from it's point of view it will be running solo in the machine, this one like the example above requires to pass just a flag ```CLONE_NEWPID``` in this case. To illustrate the effect of this flag we are going to display the process identifier using [getpid](http://man7.org/linux/man-pages/man2/getpid.2.html):
 
 ```c++
 int jail(void *args) {
@@ -356,12 +356,12 @@ child pid: 1
 / #
 ```
 
-As you can observe the child *PID* is 1, from child process perspective is the only process in the machine, now let's see if we can still see other processes in the system by executing ```ps```. 
+As you can observe the child *PID* is 1, from the child process's perspective, it is the only process in the machine. Now let's see if we can still see other processes in the system by executing ```ps```. 
 
 ![alt text](https://github.com/cesarvr/cesarvr.github.io/blob/master/static/containers/pid-ns.gif?raw=true
  "PID NS")
 
-We are still capable to list other processes in the system, but this is because our process and it's child ```ps``` still have access to the  ```/proc``` folder, in the next section we are going to learn how to isolate the folders our process can access.
+We are still able to list other processes in the system, but this is because our process and it's child ```ps``` still have access to the  ```/proc``` folder, in the next section we are going to learn how to isolate the folders our process can access.
 
 
 
@@ -370,7 +370,7 @@ We are still capable to list other processes in the system, but this is because 
 
 ### Changing The Root
 
-This one is easy we want just to change the root folder of our process using [chroot](https://linux.die.net/man/1/chroot). We basically can select a folder and isolate our process inside that folder in such a way that (theoretically) it cannot navigate outside. I draw this illustration to show what we try to achieve. 
+This one is easy we just want to change the root folder of our process using [chroot](https://linux.die.net/man/1/chroot). We basically can select a folder and isolate our process inside that folder in such a way that (theoretically) it cannot navigate outside. I drew this illustration to show what we will try to achieve. 
 
 ```
    folders our process can access 
@@ -394,7 +394,7 @@ The root here is represented by ```a```, you can navigate all the way from ```a`
                |  |
                d  e  
 ```
-Now we only can traverse from ```b``` to ```e``` or ```d``` that's the point behind changing the root, we can save sensitive files in ```a``` because the process cannot scape from ```b```. 
+Now we only can traverse from ```b``` to ```e``` or ```d```, that's the point behind changing the root, we can save sensitive files in ```a``` because the process cannot escape from ```b```. 
 
 Let's write the necessary code to change the root. 
 
@@ -411,7 +411,7 @@ For this we are going to hide the complexity behind a function called ```setupFi
 
 #### Preparing The Root Folder
 
-We can change the root to an empty folder but if we do that we are going to loose the tools we are using so far to inspect the quality of our container (ls, cd, etc..), to avoid this we need to get some Linux base folder that include all this tools. I'll choose [Alpine Linux](https://github.com/yobasystems/alpine) because is very lightweight.
+We can change the root to an empty folder but if we do that we are going to lose the tools we are using so far to inspect the quality of our container (ls, cd, etc..), to avoid this we need to get some Linux base folder that include all these tools. I'll choose [Alpine Linux](https://github.com/yobasystems/alpine) because is very lightweight.
 
 Just grab the base [install](http://nl.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz). 
 
@@ -420,7 +420,7 @@ mkdir root && cd root
 curl -Ol http://nl.alpinelinux.org/alpine/v3.7/releases/x86_64/alpine-minirootfs-3.7.0-x86_64.tar.gz
 ```
 
-Uncompress into a folder called ```root``` at the same level of our binary.
+Uncompress into a folder called ```root``` at the same level as our binary.
 
 ```
 tar -xvf alpine-minirootfs-3.7.0_rc1-x86_64.tar.gz
@@ -432,7 +432,7 @@ tar -xvf alpine-minirootfs-3.7.0_rc1-x86_64.tar.gz
 
 #### Configuration 
 
-Also we want to setup some environment variables to help shell to find the binaries and to help other processes to know what type of screen we have, we are going to replace ```clearenv``` with a function that take care of those tasks. 
+Also we want to setup some environment variables to help shell to find the binaries and to help other processes to know what type of screen we have, we are going to replace ```clearenv``` with a function that takes care of those tasks. 
 
 ```c++
 void setup_variables() {
@@ -445,7 +445,7 @@ void setup_variables() {
 
 #### Coding
 
-This is the how the code looks, after we implemented the functions:
+This is the how the code looks after we implemented the functions:
 
 ```c++
 void setup_variables() {
@@ -484,20 +484,20 @@ Now let's see the code in action:
  "chroot")
 
 
-Now we cannot longer see the processes with ```ps```, this is because we replaced the general ```/proc``` folder with the one that came with the alpine which by default is a empty directory, in the next section we are going to mount the **proc** file system. 
+Now we no longer see the processes with ```ps```, this is because we replaced the general ```/proc``` folder with the one that came with alpine which by default is an empty directory, in the next section we are going to mount the **proc** file system. 
 
 
 #### Mounting File Systems
 
-Mounting a file system is like exposing the content of a device like a disk, network or other entities by using the folder and files metaphors. In simple terms that what is. To mount something in Linux we need a resource that understand this metaphor like [procfs](https://en.wikipedia.org/wiki/Procfs) and a folder we are going to choose the folder ```/proc``` that comes with alpine distribution. 
+Mounting a file system is like exposing the content of a device like a disk, network or other entities by using the folder and files metaphors. In simple terms that's what is. To mount something in Linux we need a resource that understands this metaphor like [procfs](https://en.wikipedia.org/wiki/Procfs) and a folder, we are going to choose the folder ```/proc``` that comes with the alpine distribution. 
 
-To mount a file system in Linux we are use [mount](http://man7.org/linux/man-pages/man2/mount.2.html) system call, this call require the following parameters to work:
+To mount a file system in Linux we can use the [mount](http://man7.org/linux/man-pages/man2/mount.2.html) system call. This call requires the following parameters to work:
 
 ```c
 mount("proc", "/proc", "proc", 0, 0);
 ``` 
 
-The first parameter is the resource, the second is the folder destination and the third parameter is the type of file system in this case [procfs](https://en.wikipedia.org/wiki/Procfs). 
+The first parameter is the resource, the second is the folder destination and the third parameter is the type of file system, in this case [procfs](https://en.wikipedia.org/wiki/Procfs). 
 
 Implementing the code is simple we just add the same line as above after we configure the **chroot**: 
 
@@ -527,13 +527,13 @@ int main(int argc, char** argv) {
 
 ### Unmount 
 
-Every time we [mount](http://man7.org/linux/man-pages/man2/mount.2.html) a file system is always a good practice that we release what we don't use. To release the binding we use [unmount](http://man7.org/linux/man-pages/man2/umount.2.html).  
+Every time we [mount](http://man7.org/linux/man-pages/man2/mount.2.html) a file system it is always good practice to release what we don't use. To release the binding we use [unmount](http://man7.org/linux/man-pages/man2/umount.2.html).  
 
 ```c
 umount("<mounted-folder>")
 ```
 
-We are going to [unmount](http://man7.org/linux/man-pages/man2/umount.2.html) just before our contained process exit: 
+We are going to [unmount](http://man7.org/linux/man-pages/man2/umount.2.html) just before our contained process exits: 
 
 ```c
   mount("proc", "/proc", "proc", 0, 0);
@@ -544,11 +544,11 @@ We are going to [unmount](http://man7.org/linux/man-pages/man2/umount.2.html) ju
   return EXIT_SUCCESS;
 ```
 
-There is a small challenge here, that wasn't obvious for me the first time. Every time we call ```run``` our process get replaced by a new process image and we won't be able to call ```umount```, basically the instructions are going to stop in ```run``` and from there ```sh``` is in control and we can forget about the last two instructions. 
+There is a small challenge here, that wasn't obvious for me the first time. Every time we call ```run``` our process gets replaced by a new process image and we won't be able to call ```umount```, basically the instructions are going to stop in ```run``` and from there ```sh``` is in control and we can forget about the last two instructions. 
 
-The solution to this is to decouple this program loading from the rest of the child function. As we learn above, to run a function in a separated process in Linux we use [clone](http://man7.org/linux/man-pages/man2/clone.2.html). Let's make use of this knowledge and re-factor our code.   
+The solution to this is to decouple this program loading from the rest of the child function. As we learned above, to run a function in a separated process in Linux we use [clone](http://man7.org/linux/man-pages/man2/clone.2.html). Let's make use of this knowledge and re-factor our code.   
 
-Let's start by grouping our process creation instruction into a reusable function:  
+Let's start by grouping our process creation instructions into a reusable function:  
 
 ```c 
 int main(int argc, char** argv) {
@@ -561,7 +561,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-We rewrite this two instructions into a more nicer interface: 
+We can rewrite these two instructions into a nicer interface: 
 
 ```c 
 template <typename Function>
@@ -572,7 +572,7 @@ void clone_process(Function&& function, int flags){
 }
 ```
 
-Here, I'm using a C++ template to create a new "generic type" called **Function** which will morph into a C function, then we pass function to [clone](http://man7.org/linux/man-pages/man2/clone.2.html), also we pass the flags as an integer. 
+Here, I'm using a C++ template to create a new "generic type" called **Function** which will morph into a C function, then we pass the function to [clone](http://man7.org/linux/man-pages/man2/clone.2.html), also we pass the flags as an integer. 
 
 
 To use our function we just re-write our *main* function: 
@@ -617,9 +617,9 @@ auto runThis = [](void *args) ->int { run("/bin/sh"); };
 clone_process(runThis, SIGCHLD);
 ```
 
-Here we just a C++ feature called ([Lambda](https://en.cppreference.com/w/cpp/language/lambda)) which basically is like a in-line function, the we plug it to our generic typed ```clone_process``` and the compiler do the rest.
+Here we use a C++ feature called ([Lambda](https://en.cppreference.com/w/cpp/language/lambda)) which basically is like an in-line function, the we plug it to our generic typed ```clone_process``` and the compiler do the rest.
 
-Our last version look like this: 
+Our final version looks like this: 
 
 ```c++
 int jail(void *args) {
@@ -657,9 +657,9 @@ Now our program is capable of successfully mount [procfs](https://en.wikipedia.o
 
 #### Explanation
 
-When we create the child process (```jail```) we used the flag ```CLONE_NEWPID```, this flag give to our cloned process something like it's own process tree.
+When we create the child process (```jail```) we use the flag ```CLONE_NEWPID```, this flag gives our cloned process something like it's own process tree.
 
-This is how our the system looks under normal conditions. 
+This is how our system looks under normal conditions. 
 
 ```
    Init-1
@@ -676,7 +676,7 @@ systemd-2  bash-3   our-container-4
 
 ```
  
- When we apply the flag ```CLONE_NEWPID``` and this happens: 
+ When we apply the flag ```CLONE_NEWPID``` this happens: 
 
 ```
    Init-1
@@ -692,7 +692,7 @@ systemd-2  bash-3   our-container-4
                     shell - 6 
 ```
 
-Nothing change at global scale, but our process from our process perspective we see the world like this: 
+Nothing changes at a global scale, but from our process's perspective we see the world like this: 
 
 ```
    jail - 1
@@ -702,7 +702,7 @@ Nothing change at global scale, but our process from our process perspective we 
    shell-2  
 ```
 
-Try to call ```ps``` inside this version and you will get this. 
+Try to call ```ps``` inside this version and you will get the following: 
 
 ```sh
 PID   USER     TIME   COMMAND
@@ -710,26 +710,26 @@ PID   USER     TIME   COMMAND
     2 root       0:00 /bin/sh
 ```
 
-Moral of the story is when you clone the PID tree, your process is not able not longer able to track other processes but you can still track the everything from outside the container. For example if you run ```ps aux | grep sh ``` you'll be able to see your container. Try this with Docker or LXC and see what happens. 
+Moral of the story is when you clone the PID tree, your process is no longer able to track other processes but you can still track everything from outside the container. For example if you run ```ps aux | grep sh ``` you'll be able to see your container. Try this with Docker or LXC and see what happens. 
 
 Here is a small screen recording: 
 
 ![track](https://github.com/cesarvr/cesarvr.github.io/blob/master/static/containers/pid-track.gif?raw=true)
 
-Check how ```sleep``` has different PID inside the container and outside. 
+Check how ```sleep``` has a different PID inside the container and outside. 
 
 
 
 ## Control Group 
 
-Imagine now that we are given the task to contain a program from creating more processes, taking all the network bandwidth, consuming all the CPU time available or how do we guarantee that our contained applications live in harmony with other processes? To solve this type of problem Linux provide a feature called ([Linux Control Group](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)) or cgroup for short, which is a mechanism to distribute kernel resources between processes. 
+Imagine now that we are given the task to contain a program from creating more processes, taking all the network bandwidth, consuming all the CPU time available. How do we guarantee that our contained applications live in harmony with other processes? To solve this type of problem Linux provides a feature called ([Linux Control Group](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)) or cgroup for short, which is a mechanism to distribute kernel resources between processes. 
 
 ### Limiting Process Creation 
 
 
-We are going to use cgroups to limit the amount of processes we can create inside or container, the control group called *pids* controller can be use to limit the amount of time a process can replicate itself example using [fork](http://man7.org/linux/man-pages/man2/fork.2.html) or [clone](http://man7.org/linux/man-pages/man2/clone.2.html). 
+We are going to use cgroups to limit the amount of processes we can create inside our container, the control group called *pids* controller can be used to limit the amount of times a process can replicate itself, for example using [fork](http://man7.org/linux/man-pages/man2/fork.2.html) or [clone](http://man7.org/linux/man-pages/man2/clone.2.html). 
 
-Before we start I'll explain how we can interact with ([Linux Control Group](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)), you might heard the phrase that in Linux ["Everything is a file"](https://en.wikipedia.org/wiki/Everything_is_a_file), cgroup like procfs is another example of that philosophy. This mean cgroup is a kernel feature that can be mounted like any other file system and interface with it using any I/O API or the applications you use to handle files. For this example I'll use the Linux I/O interface by excellence which is [open](http://man7.org/linux/man-pages/man3/fopen.3.html), [write](https://linux.die.net/man/2/write), [read](https://linux.die.net/man/3/read) and [close](http://man7.org/linux/man-pages/man3/fclose.3.html). Now the next step is to understand what folder or files we need to modify.     
+Before we start I'll explain how we can interact with ([Linux Control Group](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)), you might have heard the phrase that in Linux ["Everything is a file"](https://en.wikipedia.org/wiki/Everything_is_a_file), cgroup like procfs is another example of that philosophy. This means cgroup is a kernel feature that can be mounted like any other file system and interface with it using any I/O API or the applications you use to handle files. For this example I'll use the Linux I/O interface by excellence which is [open](http://man7.org/linux/man-pages/man3/fopen.3.html), [write](https://linux.die.net/man/2/write), [read](https://linux.die.net/man/3/read) and [close](http://man7.org/linux/man-pages/man3/fclose.3.html). Now the next step is to understand what folder or files we need to modify.     
 
 The control group file system directory is usually mounted here:
 
@@ -737,7 +737,7 @@ The control group file system directory is usually mounted here:
  /sys/fs/cgroup  
 ```
 
-We want to limit the creation of processes, so we need to go to ```pids``` folder. 
+We want to limit the creation of processes, so we need to go to the ```pids``` folder. 
 
 ```
  /sys/fs/cgroup/pids/  
@@ -764,14 +764,14 @@ void limitProcessCreation() {
 
 ```
 
-When we create this folder, **cgroup** automatically generate some files inside, those files describe the rules and states of the processes in that group, at the moment now we don't have any process attached.  
+When we create this folder, **cgroup** automatically generates some files inside, those files describe the rules and states of the processes in that group, at the moment we don't have any process attached.  
 
 ```sh
 /sys/fs/cgroup/pids/container/$ ls  
 cgroup.clone_children  cgroup.procs  notify_on_release  pids.current  pids.events  pids.max  tasks
 ```
 
-To attach a process here we need to (write)[https://linux.die.net/man/2/write] the process identifier (PID) of our process to the file ```cgroup.procs```.
+To attach a process here we need to [write](https://linux.die.net/man/2/write) the process identifier (PID) of our process to the file ```cgroup.procs```.
 
 ```c 
 #include <string.h>
@@ -800,7 +800,7 @@ void limitProcessCreation() {
 ```
 
 
-We've registered our process id, next we need to (write)[https://linux.die.net/man/2/write] to the file ```pids.max ``` limit of processes our children can create, let's try with 5.
+We've registered our process id, next we need to [write](https://linux.die.net/man/2/write) to the file ```pids.max ``` to limit the number of processes our children can create, let's try with 5.
 
 ```c 
 void limitProcessCreation() {
@@ -815,7 +815,7 @@ void limitProcessCreation() {
 }
 ```
 
-After our process end is a good idea to release the resources, so the kernel can cleanup the container folder we created above, the way to notify this is to update the file ```notify_on_release``` with the value of 1.
+After our process has ended, it is a good idea to release the resources so the kernel can cleanup the container folder we created above, the way to notify this is to update the file ```notify_on_release``` with the value of 1.
 
 ```c 
 void limitProcessCreation() {
@@ -840,18 +840,18 @@ int jail(void *args) {
 }
 ```
 
-We need to call it before we do the change the root folder, this way we can setup the execution context. After we compile and run we should get something like this:
+We need to call it before we change the root folder, this way we can setup the execution context. After we compile and run we should get something like this:
 
 ![cgroup](https://github.com/cesarvr/cesarvr.github.io/blob/master/static/containers/cgroup-pid.gif?raw=true)
 
 
-What I'm trying to do here is to execute an instance of the process sleep, this program require a integer representing the number of second it will execute, I added the ampersand so I can execute multiple instances of the program, when we hit the limit 5, the system automatically refuse to create more processes as expected.
+What I'm trying to do here is to execute an instance of the process sleep, this program requires an integer representing the number of seconds it will execute, I added the ampersand so that I can execute multiple instances of the program, when we hit the limit of 5, the system automatically refuses to create more processes as expected.
 
 
 
 ## Wrapping Up 
 
-This was a long post, if you've read this far, I hope you have a better idea of what a container are and how they are created. After what we've learned so far we can answer to some of the typical container questions:  
+This was a long post, if you've read this far, I hope you have a better idea of what a container is and how they are created. After what we've learned so far we can answer some of the typical container questions:  
 
 ### How about performance ?
 
@@ -868,9 +868,9 @@ It depends but in my opinion even when VM uses specials CPU instructions to get 
 
 ### Can I use VM and containers ? 
 
-Why not?, I just use that combination to write this article. Well in reality I don't see any problem to use both, just a increase in complexity. In a perfect world I'll use just containers.  
+Why not? I used that combination to write this article. Well, in reality I don't see any problem in using both, just an increase in complexity. In a perfect world I would use just containers.  
 
-Well hope it has been a very fun read or at least not boring, for me was super fun, I really enjoyed writing this article. If you want access to the full source code you get it from [here](). With time I'll add more functionalities just to learn more about it and maybe will rewrite it in Rust or DLang, if I do I'll wrote an article about it.
+Well, I hope it has been a very fun read or at least not boring, for me it was super fun, I really enjoyed writing this article. If you want access to the full source code you can get it from [here](). With time I'll add more functionalities just to learn more about it and maybe will rewrite it in Rust or DLang, if I do I'll write an article about it.
 
 
 Almost forgot here is the link with the working code: [github](https://github.com/cesarvr/container).  
