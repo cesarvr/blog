@@ -2,6 +2,8 @@
 date: "2018-05-22T00:00:00Z"
 title: Creating Your Own Containers
 toc: true
+image: https://pbs.twimg.com/media/C9s1UP2U0AAuP2f.jpg 
+description: In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux.
 ---
 
 # What is this post about
@@ -14,7 +16,7 @@ Because I love the simplicity of that language (maybe I'm just a [romantic](http
 
 ## Why you might care about it
 
-I've always loved to learn how works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical question like Can I run a binary from another CPU architecture in a container? is there any performance penalty? what's the difference between containers and VM? and so on. 
+I've always loved to learn how stuff works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical question like Can I run a binary from another CPU architecture in a container? is there any performance penalty? what's the difference between containers and VM? and so on. 
 
 
 
