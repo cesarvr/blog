@@ -2,6 +2,8 @@
 date: "2018-05-22T00:00:00Z"
 title: Creating Your Own Containers
 toc: true
+image: https://pbs.twimg.com/media/C9s1UP2U0AAuP2f.jpg 
+description: In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux.
 ---
 
 # What is this post about
@@ -14,7 +16,7 @@ Because I love the simplicity of that language (maybe I'm just a [romantic](http
 
 ## Why you might care about it
 
-I've always loved to learn how works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical question like Can I run a binary from another CPU architecture in a container? is there any performance penalty? what's the difference between containers and VM? and so on. 
+I've always loved to learn how stuff works behind the scene. I've wrote this article for people that share the same curiosity. Also knowing how it works can help you respond to typical question like Can I run a binary from another CPU architecture in a container? is there any performance penalty? what's the difference between containers and VM? and so on. 
 
 
 
@@ -88,6 +90,18 @@ Next step is to invoke the system call to create the child process, for this we 
 #include <unistd.h>
 #include <sys/wait.h>
 
+char* stack_memory() {
+  const int stackSize = 65536;
+  auto *stack = new (std::nothrow) char[stackSize];
+
+  if (stack == nullptr) { 
+    printf("Cannot allocate memory \n");
+    exit(EXIT_FAILURE);
+  }  
+
+  return stack+stackSize;  //move the pointer to the end of the array because the stack grows backward. 
+}
+
 int jail(void *args) {
   printf("Hello !! ( child ) \n");
   return EXIT_SUCCESS;
@@ -102,7 +116,7 @@ int main(int argc, char** argv) {
 }
 ``` 
 
-First parameter is our entry point function, *second* parameter requires a pointer to allocated memory, *third* (SIGCHLD) this flag tell the process to emit a signal when finish and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```. 
+First parameter is our entry point function, *second* parameter requires a pointer to allocated memory, we are going to encapsulate this into a function called ```stack_memory```. If your are not familiar with pointer arithmetic not worry you can ignore this for now, *third* (SIGCHLD) this flag tell the process to emit a signal when finish and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```. 
 
 
 ``` 

@@ -8,7 +8,9 @@ pygmentsStyle: monokai
 googleAnalytics: UA-110580110-1 
 
 params:
-  footerText: My cloud native blog ;) 
+  
+  description: My hybrid-cloud native blog            
+  footerText: My hybrid-cloud native blog ;) 
   mainMenu:
   - text: writing
     link: /post 
