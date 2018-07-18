@@ -3,6 +3,7 @@ date: "2017-12-22T00:00:00Z"
 title: Containers For Beginners
 ---
 
+
 # What is a container ?
 
 A container is just a way to achieve process isolation. Unlike virtual machines, they don’t achieve isolation by simulating hardware, but by using existing Linux kernel features.
