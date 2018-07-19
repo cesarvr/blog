@@ -712,22 +712,20 @@ PID   USER     TIME   COMMAND
     2 root       0:00 /bin/sh
 ```
 
-Moral of the story is when you clone the PID tree, your process is no longer able to track other processes but you can still track it's child processes. For example if you run ```ps aux | grep sh ``` you'll be able to see your container. Try this with Docker or LXC and see what happens. 
+Moral of the story is when you clone the PID tree, your process is no longer able to track other processes but it still can track it's child processes. You might wonder by looking the graph above that nothing has change in the global process tree after applying the flag and wonder if you can search the PID of isolated processes in the system, the answer is yes, for example if you run ```ps aux | grep sh ``` you'll be able to see your container. Here some *homework* try to run a contained process using this application or Docker and try to kill it from the outside. 
 
-Here is a small screen recording: 
+Here is a small demo about locating the contained process: 
 
 ![track](https://github.com/cesarvr/cesarvr.github.io/blob/master/static/containers/pid-track.gif?raw=true)
 
 Check how ```sleep``` has a different PID inside the container and outside. 
 
-
-
 ## Control Group 
 
 Imagine now that we are given the task to contain a program from creating more processes, taking all the network bandwidth, consuming all the CPU time available. How do we guarantee that our contained applications live in harmony with other processes? To solve this type of problem Linux provides a feature called ([Linux Control Group](https://www.kernel.org/doc/Documentation/cgroup-v2.txt)) or cgroup for short, which is a mechanism to distribute kernel resources between processes. 
 
-### Limiting Process Creation 
 
+### Limiting Process Creation 
 
 We are going to use cgroups to limit the amount of processes we can create inside our container, the control group called *pids* controller can be used to limit the amount of times a process can replicate itself, for example using [fork](http://man7.org/linux/man-pages/man2/fork.2.html) or [clone](http://man7.org/linux/man-pages/man2/clone.2.html). 
 
@@ -849,8 +847,6 @@ We need to call it before we change the root folder, this way we can setup the e
 
 What I'm trying to do here is to execute an instance of the process sleep, this program requires an integer representing the number of seconds it will execute, I added the ampersand so that I can execute multiple instances of the program, when we hit the limit of 5, the system automatically refuses to create more processes as expected.
 
-
-
 ## Wrapping Up 
 
 This was a long post, if you've read this far, I hope you have a better idea of what a container is and how they are created. After what we've learned so far we can answer some of the typical container questions:  
@@ -872,7 +868,5 @@ It depends but in my opinion even when VM uses specials CPU instructions to get 
 
 Why not? I used that combination to write this article. Well, in reality I don't see any problem in using both, just an increase in complexity. In a perfect world I would use just containers.  
 
-Well, I hope it has been a very fun read or at least not boring, for me it was super fun, I really enjoyed writing this article. If you want access to the full source code you can get it from [here](). With time I'll add more functionalities just to learn more about it and maybe will rewrite it in Rust or DLang, if I do I'll write an article about it.
+Well, I hope it has been a very fun read or at least not boring. If you want access to the full source code you can get it from [here](https://github.com/cesarvr/container). With time I'll add more functionalities and maybe will rewrite some of it in Rust or DLango. If you want to learn more about cgroups you can access the [documentation](https://www.kernel.org/doc/Documentation/cgroup-v1/) and if you have any improvements or add a new functionality let me know, you can contact me via [Twitter](https://twitter.com/cvaldezr) or send a PR via [Github](https://github.com/). Happy hacking!.
 
-
-Almost forgot here is the link with the working code: [github](https://github.com/cesarvr/container).  
