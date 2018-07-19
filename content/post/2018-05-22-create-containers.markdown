@@ -657,7 +657,7 @@ Now our program is capable of successfully mount [procfs](https://en.wikipedia.o
 
 ![boom!](https://media.giphy.com/media/xT0GqGUyFPeYYmYD5K/giphy.gif) 
 
-#### Explanation
+#### How it works
 
 When we create the child process (```jail```) we use the flag ```CLONE_NEWPID```, this flag gives our cloned process something like it's own process tree.
 
