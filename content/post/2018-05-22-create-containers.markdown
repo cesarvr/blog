@@ -2,7 +2,7 @@
 date: "2018-05-22T00:00:00Z"
 title: Creating Your Own Containers
 toc: true
-image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/containers/container_are_linux.jpeg 
+image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/containers/container_are_linux.png?raw=true 
 description: In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux.
 ---
 
@@ -712,7 +712,7 @@ PID   USER     TIME   COMMAND
     2 root       0:00 /bin/sh
 ```
 
-Moral of the story is when you clone the PID tree, your process is no longer able to track other processes but you can still track everything from outside the container. For example if you run ```ps aux | grep sh ``` you'll be able to see your container. Try this with Docker or LXC and see what happens. 
+Moral of the story is when you clone the PID tree, your process is no longer able to track other processes but you can still track it's child processes. For example if you run ```ps aux | grep sh ``` you'll be able to see your container. Try this with Docker or LXC and see what happens. 
 
 Here is a small screen recording: 
 
