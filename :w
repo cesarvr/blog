@@ -207,21 +207,7 @@ We can do this the other way around, at the end is just a matter of taste. Next 
 ```
 oc expose svc hello-ms
 # route "hello-ms" exposed
-
-oc get route
-# NAME       HOST/PORT                         PATH      SERVICES   PORT      TERMINATION   WILDCARD
-# hello-ms   hello-ms-hello.127.0.0.1.nip.io             hello-ms   80-8080                 None
 ```
-
-Now know the URL we can confidently make a ```curl``` to that address:  
-
-
-```
-curl hello-ms-hello.127.0.0.1.nip.io
-Hello World%
-```
-  
-![deploy]()  
 
 
 

@@ -4,6 +4,9 @@ title: Creating Your Own Containers
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/containers/container_are_linux.png?raw=true 
 description: In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux.
+images: 
+  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/containers/container_are_linux.png?raw=true 
+
 ---
 
 # What is this post about
