@@ -92,7 +92,7 @@ builder       172.30.1.1:5000/hello/builder       latest    6 hours ago
 
 Great!, we have our image with the tools we need. Next step is to trigger a build so it prepare the application.  
 
-![]()
+![builder](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/build-tools.gif?raw=true)
 
 If everything is fine at this stage our code is cloned and dependencies pulled from npm. Artifacts are stored inside an image called *builder* folder  ```/opt/app-root/src/```. 
 
