@@ -3,7 +3,7 @@ title: "Chaining Builds In Openshift"
 date: 2018-07-21T11:18:43+02:00
 showDate: false
 toc: true
-description: Creating efficient and small image (low surface for attacks) by using chained builds in Openshift.  
+description: How to optimise images and improve deployment performance by using chained builds in Openshift.  
 ---
 
 ## New application
@@ -133,6 +133,84 @@ The content of [builder](#builder-image)*/opt/app-root/src/* is copy by the ```o
 
 
 ![runtime](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/runtime.gif?raw=true)
+
+
+In the next animation you'll see how *builder* build configuration is now connected with *runtime* build. Every time *builder* push a new build of our software to the registry, it will be automatically packaged by *runtime*. 
+
+To trigger the *builder* build we just need to run: 
+
+```
+oc start-build bc/builder
+```
+
+![chain](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/chain.gif?raw=true)
+
+
+
+# Deploying our image
+
+Is time to test if our hard work pays off. Deploying our image is very easy we just need to locate the URL of our *runtime* image in the registry:
+
+```
+oc get is
+NAME          DOCKER REPO                         TAGS      UPDATED
+runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago
+```
+
+Having the address of our image, now we just simply call:
+
+```sh
+oc create dc hello-ms --image=172.30.1.1:5000/hello/runtime
+```
+
+Now that we create our deployment object, we now need to send some traffic to our application. Before start sending traffic we need to identify by looking up is label. 
+
+```sh
+oc get dc hello-ms -o json | grep labels -A 3
+# returns 
+"labels": {
+            "deployment-config.name": "hello-ms"
+          }
+```
+
+Now let create a service and send some traffic directed to this label: 
+
+
+```sh 
+oc create service loadbalancer  hello-ms --tcp=80:8080
+# service "hello-ms" created
+
+# edit the service object
+oc edit svc hello-ms -o yaml 
+```
+
+This will open the service object in yaml format in edit mode, we need to locate the *selector* and replace with the label of our deployment object. 
+
+From this: 
+
+```yml
+selector:
+  app: hello-ms
+```
+
+To this: 
+
+```yml
+selector:
+ deployment-config.name: hello-ms
+```
+
+We can do it the other way around if you want that depend all on your personal preference.
+
+
+
+
+
+
+
+
+
+
 
 
 
