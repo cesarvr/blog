@@ -90,11 +90,11 @@ NAME          DOCKER REPO                         TAGS      UPDATED
 builder       172.30.1.1:5000/hello/builder       latest    6 hours ago
 ```
 
-Great!, we have our image with the tools we need. Next step is to trigger a build so it prepare the application.  
+Great!, we have our image with the tools we need. Next step is to trigger a build to prepare our application.  
 
-![builder](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/build-tools.gif?raw=true)
+![builder](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/build-tools.gif.gif?raw=true)
 
-If everything is fine at this stage our code is cloned and dependencies pulled from npm. Artifacts are stored inside an image called *builder* folder  ```/opt/app-root/src/```. 
+If everything is fine we should have all our Node.js artifacts inside a new image for us to consume, the nodejs base image we are using store the artifacts and our code in ```/opt/app-root/src/```. 
 
 
 ## Runtime image 
@@ -106,6 +106,7 @@ oc new-build  --source-image=builder \
 --source-image-path=[source-dir]:[destination-dir] \
 --dockerfile='-' --name=runtime
 ```
+
 - ```source-image``` We want the [nodejs image we created above](#builder-image).
 - ```--source-image-path``` We want to copy some files from [that image](#builder-image). 
 - ```dockerfile``` We want to create a new image using those files. Note: writing ```'dockerfile='-'``` will allow us to feed the Dockerfile via [standard input](https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)).
@@ -128,7 +129,7 @@ cat runtime.Dockerfile | oc new-build --name=runtime \
 --dockerfile='-'
 ```
 
-We copy the contents of [builder](#builder-image)/opt/app-root/src/ into the a temporary folder, then our Dockerfile use this folder as it's context folder. When we apply ```COPY * /run/``` we basically are copying the content of this temporary folder into our new runtime container.
+The content of [builder](#builder-image)*/opt/app-root/src/* is copy by the ```oc new-build``` into a temporary folder, then our Dockerfile use this folder as it's context folder. When we apply ```COPY * /run/``` we basically are copying the content of this folder into our new runtime container.
 
 
 
