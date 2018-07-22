@@ -6,6 +6,7 @@ theme: sam
 pygmentsCodefences: true
 pygmentsStyle: monokai
 googleAnalytics: UA-110580110-1 
+disqusShortname: cesar
 
 params:
   footerText: My cloud native blog ;) 
