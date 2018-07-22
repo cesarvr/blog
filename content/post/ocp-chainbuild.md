@@ -132,6 +132,12 @@ cat runtime.Dockerfile | oc new-build --name=runtime \
 The content of [builder](#builder-image)*/opt/app-root/src/* is copy by the ```oc new-build``` into a temporary folder, then our Dockerfile use this folder as it's context folder. When we apply ```COPY * /run/``` we basically are copying the content of this folder into our new runtime container.
 
 
+![runtime](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/runtime.gif?raw=true)
+
+
+
+
+
 
 
 
