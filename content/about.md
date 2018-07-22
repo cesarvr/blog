@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-My name is César, I’m a software engineer currently working at Red Hat, I love computer since I got in my hands my first computer a Compaq 425, my first programming language was Visual Basic 5.0 which I teach myself by reading the MVB help files, that said a lot about the quality of that documentation. 
+My name is César Valdez, I’m a software engineer currently working at Red Hat, I love computer since I got in my hands my first computer a Compaq 425, my first programming language was Visual Basic 5.0 which I teach myself by reading the MVB help files, that said a lot about the quality of that documentation. 
 
 After that I learn QBasic and C. Seems like yesterday when I was showing my friends my first hello world in C and feeling like a hacker. Then I discover that there was a group of rebels that wrote their own operative system and tools. And that's how I became an open source enthusiast.
 
