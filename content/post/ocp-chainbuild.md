@@ -10,7 +10,7 @@ images:
 
 ## New application
 
-Creating a Node.js application in OpenShift is simple:
+Creating a Node.js application in Openshift is simple:
 
 ```sh
  oc login -u user
@@ -24,7 +24,7 @@ This command will create the backbone (BuildConfig, DeploymentConfig and Service
 
 ## The size problem
 
-But this nice abstraction come with a cost, to explain what I mean, let's review the final image:
+But this nice abstraction come with a cost, to explain what I mean, let's review size of our final image using [du](http://www.linfo.org/du.html):
 
 ```sh
 # We log into our container and run
@@ -41,7 +41,7 @@ require('http').createServer((req, res) => {
 }).listen(8080)
 ```
 
-This happens because the tools we used at build (gcc, g++, npm, yum cache, etc.) are still present in the image inflating its final size. If you are just getting started as a developer in OpenShift it may not be a big of a deal; also for quick proof of concepts is totally fine but it may have a cost for later stages like production that you may take into consideration.
+This happens because the tools we used at build (gcc, g++, npm, yum cache, etc.) are still present in the image inflating its final size. If you are just getting started as a developer in Openshift it may not be a big of a deal; also for quick proof of concepts is totally fine but it may have a cost for later stages like production that you may take into consideration.
 
 ## Slim is better
 
@@ -72,7 +72,7 @@ oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs \
 
 - ```context-dir``` This parameters tells where is the code.
 
-This command will create two OpenShift objects:
+This command will create two Openshift objects:
 
 
 * **BuilderConfig** This object handle the image creation using [s2i](https://github.com/openshift/source-to-image).
@@ -122,6 +122,9 @@ EXPOSE 8080
 CMD ["node", "/run/app.js"]
 ```
 
+This file define a container using [mhart/alpine-node](https://hub.docker.com/r/mhart/alpine-node/) which is only 42 MB, next line copy the content from the *builder* image. The third and fourth line expose a port and run execute our script. This container image of course need more work to be production ready but is just fine for our purposes. 
+
+
 We execute the command:
 
 ```sh
@@ -153,10 +156,10 @@ oc start-build bc/builder
 
 Is time to test if our hard work pays off. Deploying our image is very easy we just need to locate the URL of our *runtime* image in the registry:
 
-```
-oc get is
-NAME          DOCKER REPO                         TAGS      UPDATED
-runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago
+```sh
+oc get is 
+#NAME          DOCKER REPO                         TAGS      UPDATED
+#runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago
 ```
 
 Having the address of our image, now we just simply call:
@@ -225,9 +228,5 @@ Hello World%
 Take a look at the complete process here:
 
 ![deploy](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/deploy.gif?raw=true)  
-
-
-
-# Some ideas
 
 Other ideas that come to my mind about how to take advantage of this decoupling is that you can maybe tag some specific nodes to with labels that match your *builder* image this way you focus all the resources to bring value back to your customer, and you have some specific resources to handle the software related duties.
