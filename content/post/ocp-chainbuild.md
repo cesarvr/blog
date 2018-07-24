@@ -5,7 +5,7 @@ showDate: false
 toc: true
 description: How to optimise images and improve deployment performance by using chained builds in Openshift.  
 images:
-  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/openshift-logo.png?raw=true
+  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true 
 ---
 
 ## New application
