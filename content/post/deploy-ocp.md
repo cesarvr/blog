@@ -66,11 +66,12 @@ What I usually do is to create a sh function and save inside my bash.
  # The I called this way: 
  rm-app node-app
 
- #deploymentconfig "node-app" deleted
- #buildconfig "node-app" deleted
- #imagestream "node-app" deleted
- #route "node-app" deleted
- #service "node-app" deleted
+ # deploymentconfig "node-app" deleted
+ # buildconfig "node-app" deleted
+ # imagestream "node-app" deleted
+ # route "node-app" deleted
+ # service "node-app" deleted
+ #
 ```
 
 
