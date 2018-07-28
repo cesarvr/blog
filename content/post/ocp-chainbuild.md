@@ -3,7 +3,7 @@ title: "Chaining Builds In Openshift"
 date: 2018-07-21T11:18:43+02:00
 showDate: false
 toc: true
-description: How to optimise images and improve deployment performance by using chained builds in Openshift.  
+description: Using chained builds to improve the size of your images and overall deployment performance in Openshift. 
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true 
 ---
