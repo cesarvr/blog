@@ -47,7 +47,7 @@ This command will create the same components as the openshift console with the o
 oc expose svc <name-of-the-service>
 ```
 
-![new-app](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-deploy.gif?raw=true)
+![new-app](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/oc-deploy.gif?raw=true)
 
 
 Every time you write this two command Openshift will generate all the necessary objects to deploy your container and start directing to them, but there is a small inconvenience if you want to remove all the created objects let said you made a mistake you need to delete those one by one. But we are lucky that all the created objects share the same label, here is the command to clean those objects.    
