@@ -3,9 +3,10 @@ title: "Chaining Builds In Openshift"
 date: 2018-07-21T11:18:43+02:00
 showDate: false
 toc: true
-description: Using chained builds to improve the size of your images and overall deployment performance in Openshift. 
+description: Using chained builds to improve the size of your images and overall deployment performance in Openshift.
 images:
-  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true 
+  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
+tags: [openshift, build]
 ---
 
 ## New application
@@ -122,7 +123,7 @@ EXPOSE 8080
 CMD ["node", "/run/app.js"]
 ```
 
-This file define a container using [mhart/alpine-node](https://hub.docker.com/r/mhart/alpine-node/) which is only 42 MB, next line copy the content from the *builder* image. The third and fourth line expose a port and run execute our script. This container image of course need more work to be production ready but is just fine for our purposes. 
+This file define a container using [mhart/alpine-node](https://hub.docker.com/r/mhart/alpine-node/) which is only 42 MB, next line copy the content from the *builder* image. The third and fourth line expose a port and run execute our script. This container image of course need more work to be production ready but is just fine for our purposes.
 
 
 We execute the command:
@@ -157,7 +158,7 @@ oc start-build bc/builder
 Is time to test if our hard work pays off. Deploying our image is very easy we just need to locate the URL of our *runtime* image in the registry:
 
 ```sh
-oc get is 
+oc get is
 #NAME          DOCKER REPO                         TAGS      UPDATED
 #runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago
 ```
