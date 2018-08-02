@@ -1,13 +1,13 @@
 ---
-title: "5 ways to build software in Openshift"
+title: "4 Ways to Build Applications in Openshift"
 date: 2018-07-28T19:24:19+01:00
 lastmod: 2018-07-28T19:24:19+01:00
 draft: false
 keywords: []
-description: "In this article we are going to review the multiple ways to build an applications in Openshift. All this examples where done using [Openshift.io](https://manage.openshift.com/) which is a playground to practice."
+description: "If you are migrating legacy applications or creating a automatic build system, Openshift BuildConfig offers you various choices to help you with that job."
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true 
-tags: []
+tags: [openshift, buildconfig]
 categories: []
 author: ""
 
@@ -15,7 +15,7 @@ author: ""
 # P.S. comment can only be closed
 comment: true
 toc: true
-autoCollapseToc: false
+autoCollapseToc: true
 # You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
 contentCopyright: false
 reward: false
@@ -24,88 +24,50 @@ mathjax: false
 
 <!--more-->
 
-In this article we are going to review the multiple ways to build an applications in Openshift. All this examples where done using [Openshift.io](https://manage.openshift.com/) which is a playground to practice.
+One of the good things about Openshift is how easy is to getting started, you go to the web console and as soon as you arrive to the landing page you are received with a catalog of choices that includes programming languages, frameworks, databases, combinations of db+language, etc. With two or three clicks your are ready to deploy your application. But after few days of usage you start wondering -- How to migrate my legacy applications ? How to migrate that no longer supported JDK 1.5 application ?  How easy is to adapt my current build systems ? To solve this problems comes the BuildConfig to the rescue.   
 
+But before we start talking about the BuildConfig, to make the most of this post make sure you get introduced to the basics by reading this [getting started guide](https://github.com/cesarvr/Openshift), that would help you get up and running in case you don't understand a particular concept. 
 
-# Beginners
-
-To deploy applications using this methods you basically don't need to much about Openshift objects --service, pod, router, etc. If you want to get started this is the best way.
-
-## Console
-
-The easiest way to deploy your application is to go to the dashboard and just choose a template from the catalog:
-
-![deploying nodejs applications](https://github.com/cesarvr/Openshift/raw/master/assets/new-app-nodejs.gif?raw=true)
-
-
-
-## Using new-app  
-
-The method we use above has a command like equivalent called ```new-app```. In this example we are going to create an Node.js application using the nodejs image from the catalog and this [git repository](https://github.com/cesarvr/hello-world-nodejs).
-
-```sh
- oc new-app --name node-app nodejs~https://github.com/cesarvr/hello-world-nodejs
-```
-
-This command will create the same components as the openshift console with the omission of the router object, this need be created manually by calling ```oc expose```.    
-
-```
-oc expose svc <name-of-the-service>
-```
-
-![new-app](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/oc-deploy.gif?raw=true)
-
-
-Every time you write this two command Openshift will generate all the necessary objects to deploy your container and start directing to them, but there is a small inconvenience if you want to remove all the created objects let said you made a mistake you need to delete those one by one. But we are lucky that all the created objects share the same label, here is the command to clean those objects.    
-
-```sh
- oc delete all -l app=node-app # this delete all the objects with label node-app
-```
-
-This command is a bit long and difficult to remember. What I do is to create a shell function inside my ```.bashrc``` or ```.zshrc``` like this one:    
-
-```sh
- function rm-app {
-   oc delete all -l app=$1
- }
-
- # The I called we can do this:
- source ~/.bashrc # or ~/.zshrc if your are using zsh
- rm-app node-app
-
- # deploymentconfig "node-app" deleted
- # buildconfig "node-app" deleted
- # imagestream "node-app" deleted
- # route "node-app" deleted
- # service "node-app" deleted
- #
-```
-
-> *When to use this?* This the best way to start. Then I would recommend to get little by little more ambitious with learning how this objects works because it will payoff big time when you start to get interested in more sophisticated configurations.
-
-# Intermediate - Advance
-
-Before reading this section make sure you dominate some of the basic concepts, if you want you can go through this [introduction](https://github.com/cesarvr/Openshift) guide. Which will help you understand the basic component of a typical application in Kubernetes/Openshift.
+To follow this guide you just need a Openshift installation or you can access [Openshift.io](https://manage.openshift.com/) (I run my examples there so it should be fine) for free. Also you have other alternatives like [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) or if you prefer a Virtual Machine you can use [Minishift](https://github.com/minishift/minishift).
 
 ## Build configuration
 
- The first way we are going to try is to create a builder configuration object, this object is divide in two parts a builder image using [source to image](https://github.com/openshift/source-to-image) and source strategy which can be an git URL, binary or Docker configuration file.
+The *BuildConfig* is as an abstraction to handle your application construction process, this component is divided in two parts a builder image and source strategy:
 
- To create the build configuration is easy we just need to write this command:
+- **Builder Image** A builder image is a *special* type of image/container provided by Openshift which include the build tools (gradle, maven, npm, pip, etc.), [scripts](https://github.com/openshift/source-to-image) to automatise build process and execution tools (node, python, jvm, etc.).   
+  - Each programming language or framework require a specific builder image, if we use Node.js for example we should use the *nodejs* builder image, this builder image include everything necessary to build a Node.js application.     
+  - To check the available builder images in your Openshift installation you can run: 
 
- ```sh
-oc new-build
- ```
+```sh
+# delete this < | awk '{ print $1 }' > for more information. 
+oc get is -n openshift | awk '{ print $1 }'
 
-## Git Repository
+NAME
+…
+mysql
+nodejs
+wildfly
+…
+```
 
-Let's create a build that use a git URL as source strategy, the command is very similar to ```new-app```.
+- **Source Strategy**  Here we define the content of our builder image, they are three types of sources available: 
+  - **Source code** We provide a git repository to the BuildConfig. 
+  - **Binary**  jar/war file, scripts or executable (the builder image provide the execution context). 
+  - **Dockerfile** We defined and build the image ourselves.    
+
+Once you trigger a BuildConfig object, the builder image will take care of building your code, once your code is build into an ready to execute application the BuildConfig push the image into the registry.  
+
+
+## 1 Source Code  
+
+This source strategy is the most common one, because is basically the one used by default when you create an application using the catalog. The objective of this approach is, in simple terms, to pull your code from some git repository and give you back an immutable image. 
 
 ```
 oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
 ```
 
-This command will create a build and [image streams](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#image-streams) object. It works in this way, first the build object creates the image using [source to image](https://github.com/openshift/source-to-image) and then it push this image to the [image streams](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#image-streams) object that basically is like a high level abstraction of a container image registry. Is easier to think about the registry as a image database where you can push and pull images from there.  
+First parameter is the builder image, we are using *nodejs* then separated by ```~``` we pass the [git repository](https://github.com/cesarvr/hello-world-nodejs) and finally we choose a name for our build configuration *node-build*.
+
 
 ```
 # The builder configuration.
@@ -114,30 +76,38 @@ oc get bc
 # output
 NAME         TYPE      FROM         LATEST
 node-build   Source    Git          1
-
-
-# The created image stream.
-oc get is
-
-# output
-NAME         DOCKER REPO                                           TAGS      UPDATED
-node-build   docker-registry.default.svc:5000/hello01/node-build   latest    9 minutes ago
 ```
 
-To run this build you we just need to execute this command:
+After we execute the command a BuildConfig is created but nothing has happened yet, for the build process to start we need to trigger the build by executing:  
 
 ```
 oc start-build node-build --follow
+
+build "node-build-1" started … 
+```
+### How it works 
+
+The BuildConfig instantiate a builder image (```nodejs``` in this case) and set the git URL as an environment variable, then the scripts inside this image take control and pull the code and execute ```npm install``` and push an image (code+dependencies) into Openshift private registry.    
+
+You can find the destination of the produced image by typing: 
+
+```
+oc get is node-build   
+
+NAME          DOCKER REPO                                            TAGS      UPDATED
+node-build    docker-registry.default.svc:5000/hello01/node-build    latest    11 minutes ago 
 ```
 
-As soon as our build finish it store our image with our code ready to deploy into the registry and our image stream is tracking its URL ```docker-registry.default.svc:5000/hello01/node-build```.
+Where ```docker-registry.default.svc:5000/``` is the server, ```hello01``` is the namespace/project and ```node-build``` is your image.
 
 
-> *When to use this?* If you to take your code directly from the git repo and transform it into a immutable image ready to deploy this is the way to go.
+> *When to use this?* If your your project build setup is compatible with any of the builder images of the catalog or the cost of adapting your project to any of this images seems reasonable, then you should definitely use this option.
 
-## Binary
+One last observations is that builder images are opinionated about the way they build software. If you want to take advantage of the automatic build features they provide your project need to comply with the build rules. Example: To run the Node.js application the [package.json](https://github.com/cesarvr/hello-world-nodejs/blob/master/package.json#L7) need to implement the *start* script, If you are using Java you need a *pom.xml* to generate a war/jar with certain properties, etc. 
 
-This type of build configuration works without git repository at all, it just wait for us to provide the binary or if we are using an interpreted language we should provide the script.
+## 2 Binary
+
+This strategy delegates the build process to you, but still provide you with the option of using the images of the catalog for execution: 
 
 First let create the build configuration:
 
@@ -145,7 +115,7 @@ First let create the build configuration:
  oc new-build nodejs --name node-binary --binary=true
 ```
 
-Very similar to the one above but notice the lack of git repository and the addition of ```binary=true```, this tell our image to wait until we provide the source. Also, as we see before, this command creates an image stream and build config.
+Very similar to the one we use for source code but notice however the lack of git repository and the addition of ```binary=true```, this tell our image that we are just interested in the tools for running our application. 
 
 ```
 # The builder configuration.
@@ -154,48 +124,41 @@ oc get bc
 # output
 NAME         TYPE      FROM         LATEST
 node-binary   Source    Binary       0
-
-# The created image stream.
-oc get is
-
-# output
-NAME         DOCKER REPO                                           TAGS      UPDATED
-node-binary   docker-registry.default.svc:5000/hello01/node-binary
 ```
 
-As we mention before this method require that we provide the binary, so let first clone that repository manually:
+Now as we said before we need to handle the construction of our application externally:
 
 ```
 git clone https://github.com/cesarvr/hello-world-nodejs
 cd cesarvr/hello-world-nodejs
+npm install  # install the depedencies. 
 ```
 
-Now we are inside our folder where our scripts are we need to push the content to the build.
+After executing ```npm install``` our application is ready to run. Next step then is to push the content of our folder to the BuildConfig:    
 
 ```
 oc start-build node-binary --from-dir=.
 Uploading directory "." as binary input for the build ...
 ```
-This command will push your scripts into the build config process and it will trigger, think of it like a replacement of the ```git clone``` command in the usual build process.
+This command will push your scripts into the build configuration object and trigger the build process jumping all the building steps and just creating our image. 
 
- If Java is your thing the steps are almost the same but you would be interested in the ```.jar``` file. You should use ``` --from-file= ``` instead and of course, the build image should be Java compatible:
+If you are a Java developer, you need to choose the appropriate builder image (wildfly, jboss or redhat-openjdk18), use ```--from-file``` instead of ```--from-dir``` and pass your *jar/pom.xml*.
 
  ```
  # Pushing jar binary
  oc start-build java-binary-build --from-file=root.jar
 
- # Pushing pom.xml
+ # or Pushing pom.xml
  oc start-build java-binary-build --from-file=pom.xml
  ```
 
- Everything should work the same as our example above, only different is that may take more time.
+ Everything should work the same as our example above, only difference is that might take more time to boot up.
 
-> *When to use this?* This type of builds are great when you are using our going to use an alternative mechanism to build the binary. Typical situation are working in a established or legacy Jenkins configuration outside of Openshift that generates the binary. Then this type of build config is for you.
+> *When to use this?* If you have a legacy build system/framework in place that is not compatible with any builder image, example: Wildfly only supports Maven and my team is using Gradle. What I would do in that case is to generate my binary as usual and then use this strategy to create my final image.  
 
+## 3 Dockerfile
 
-## Dockerfile
-
-This way of creating a build config expects a Dockerfile to build our image, which mean there is not involvement of [source to image](https://github.com/openshift/source-to-image).
+This way you take care of the build process and image creation but we want to delegate it's construction to the BuildConfig, this way it can grab the base image from our private/corporate repository. This method require us to define a Dockerfile and delegate it's construction to the BuildConfig.
 
 Let's define our Dockerfile, I'll call it [build.Dockerfile](https://gist.github.com/cesarvr/fac37fa7825f5ad7a576801fed07d0c8).
 
@@ -209,95 +172,48 @@ CMD ["node", "/run/app.js"]
 Next we need to call to our ```oc new-build``` command like this:
 
 ```sh
- cat build.Dockerfile | oc new-build --name node-docker --dockerfile='-'
+ cat build.Dockerfile | oc new-build --name node-container --dockerfile='-'
 ```
+
+The first section we pipe the content of the file to our ```oc new-build``` command, this works because we added ```--dockerfile='-'``` that `-` there, tell the command to read from [standard input](https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)). This command requires that the files we want to work with (```COPY``` in this case) to exist in the folder where we made the call to ```oc new-build``` command, otherwise it won't work. 
+
+
+> Sadly Docker strategy is disable in Openshift.io, but good news is you can still practice by using [oc cluster up](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) or [minishift](https://github.com/minishift/minishift). 
 
 To trigger the build:
 
 ```sh
-oc start-build node-docker
+oc start-build node-container
 ```
 
-> *When to use this?*  We should use this type when we are working with a legacy pipeline that create containers as the delivery medium for the application. You can use this in the mean time while you plan a proper migration to source to image as a way to create images.
+When you run this the container will be build according to our specifications in the *.Dockerfile*.  
 
+> *When to use this?*  You should use this method when working with a runtime not supported by any builder image available (e.g., EJB 1.0, JDK 1.4, etc.). 
 
+## 4 Importing Images
 
-# Deploy
+This one not using a BuildConfig but I just included because is another option and can be useful in desperate circumstances. If you are creating your own images and pushing it to an external/internal registry then you can deploy this images in Openshift. You can do this by creating an image stream object.    
 
-Now that we got our 3 alternatives git based, binary and docker file then next step is to deploy our code so they can start receiving traffic. I'll choose the ```node-binary``` build but this steps can be reuse for the other two build config.
-
-```sh
-oc get is
-
-NAME          DOCKER REPO                                            TAGS      UPDATED
-node-binary   docker-registry.default.svc:5000/hello01/node-binary   latest    27 minutes ago
-```
-
-Having the address of our image, now we just simply call:
-
-```sh
-oc create dc hello-ms --image=172.30.1.1:5000/hello/runtime
-```
-
-Now that we create our deployment object, we now need to send some traffic to our application. Before start sending traffic we need to identify by looking up is label.
-
-```sh
-oc get dc hello-ms -o json | grep labels -A 3
-# returns
-"labels": {
-            "deployment-config.name": "hello-ms"
-          }
-```
-
-Now let create a service and send some traffic directed to this label:
-
-
-```sh
-oc create service loadbalancer  hello-ms --tcp=80:8080
-# service "hello-ms" created
-
-# edit the service object
-  oc edit svc hello-ms -o yaml
-```
-
-This will open the service object in yaml format in edit mode, we need to locate the *selector* and replace with the label of our deployment object.
-
-From this:
-
-```yml
-selector:
-  app: hello-ms
-```
-
-To this:
-
-```yml
-selector:
- deployment-config.name: hello-ms
-```
-
-We can do this the other way around, at the end is just a matter of taste. Next we need to expose our service:
+Importing an image inside your cluster is easy:
 
 ```
-oc expose svc hello-ms
-# route "hello-ms" exposed
+oc import-image microservice:latest --from=your-docker-registry.io/project-name/cutting-edge:latest --confirm
+```   
 
-oc get route
-NAME       HOST/PORT                                                   PATH      SERVICES     PORT          
-hello-ms   hello-ms-hello01.7e14.starter-us-west-2.openshiftapps.com              hello-ms   80-8080                
+This command creates the image stream pointing to your image. To check the object state you just need to write this command:  
+```
+oc get is 
+ 
+ Name                   Docker Repo                                  TAG           …
+ microservice   your-docker-registry.io/hello01/cutting-edge:latest   latest    12 seconds ago
 ```
 
-Now know the URL we can confidently make a ```curl``` to that address:  
-
-
-```
-curl hello-ms-hello.127.0.0.1.nip.io
-Hello World%
-```
-
-If my pod are not in sleeping (remember is a demo instance). You can access them using this [URL](hello-ms-hello01.7e14.starter-us-west-2.openshiftapps.com).
+> *When to use this?*  If you have legacy applications running in containers and they are stored in an external registry like Nexus, then you can use this method to deploy your applications. Use this way only as temporary solution or as your last choice.   
 
 
 # Wrapping Up
 
-Hope you have learn the multiple ways to build an application in Openshift. If you feel brave after this and want to learn more sophisticated ways to build software I'll recommend to read about [chaining builds](http://cesarvr.github.io/post/ocp-chainbuild/).  
+Now that you multiple ways to construct your application in the cloud using Openshift, you might want to know how to optimize those build to get the most efficient runtime container as possible. To help you with that I wrote this article on how to do [chain builds](http://cesarvr.github.io/post/ocp-chainbuild/), by chaining your builds you can divide the build process into two images one handling the build(compilers, build frameworks, etc) and the other image very small and with just the necessary for runtime.  
+
+In the next post I'm going to talk about how can create a DeploymentConfig to deploy this images streams we have created so far ([node-build](#1-source-code), [node-binary](#2-binary), [node-container](#3-dockerfile) and [import](#4-importing-images)). 
+

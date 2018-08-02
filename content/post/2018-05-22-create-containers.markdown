@@ -856,7 +856,7 @@ This was a long post, if you've read this far, I hope you have a better idea of 
 
 ### How about performance ?
 
-Yes they are just processes, you can control the how much each container consume by tweaking the cgroup rules. The major orchestrator like [Openshift](https://docs.openshift.com/enterprise/3.2/dev_guide/compute_resources.html) and [Kubernetes](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) offer an interface for this. After reading this article we should know how they achieve this trick :).   
+Yes they are just processes, you can control the how much each container consume by tweaking the cgroup rules. The major orchestrator like [Openshift](https://docs.openshift.com/enterprise/3.2/dev_guide/compute_resources.html) and [Kubernetes](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/) offer an interface for this. After reading this article you should know how they achieve this trick :).   
 
 ###  What's the difference between VM and Containers ?
 

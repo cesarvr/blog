@@ -1,6 +1,7 @@
 ---
 date: "2017-11-12T00:00:00Z"
 title: Exporting external images to Openshift
+tags: [openshift, buildconfig, imagestream]
 ---
 
 # Getting Started

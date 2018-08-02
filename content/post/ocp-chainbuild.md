@@ -53,6 +53,11 @@ Some disadvantages of having a huge image are:
 - They add more stress on the cluster network.
 - Maintenance overhead. (You may end up maintaining dependencies your are not using)  
 
+If you need more reasons for more smaller containers: 
+
+[![Smaller Containers](https://img.youtube.com/vi/wGz_cbtCiEA/0.jpg)](https://www.youtube.com/watch?v=wGz_cbtCiEA))
+
+
 # Chaining containers
 
 The strategy to solve this problem is to have two images one with the tools to build the image and a second one with the essential libraries for runtime. Let's see how much we can improve those **474M**.
