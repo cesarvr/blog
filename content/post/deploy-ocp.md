@@ -26,11 +26,12 @@ mathjax: false
 
 In this post we are going to talk about 4 BuildConfig strategies to build your software. By that I mean transform your software project from source code into an ready to deploy image.
 
-This strategies might be useful for people who look for:
-- Want to deploy new software.
-- Working with build automation system in Openshift.
-- Want to run existing software in Openshift.    
-- Your software runtime/library is not longer supported. 
+These strategies might be useful for people who look for:
+
+  * Want to deploy new software.
+  * Working with build automation system in Openshift.
+  * Want to run existing software in Openshift.    
+  * Your software runtime/library is not longer supported. 
 
 To follow this guide you just need a [Openshift installation](https://github.com/cesarvr/Openshift) or you can access [Openshift.io](https://manage.openshift.com/) (I run my examples there so it should be fine) for free. Also you have other alternatives like [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) or if you prefer a Virtual Machine you can use [Minishift](https://github.com/minishift/minishift).
 
