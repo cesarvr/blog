@@ -22,110 +22,86 @@ mathjax: false
 
 <!--more-->
 
+[We got our image created, what do we do next ?](http://cesarvr.github.io/post/deploy-ocp/) How do we automatically trigger deployments ? How do we orchestrate a security scan after an image is build ? [Image streams](https://docsropenshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#image-streams) is the OpenShift answer to these questions. This object observes an image in the container registry and notify other objects (BuildConfig, DeploymentConfig, etc.). 
 
-[We got our image created what next ?](http://cesarvr.github.io/post/deploy-ocp/) How do we trigger deployments when a specific image get pushed or when the image tag change ? [Image streams](https://docsropenshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#image-streams) is the Openshift answer to those existential questions, the work by listening to images changes in the registry and then notify their subscribers of this change.        
 
-Images streams objects are created in two ways by importing an image to the cluster:  
-
-```
-oc import-image microservice:latest --from=your-docker-registry.io/project-name/cutting-edge:latest --confirm
-
-# ImageStream. 
-oc get is
-
-NAME             DOCKER REPO
-microservice:latest      docker-registry.default.svc:5000/hello01/cutting-edge:latest
-```   
-
-This create a image stream called *microservice*, every time this image change (a new version is pushed), the image stream will notify any resource subscribed to it. This resource can be a Jenkins pipeline that run some security check over this image, DeployConfig that will deploy this image, another BuildConfig (see [chain build](http://cesarvr.github.io/post/ocp-chainbuild/)), etc.   
-
- 
-The other way is by creating a [BuildConfig](http://cesarvr.github.io/post/deploy-ocp/) this objects creates an image from source code and push this image to the registry, to monitor this the image an image stream is also created:  
+To illustrate how it works we can create a simple [image builder](http://cesarvr.github.io/post/deploy-ocp/) that publish images to the container registry and use an image stream to observe this container for latest changes. This command ```oc new-build``` will create these two objects.  
 
 ```
-# new BuildConfig
+   
+# creates two objects BuildConfig and ImageStream 
 oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
 
-# ImageStream. 
+# created BuildConfig
+oc get bc
+NAME          TYPE      FROM         LATEST
+node-build    Source    Git          3
+
+
+# created ImageStream (both sharing the same name). 
 oc get is
 
 NAME             DOCKER REPO
 node-build       docker-registry.default.svc:5000/hello01/node-build
 ```   
 
+If your are not familiar with this command (```oc new-build```), it just transform the source code from a git repo into an image. Inside this image the Node.js application is ready to be executed. 
 
-# Deploy
+Here we got the following dependency: 
 
-To deploy the latest images we just need to create a deployment configuration that subscribe to the image stream. I'll arbitrarily choose the ```node-binary``` build, but this steps can be reused for all the images streams we have created so far.
+```
+  Builder              Container Registry            Image Stream    
++----------+   push   +-------------------+  listen  +----------+
+ node-build    -->    ...svc:5000/hello01     <--     node-build
++----------+          +-------------------+          +----------+ 
+```
+
+
+# Deploy 
+
+Now that we have the image creation and ready for distribution let's work in the deployment. To deploy an image is very easy first we need the registry address of the image.
+
+```sh 
+oc get is 
+
+NAME             DOCKER REPO
+node-build       docker-registry.default.svc:5000/hello01/node-build
+                  ^--- this is the address.
+
+
+``` 
+
+Once we know the address we just need to create the DeploymentConfig.     
+
+```
+ oc create dc node-ms --image=docker-registry.default.svc:5000/hello01/node-build
+```
+
+ Our application should be up and running.  
+
+# Subscribing 
+
+Sadly the DeployConfig is unaware of the existence of our image stream and it won't be notified when the image change. We need to subscribe our deployment controller, we do this using the ```oc set triggers``` command. 
+
+```
+   
+
+```   
+
+
+
 
 ```sh
-oc get is
-
-NAME          DOCKER REPO                                            TAGS      UPDATED
-node-binary   docker-registry.default.svc:5000/hello01/node-binary   latest    27 minutes ago
+oc create dc hello-ms --image=docker-registry.default.svc:5000/hello01/node-build
 ```
 
-Having the address of our image, now we just simply call:
+Once we execute this command the deployment controller will grab the image and create a pod. 
 
-```sh
-oc create dc hello-ms --image=172.30.1.1:5000/hello/runtime
-```
-
-Now that we create our deployment object called ```hello-ms``` and subscribed to the ```node-binary``` image stream, we now need to send some traffic to our application. Let's find the labels of our new deployment object.
-
-```sh
-oc get dc hello-ms -o json | grep labels -A 3
-# returns
-"labels": {
-            "deployment-config.name": "hello-ms"
-          }
-```
-
-Now let create a service and send some traffic directed to objects with ```deployment-config.name: hello-ms```  label:
-
-```sh
-oc create service loadbalancer  hello-ms --tcp=80:8080
-# service "hello-ms" created
-
-# edit the service object
-  oc edit svc hello-ms -o yaml
-```
-
-This will open the service object in yaml format in edit mode, we need to locate the *selector* and replace with the label of our deployment object.
-
-From this:
-
-```yml
-selector:
-  app: hello-ms
-```
-
-To this:
-
-```yml
-selector:
- deployment-config.name: hello-ms
-```
-
-We can do this the other way around, at the end is just a matter of taste. Next we need to expose our service:
-
-```
-oc expose svc hello-ms
-# route "hello-ms" exposed
-
-oc get route
-NAME       HOST/PORT                                                   PATH      SERVICES     PORT          
-hello-ms   hello-ms-hello01.7e14.starter-us-west-2.openshiftapps.com              hello-ms   80-8080                
-```
-
-Now know the URL we can confidently make a ```curl``` to that address:  
+![deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/oc-image-stream/oc-deploy-is.gif?raw=true)
 
 
-```
-curl hello-ms-hello.127.0.0.1.nip.io
-Hello World%
-```
 
-If my pod are not in sleeping mode (remember is a demo instance). You can access it using this [URL](http://hello-ms-hello01.7e14.starter-us-west-2.openshiftapps.com/).
+
+
 
 
