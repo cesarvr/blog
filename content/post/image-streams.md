@@ -21,18 +21,17 @@ mathjax: false
 
 <!--more-->
 
-After you've learn how to build your software and package it into immutable images the next question you may ask is how you deploy it. Deployment of software in OpenShift is handled by an entity called the deployment controller.   
+In the last post we learn how to build software from source code to immutable images the next question you may ask is how you deploy this image. Deployment of software in OpenShift is handled by an entity called the deployment controller, aside from taking care of this task it also monitor the application state, making sure is always running. Let's deploy an image to see it in action.   
 
+## Creating our image
 
-## Creating our image 
-
-Let's create a image builder for a simple Node.js application: 
+Let's create a image builder for a simple Node.js application:
 
 ```
-oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build 
-``` 
+oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
+```
 
-This build published a new image in the image stream called ```node-build```, to deploy it we need to create a deployment controller pointing to its location in the registry. 
+This build published a new image in the image stream called ```node-build```, to deploy it we need to create a deployment controller pointing to its location in the registry.
 
 
 
@@ -45,7 +44,7 @@ NAME         DOCKER REPO                                           TAGS      UPD
 node-build   docker-registry.default.svc:5000/hello01/node-build   latest    4 minutes ago
 
 # create deployment controller
-oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build 
+oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build
 
 ```
 
@@ -69,14 +68,14 @@ NAME             DOCKER REPO
 node-build       docker-registry.default.svc:5000/hello01/node-build
 ```   
 
-If your are not familiar with this command (```oc new-build```), it just transform the source code from a git repo into an image. Inside this image the Node.js application is ready to be executed, when it finish then it push the image to the registry. 
+If your are not familiar with this command (```oc new-build```), it just transform the source code from a git repo into an image. Inside this image the Node.js application is ready to be executed, when it finish then it push the image to the registry.
 
 This command creates two objects (BuildConfig and Image Stream):
 
 ```
   Builder              Container Registry            Image Stream    
 +----------+   push   +-------------------+  listen  +----------+  notify
- node-build    -->    ...svc:5000/hello01     <--     node-build    ---> 
+ node-build    -->    ...svc:5000/hello01     <--     node-build    --->
 +----------+          +-------------------+          +----------+
 ```
 
@@ -114,7 +113,7 @@ The DeployConfig is unaware of the existence of our image stream it only knows a
 oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
 ```   
 
-This command subscribe *dc/node-ms* deployment to the image stream *hello01/node-build*. If the image stream detect a change it will notify our DeploymentConfig. To test this we just need to publish a new image, starting a new build will do that. 
+This command subscribe *dc/node-ms* deployment to the image stream *hello01/node-build*. If the image stream detect a change it will notify our DeploymentConfig. To test this we just need to publish a new image, starting a new build will do that.
 
 ```
 oc start-build bc/node-build --follow
