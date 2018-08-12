@@ -14,7 +14,6 @@ author: ""
 comment: false
 toc: false
 autoCollapseToc: false
-# You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
 contentCopyright: false
 reward: false
 mathjax: false
@@ -22,7 +21,34 @@ mathjax: false
 
 <!--more-->
 
-[We got our image created, How do we automatically deploy this image?](http://cesarvr.github.io/post/deploy-ocp/) Image automation in Openshift is handle by an entity called [image streams](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#image-streams), basically its job is to observe an image for state changes (like new version being push to the registry) and notify a particular object (BuildConfig, DeploymentConfig, etc.).   
+After you've learn how to build your software and package it into immutable images the next question you may ask is how you deploy it. Deployment of software in OpenShift is handled by an entity called the deployment controller.   
+
+
+## Creating our image 
+
+Let's create a image builder for a simple Node.js application: 
+
+```
+oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build 
+``` 
+
+This build published a new image in the image stream called ```node-build```, to deploy it we need to create a deployment controller pointing to its location in the registry. 
+
+
+
+
+```
+# the location is in DOCKER REPO   
+oc get is
+
+NAME         DOCKER REPO                                           TAGS      UPDATED
+node-build   docker-registry.default.svc:5000/hello01/node-build   latest    4 minutes ago
+
+# create deployment controller
+oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build 
+
+```
+
 
 To illustrate how it works, we can create a simple [image builder](http://cesarvr.github.io/post/deploy-ocp/) that build and publish images to the image registry. Then we create an image stream that keep track of that image updates. This command ```oc new-build``` will create these two objects.  
 
