@@ -21,15 +21,15 @@ mathjax: false
 
 <!--more-->
 
-In the last post we learn how to build software from source code to immutable images the next question you may ask is how you deploy this image. Deployment of software in OpenShift is handled by an entity called the deployment controller, aside from taking care of this task it also monitor the application state, making sure is always running. Let's deploy an image to see it in action.   
+In the last post we learn how to build software from source code to immutable images, the next question you may ask is how you deploy this images. To deploy images Openshift use an entity called the deployment controller, which no only deploy applications using images from the registry, but also it make sure that those applications are always available.
 
-Let's deploy a simple Node.js application:
+Let's explore how it works by deploying a simple Node.js application:
 
 ```
 oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
 ```
 
-This builder creates and publish a new image in the image stream with the same name (*node-build*). To deploy it, we have to create a deployment controller pointing to its location in the registry.
+This command will build our code and creates an image then it push this image to the registry. Next step is to create the deployment controller to execute our application.   
 
 ```
 oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build
@@ -41,37 +41,76 @@ NAME                  READY     STATUS      RESTARTS   AGE
 node-server-1-pdjkc   1/1       Running     0          14m
 ```
 
-Our pod is up and running and ready to handle traffic. But this method is not very scalable, What do I mean by that ? Every time we change our code we need to perform the same commands. In reality is only two commands we just need to trigger both objects BuildConfig and DeployConfig. Another option is to use some kind of watch, that every two seconds it call a script to update the state of our deployment with the latest changes from the git repository. That approach is not that bad, but there is a better way to do this.
+Now our application is ready to handle some traffic.
 
-The first step to automate this is to automate our BuildConfig, we are going to use a Webhook. Webhook is just a call/protocol that some git repository providers like Github, Bitbucket, etc. Used to notify third parties of any change in your repository/branch.
 
-I'm going to use for this example the Github Webhook. First step is to get the token and URL:  
+# Automating
 
-- Token
+By now we understand how the build and deployment stage are handled in OpenShift, but there is a small problem our current configuration is not automatic. if you update the image by running a new build:
 
 ```
-# getting the secret token
+oc start-build bc/node-build --follow
+```
+
+It won't get deployed automatically. We need to look for a way to listen for a particular image changes and everytime it changes notify the deployment controller.
+
+That's basically the main duty of the image streams. Every time we run ``` oc new-build ...``` an image stream is created to observe the state of the image and notify subscribers. We just need to subscribe our deployment controller.   
+
+To get the image stream associated to our build we just need to execute ```oc get is```:
+
+```sh
+oc get is
+
+NAME             DOCKER REPO
+node-build       docker-registry.default.svc:5000/hello01/node-build
+```
+
+As you might see it share the same name with the BuildConfig, we just need to subscribe our deployment controller using ```oc set trigger```:
+
+```
+oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
+```  
+
+First parameter is the DeploymentConfig, second paramter is the image stream and the third is the name of the container, this because pods can run more that one container inside. Let's take a look at the final result.
+
+
+![automatic deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true)
+
+
+
+## Webhooks
+I'm cannot call this thing automatic, if for every new push I need to get outside of my IDE and execute the build my self. The ideal scenario is to push new code and automatically deploy it. To achieve this we are going to setup a Webhook.
+
+Webhook to those who don't know, is just a notification protocol implemented by some of the popular git repos providers like GitHub, Bitbucket, VST, etc. BuildConfig implement two types of webhook endpoints one generic the other more specific for Github. For this post we are going to use Github.  
+
+Keep in mind before integrating with any Webhook is that we just need to make sure our OpenShift instance is accessible. To setup the Webhook we need to provide and endpoint, we get this by following this steps:  
+
+- To get the endpoint URL.
+
+```
+oc describe bc node-build | grep Webhook -A 1
+Webhook GitHub:
+       URL:    https://<openshift-instance>/apis/build/v1/namespaces/hello01/buildconfigs/node-build/webhooks/<secret>/github
+Webhook Generic:
+       URL:            https://<openshift-instance>/apis/build/v1/namespaces/hello01/buildconfigs/node-build/webhooks/<secret>/generic
+```
+
+- Now we need to replace the *<secret>* part with this information.
+
+```
+# getting the secret token for GitHub
 oc get bc node-build -o yaml | grep github: -A 2
 
  - github:
      secret: <some-alpha-numeric-token>
    type: GitHub
+
+# If you want the token to setup a Generic webhook then...
+oc get bc node-build -o yaml | grep generic: -A 2
+....
 ```
 
-> Just small note, the token is base64 so it can include symbols that are misleading. To avoid confutions copy everything from between the space.
-
-- URL, Here there is two types of Endpoints generic and GitHub, we are going to use Github.
-
-```
-oc describe bc node-build | grep Webhook -A 2
-Webhook Generic:
-       URL:            <URL-OpenShift-Endpoint>/webhooks/<secret>/generic
-       AllowEnv:       false
-Webhook GitHub:
-       URL:            <URL-OpenShift-Endpoint>/webhooks/<secret>/github
-```
-
-This information is available in OpenShift Web Console, you need to navigate to the section Project/Builds/Builds, then in the configuration tab.
+This information is also available in OpenShift Web Console, you need to navigate to the section Project/Builds/Builds, then in the configuration tab.
 
 ![build-webhook-ui]()
 
@@ -94,94 +133,8 @@ If you want to try this yourself just [fork this project](https://github.com/ces
 
 
 
-Now our build is automatically triggered everytime we make a change,
+Now our build is automatically triggered everytime we make a change.
 
 
-
-
-```
-# the location is in DOCKER REPO   
-oc get is
-
-NAME         DOCKER REPO                                           TAGS      UPDATED
-node-build   docker-registry.default.svc:5000/hello01/node-build   latest    4 minutes ago
-
-# create deployment controller
-oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build
-
-```
-
-
-To illustrate how it works, we can create a simple [image builder](http://cesarvr.github.io/post/deploy-ocp/) that build and publish images to the image registry. Then we create an image stream that keep track of that image updates. This command ```oc new-build``` will create these two objects.  
-
-```
-# creates two objects BuildConfig and ImageStream
-oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
-
-# created BuildConfig
-oc get bc
-NAME          TYPE      FROM         LATEST
-node-build    Source    Git          3
-
-
-# created ImageStream (both sharing the same name).
-oc get is
-
-NAME             DOCKER REPO
-node-build       docker-registry.default.svc:5000/hello01/node-build
-```   
-
-If your are not familiar with this command (```oc new-build```), it just transform the source code from a git repo into an image. Inside this image the Node.js application is ready to be executed, when it finish then it push the image to the registry.
-
-This command creates two objects (BuildConfig and Image Stream):
-
-```
-  Builder              Container Registry            Image Stream    
-+----------+   push   +-------------------+  listen  +----------+  notify
- node-build    -->    ...svc:5000/hello01     <--     node-build    --->
-+----------+          +-------------------+          +----------+
-```
-
-
-# Deploy
-
-Now that we have our image ready, we want to deploy this image in some node. To deploy an image is very easy first we just need the registry address of the image.
-
-```sh
-oc get is
-
-NAME             DOCKER REPO
-node-build       docker-registry.default.svc:5000/hello01/node-build
-                  ^--- this is the address.
-
-
-```
-
-Once we know the address we just need to create the DeploymentConfig.     
-
-```
- oc create dc node-ms --image=docker-registry.default.svc:5000/hello01/node-build
-```
-
-Our application should be up and running.  
-
-![deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/oc-image-stream/oc-deploy-is.gif?raw=true)
-
-
-# Subscribing
-
-The DeployConfig is unaware of the existence of our image stream it only knows about the image we setup. We need to subscribe our deployment controller using the ```oc set triggers``` command.
-
-```
-oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
-```   
-
-This command subscribe *dc/node-ms* deployment to the image stream *hello01/node-build*. If the image stream detect a change it will notify our DeploymentConfig. To test this we just need to publish a new image, starting a new build will do that.
-
-```
-oc start-build bc/node-build --follow
-```   
-
-![automatic deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true)
 
 We've so far use image stream to automatically deploy our images into a pod, but they are other use cases like triggering BuildConfig's (We can use the [contents of an image to create another image](https://cesarvr.github.io/post/ocp-chainbuild/)) or we can trigger a Jenkin's task that check the container for vulnerabilities, valid signature, etc.
