@@ -21,9 +21,9 @@ mathjax: false
 
 <!--more-->
 
-In the last post we learn how to build software from source code to immutable images, the next question you may ask is how you deploy this images. To deploy images Openshift use an entity called the deployment controller, which no only deploy applications using images from the registry, but also it make sure that those applications are always available.
+In the last post we learn how to build software starting from source code to producing immutable images, the next question is how you deploy this images. To deploy images OpenShift we need to create something called deployment controller, which no only deploy applications from images, but also make sure that those applications are always running.
 
-Let's explore how it works by deploying a simple Node.js application:
+Let's explore how this works by deploying a simple Node.js application. Before we deploy we need to build and package our application:
 
 ```
 oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
@@ -46,15 +46,10 @@ Now our application is ready to handle some traffic.
 
 # Automating
 
-By now we understand how the build and deployment stage are handled in OpenShift, but there is a small problem our current configuration is not automatic. if you update the image by running a new build:
+By now we understand how the build and deployment stage are handled in OpenShift, but there is a problem, all this steps aren't automatic yet, if you trigger a new build our application will be updated but we are still need to deploy the image ourselves.  
+We need to implement a way to observe the image state in the registry and trigger the deployment automatically when the image is updated, we can do this by running some shell script, that scan the registry every few seconds but that is not so elegant. For this type of problem OpenShift have something called image streams. 
 
-```
-oc start-build bc/node-build --follow
-```
-
-It won't get deployed automatically. We need to look for a way to listen for a particular image changes and everytime it changes notify the deployment controller.
-
-That's basically the main duty of the image streams. Every time we run ``` oc new-build ...``` an image stream is created to observe the state of the image and notify subscribers. We just need to subscribe our deployment controller.   
+Every time we run ``` oc new-build ...```, an image stream is created to observe the image for updates and notify its subscribers. To deploy the new version of the image we just need to subscribe our deployment controller to this image stream.   
 
 To get the image stream associated to our build we just need to execute ```oc get is```:
 
@@ -65,13 +60,13 @@ NAME             DOCKER REPO
 node-build       docker-registry.default.svc:5000/hello01/node-build
 ```
 
-As you might see it share the same name with the BuildConfig, we just need to subscribe our deployment controller using ```oc set trigger```:
+We see here that it share the same name with the BuildConfig, we just need to subscribe our deployment controller using ```oc set trigger```:
 
 ```
 oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
 ```  
 
-First parameter is the DeploymentConfig, second paramter is the image stream and the third is the name of the container, this because pods can run more that one container inside. Let's take a look at the final result.
+First parameter is the DeploymentConfig, second paramter is the image stream and the third is the name of the container **default-container** is the name by default. Let's take a look at the final result.
 
 
 ![automatic deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true)
@@ -79,9 +74,14 @@ First parameter is the DeploymentConfig, second paramter is the image stream and
 
 
 ## Webhooks
-I'm cannot call this thing automatic, if for every new push I need to get outside of my IDE and execute the build my self. The ideal scenario is to push new code and automatically deploy it. To achieve this we are going to setup a Webhook.
 
-Webhook to those who don't know, is just a notification protocol implemented by some of the popular git repos providers like GitHub, Bitbucket, VST, etc. BuildConfig implement two types of webhook endpoints one generic the other more specific for Github. For this post we are going to use Github.  
+That was a good step towards automation, we've reduce the amount of command to just one. We still need to do ```oc start-build``` to trigger the build.
+
+In this section we are going to discuss how to eliminated that step and go to a flow where we push our code and we just need to wait until it gets deployed. 
+
+Webhook to those who don't know, is just a notification protocol implemented by some of the popular git providers like GitHub, Bitbucket, VST, etc. BuildConfig implement two types of webhook endpoints one using a generic protocol other specific for Github. In this post I'm going to use Github, as the sample project I'm using is hosted there but the instruction should work for other providers.  
+
+### Before we start
 
 Keep in mind before integrating with any Webhook is that we just need to make sure our OpenShift instance is accessible. To setup the Webhook we need to provide and endpoint, we get this by following this steps:  
 
@@ -115,26 +115,23 @@ This information is also available in OpenShift Web Console, you need to navigat
 ![build-webhook-ui]()
 
 
-## GitHub Webhook Config
+### Setting up our project
 
-Also for this to work you should use the OpenShift.io or your Openshift instance should be accessible from the Webhook client.
 
 ![webhook-github]()
 
-If you want to try this yourself just [fork this project](https://github.com/cesarvr/hello-world-nodejs). Now that we got the information we need let's configure the Webhook in Github. You need to go to your project -> Settings -> WebHooks and you need to put this configuration.
+If you want to practice just [fork this project](https://github.com/cesarvr/hello-world-nodejs), once you got it and you have the endpoint URL, we need to configure our Github project by navigating to Settings -> WebHooks: 
 
 - Payload URL: You need to put here the URL of your BuildConfig Webhook ```oc describe bc node-build | grep Webhook -A 2```  ```<URL-OpenShift-Endpoint>/webhooks/<put-your-secret-here>/generic```
 - Content-type: **Application/JSON**
-- Secret: <some-alpha-numeric-token> You can get this by doing ```oc get bc node-build -o yaml | grep github: -A 2 ```, copy the base64 secret content.
+- Secret: <some-alpha-numeric-token> as mentioned above, you get this by running ```oc get bc node-build -o yaml | grep github: -A 2 ```.
 - Which Event: You can configure here what type of events you want(push, delete branch, etc.) I'll choose **Just the push event**.
 - Active: should be checked.
 
 ![webhook-delivery]()
 
 
-
 Now our build is automatically triggered everytime we make a change.
-
 
 
 We've so far use image stream to automatically deploy our images into a pod, but they are other use cases like triggering BuildConfig's (We can use the [contents of an image to create another image](https://cesarvr.github.io/post/ocp-chainbuild/)) or we can trigger a Jenkin's task that check the container for vulnerabilities, valid signature, etc.
