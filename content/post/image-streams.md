@@ -1,10 +1,10 @@
 ---
-title: "How to work with ImageStreams"
+title: "Automate your application deployments in OpenShift."
 date: 2018-07-31T10:05:23+01:00
 lastmod: 2018-07-31T10:05:23+01:00
 draft: false
 keywords: []
-description: ""
+description: "How to automate your deployments with Webhooks and ImageStreams in OpenShift."
 tags: [openshift, imagestream]
 categories: []
 author: ""
@@ -134,4 +134,4 @@ If you want to practice just [fork this project](https://github.com/cesarvr/hell
 Now our build is automatically triggered everytime we make a change.
 
 
-We've so far use image stream to automatically deploy our images into a pod, but they are other use cases like triggering BuildConfig's (We can use the [contents of an image to create another image](https://cesarvr.github.io/post/ocp-chainbuild/)) or we can trigger a Jenkin's task that check the container for vulnerabilities, valid signature, etc.
+Once you are here you can just forget about OpenShift existence and just work on your features, and the you can take smaller steps toward automating the testing of this deployments. Also you can think of way to use image streams to trigger Jenkins pipeline to check the image quality/security. Those are some of the ideas to fully take advantage of the image streams.     
