@@ -1,3 +1,3 @@
 git add .
-git commit -m "update $(date)"
+git commit -m " - updating blog  time: ${time} date: ${date}"
 git push origin master
