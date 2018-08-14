@@ -21,9 +21,9 @@ mathjax: false
 
 <!--more-->
 
-An image is just a convenient way to store information, when you deploy an image it basically means to copy the content of this package (the image) inside a Linux container. OpenShift go a extra mile by creating the container in a remote location (a computer inside the cluster), making sure the number of containers specify by the user are up and running and making this happens in the right order. The part of OpenShift in charge of this task and is called the DeploymentConfig.      
+An image is just a convenient way to store information, deploying an image is to copy the content of this package (the image) inside a Linux container. OpenShift go a extra mile by creating the container inside one or more computers inside your cluster it, also make sure the number of containers specify by the user are up and running and it make this happens in an specific order. The part of OpenShift in charge of this task is called the DeploymentConfig.      
 
-Let's explore how this works by deploying a simple Node.js application. Before we deploy we need to build and seal our software inside an image using ```oc new-build```:
+Let's explore DeploymentConfig works by deploying a simple Node.js application. Before we start, we need to build and store our software inside an image using ```oc new-build```:
 
 ```
 oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs --name node-build
@@ -34,7 +34,7 @@ NAME         DOCKER REPO                                          TAGS
 node-build   docker-registry.default.svc:5000/hello01/node-build  latest
 ```
 
-Our software has been prepared (or compiled if your are using other programming languages) and stored in the image ```hello01/node-build```, where *hello01* is my project or name space and *node-build* is the image name. Now that we have an image, we just need to create a DeploymentConfig to handle how this image will transition to a container inside our cluster.  
+By now we got our image ```hello01/node-build```, where *hello01* is my project or name space and *node-build* is the image name. Next step is to create a DeploymentConfig to handle the container creation.  
 
 ```
 oc create dc node-server --image=docker-registry.default.svc:5000/hello01/node-build
@@ -46,9 +46,7 @@ NAME                  READY     STATUS      RESTARTS   AGE
 node-server-1-pdjkc   1/1       Running     0           1m
 ```
 
-Our image has been deployed into a container inside a pod, think of pod like as set of one or many containers and they role is to enforce common rules between them and make them look like a single entity.
-
-We can check the state of our DeploymentConfig by running:
+Our container is up and running inside a pod. A pod is like as set of one or many containers and they role is to make them look like a single entity. Now that we've our application running, let check our Deployment config state.
 
 ```
 oc get dc
@@ -57,60 +55,35 @@ NAME          REVISION   DESIRED   CURRENT   TRIGGERED BY
 node-server   1          1         1         config
 ```
 
-And we can update and deploy a new image by doing:
+One of the main responsabilities of the DeploymentConfig is to check that the *DESIRED* number of containers match the *CURRENT* numbers of containers running in your cluster. Another responsability is to rollout new version of images.  
 
 ```
 # start a new build, pull our code, build, new image, etc...
 oc start-build node-build --follow
-build "node-build-2" started
+# build "node-build-2" started
+# ...
 
 
 # ... after the new image is pushed to the registry.
 oc rollout latest node-server  
 ```
 
-Two commands only and we got our code running in a node (a computer inside a cluster), but we can automate this.
+This two commands are enough to update your application, you can automate this by encapsulating this two command inside a script, if you are working alone that would be enough but, it won't scale well for bigger teams as you may need to organice better your releases.  
+
 
 # Automating
 
-By now we understand how the build and deployment stage are handled in OpenShift, but there is a problem, all this steps aren't automatic yet, if you trigger a new build our application will be updated but we still need to deploy the image ourselves by calling.  
-We need to implement a way to observe the image state in the registry and trigger the deployment automatically when the image is updated, we can do this by running some shell script, that scan the registry every few seconds but that is not so elegant. For this type of problem OpenShift have something called image streams.
-
-Every time we run ``` oc new-build ...```, an image stream is created to observe the image for updates and notify its subscribers. To deploy the new version of the image we just need to subscribe our deployment controller to this image stream.   
-
-To get the image stream associated to our build we just need to execute ```oc get is```:
-
-```sh
-oc get is
-
-NAME             DOCKER REPO
-node-build       docker-registry.default.svc:5000/hello01/node-build
-```
-
-We see here that it share the same name with the BuildConfig, we just need to subscribe our deployment controller using ```oc set trigger```:
-
-```
-oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
-```  
-
-First parameter is the DeploymentConfig, second paramter is the image stream and the third is the name of the container **default-container** is the name by default. Let's take a look at the final result.
-
-
-![automatic deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true)
-
-
+We need to automate this in a way that, as a developer I never need to leave my IDE, I just want to  push my feature into the branch and in few minutes I should see the new change being deployed. Let's start by solving first the part where we push into the git repository, for that we need the git provider to somehow notify Openshit on any new push.
 
 ## Webhooks
 
-That was a good step towards automation, we've reduce the amount of command to just one. We still need to do ```oc start-build``` to trigger the build.
+Webhook are just a notification protocol implemented by some popular git providers like GitHub, Bitbucket, VST, etc. It usually work by setting up an endpoint to receive the notification and an action (that may vary depending on providers) you want to trigger this notification. The endpoint can be any service capable of handling that request like a BuildConfig, Jenkins Pipeline, etc.   
 
-In this section we are going to discuss how to eliminated that step and go to a flow where we push our code and we just need to wait until it gets deployed.
-
-Webhook to those who don't know, is just a notification protocol implemented by some of the popular git providers like GitHub, Bitbucket, VST, etc. BuildConfig implement two types of webhook endpoints one using a generic protocol other specific for Github. In this post I'm going to use Github, as the sample project I'm using is hosted there but the instruction should work for other providers.  
+The BuildConfig has Webhook endpoint's to trigger automatic builds and it comes in two flavors, one using a generic protocol other specific for Github's Webhook. In this post I'm going to use Github one because my sample project is hosted there but this instructions should work for other providers as well.  
 
 ### Before we start
 
-Keep in mind before integrating with any Webhook is that we just need to make sure our OpenShift instance is accessible. To setup the Webhook we need to provide and endpoint, we get this by following this steps:  
+Before integrating with make sure your OpenShift instance is accessible. To setup the Webhook we need to provide and endpoint, we get this by following this steps:  
 
 - To get the endpoint URL.
 
@@ -158,7 +131,41 @@ If you want to practice just [fork this project](https://github.com/cesarvr/hell
 ![webhook-delivery]()
 
 
-Now our build is automatically triggered everytime we make a change.
+Now our build is automatically triggered every time we make a change.
 
 
-Once you are here you can just forget about OpenShift existence and just work on your features, and the you can take smaller steps toward automating the testing of this deployments. Also you can think of way to use image streams to trigger Jenkins pipeline to check the image quality/security. Those are some of the ideas to fully take advantage of the image streams.     
+
+------------
+
+
+## Deployment
+
+When you run ``` oc new-build``` two objects with the same name are created, the BuildConfig as we discuss earlier build/package your application inside an image and Image Streams which handles the image address in the registry and more important they notify other objects (like DeploymentConfig's) when a new image is pushed.
+
+First we need to look for the Image Stream we are interested by looking up with ```oc get is```:
+
+```sh
+oc get is
+
+NAME             DOCKER REPO
+node-build       docker-registry.default.svc:5000/hello01/node-build
+```
+
+Once we found it, we have to subscribe our DeploymentConfig using ```oc set trigger```:
+
+```
+oc set triggers dc/node-ms --from-image=hello01/node-build:latest -c default-container
+```  
+
+First parameter is the DeploymentConfig name, second parameter is the image stream and the third is the name of the container **default-container** is the name by default. Let's take a look at the final result.
+
+
+![automatic deployment](https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true)
+
+
+
+
+
+Once get here you can just forget about OpenShift existence and just work on your features, but of course as development progress you should take smaller steps toward introducing testing of this deployments.
+
+Here are some ideas to explore with image streams, automatic triggering of Jenkins pipeline to check the image quality/security/digital signature or automating more [sophisticated builds](http://cesarvr.github.io/post/ocp-chainbuild/).
