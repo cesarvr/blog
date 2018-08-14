@@ -1,18 +1,21 @@
 ---
-title: "Automate your application deployments in OpenShift."
+title: "Automating deployments in Openshift."
 date: 2018-07-31T10:05:23+01:00
 lastmod: 2018-07-31T10:05:23+01:00
 draft: false
 keywords: []
-description: "How to automate your deployments with Webhooks and ImageStreams in OpenShift."
+description: Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift.
 tags: [openshift, imagestream]
-categories: []
+categories: [openshift, build, imagestream, webhook]
 author: ""
+images:
+  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
+
 
 # You can also close(false) or open(true) something for this content.
 # P.S. comment can only be closed
-comment: false
-toc: false
+comment: true
+toc: true
 autoCollapseToc: false
 contentCopyright: false
 reward: false
