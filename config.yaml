@@ -3,38 +3,36 @@ disablePathToLower: true
 languageCode: en-us
 title: Cesar
 theme: jane
-googleAnalytics: UA-110580110-1 
+googleAnalytics: UA-110580110-1
 disqusShortname: cesar
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true
 
 
-PygmentsCodeFences: true 
+PygmentsCodeFences: true
 PygmentsUseClasses: true
 PygmentsCodefencesGuessSyntax: true
 PygmentsOptions: linenos=table
 
-copyright: Cesar Valdez           
+copyright: Cesar Valdez
 
 menu:
   main:
   - text: writing
     name: Writing
-    link: /post 
+    link: /post
     url: /post/
-  - text: about 
+  - text: about
     name: About
-    link: /about 
+    link: /about
     url: /about/
-  - text: code 
+  - text: code
     name: Code
-    url:  https://github.com/cesarvr 
-    link: https://github.com/cesarvr 
+    url:  https://github.com/cesarvr
+    link: https://github.com/cesarvr
 
-params: 
+params:
   social:
-    c-twitter: https://twitter.com/cvaldezr 
-    e-linkedin: https://linkedin.com/in/cesarvr 
-
-
+    c-twitter: https://twitter.com/cvaldezr
+    e-linkedin: https://linkedin.com/in/cesarvr
