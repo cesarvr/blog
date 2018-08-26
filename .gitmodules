@@ -1,7 +1,6 @@
-[submodule "public"]
-	path = public
-	url = git@github.com:cesarvr/cesarvr.github.io.git
-	branch = master
 [submodule "comments"]
 	path = comments
 	url = https://github.com/cesarvr/hugo-comments
+[submodule "public"]
+	path = public
+	url = git@github.com:cesarvr/cesarvr.github.io.git
