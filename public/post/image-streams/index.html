@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en-us" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Automating deployments in Openshift. - Cesar</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="description" content="Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift." />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.48-DEV" />
+
+
+<link rel="canonical" href="/post/image-streams/" />
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+<link href="/dist/jane.min.css?v=2.7.0" rel="stylesheet">
+
+
+
+
+<meta property="og:title" content="Automating deployments in Openshift." />
+<meta property="og:description" content="Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/post/image-streams/" />
+<meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+<meta property="article:published_time" content="2018-07-31T10:05:23&#43;01:00"/>
+<meta property="article:modified_time" content="2018-07-31T10:05:23&#43;01:00"/>
+<meta itemprop="name" content="Automating deployments in Openshift.">
+<meta itemprop="description" content="Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift.">
+
+
+<meta itemprop="datePublished" content="2018-07-31T10:05:23&#43;01:00" />
+<meta itemprop="dateModified" content="2018-07-31T10:05:23&#43;01:00" />
+<meta itemprop="wordCount" content="1142">
+
+  <meta itemprop="image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true">
+
+
+
+<meta itemprop="keywords" content="openshift,imagestream," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true"/>
+
+<meta name="twitter:title" content="Automating deployments in Openshift."/>
+<meta name="twitter:description" content="Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-110580110-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">Cesar</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://github.com/cesarvr" rel="noopener" target="_blank">
+              Code
+              <i class="iconfont icon-new-window"></i>
+            </a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Writing</a>
+          
+        
+      </li>
+    
+  </ul>
+</nav>
+
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      Cesar
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="https://github.com/cesarvr" rel="noopener" target="_blank">
+              Code
+            <i class="iconfont icon-new-window"></i>
+            </a>
+          
+
+        
+
+      </li>
+    
+      <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">Writing</a>
+          
+
+        
+
+      </li>
+    
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Automating deployments in Openshift.</h1>
+      
+      <div class="post-meta">
+        <span class="post-time"> 2018-07-31 </span>
+        <div class="post-category">
+            <a href="/categories/openshift/"> openshift </a>
+            <a href="/categories/build/"> build </a>
+            <a href="/categories/imagestream/"> imagestream </a>
+            <a href="/categories/webhook/"> webhook </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#making-a-new-release">Making a new release</a></li>
+</ul></li>
+<li><a href="#automating">Automating</a>
+<ul>
+<li><a href="#webhooks">Webhooks</a>
+<ul>
+<li><a href="#before-we-start">Before we start</a></li>
+<li><a href="#setting-up-our-project">Setting up our project</a></li>
+</ul></li>
+<li><a href="#deployment">Deployment</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>When you deploy an application in Openshift, you are just copying the content of an image inside a Linux container. But OpenShift go an extra mile by creating the containers inside one or more computers in your cluster and making sure that the containers specified by the user are up and running. The piece in charge of this tasks is the DeploymentConfig.</p>
+
+<p></p>
+
+<p>Let&rsquo;s explore how DeploymentConfig works by deploying a simple Node.js application. First, we need to build our application and store the resulting executable inside an image:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">oc new-build nodejs~https://github.com/cesarvr/hello-world-nodejs <span class="se">\
+</span><span class="se"></span>    --name node-build
+
+<span class="c1">#Lookup our image
+</span><span class="c1"></span>oc get is
+
+NAME         DOCKER REPO                                          TAGS
+node-build   docker-registry.default.svc:5000/hello01/node-build  latest</code></pre></td></tr></table>
+</div>
+</div>
+<p>We have created our image and is stored in this part of the registry <code>docker-registry.default.svc:5000/hello01/node-build</code>, where <em>hello01</em> is my project or name space and <em>node-build</em> is the image name. Let&rsquo;s deploy this image by creating a DeploymentConfig.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">oc create dc node-server <span class="se">\
+</span><span class="se"></span>  --image<span class="o">=</span>docker-registry.default.svc:5000/hello01/node-build
+
+<span class="c1"># We check the status
+</span><span class="c1"></span>oc get pod
+
+NAME                  READY     STATUS      RESTARTS   AGE
+node-server-1-pdjkc   <span class="m">1</span>/1       Running     <span class="m">0</span>           1m</code></pre></td></tr></table>
+</div>
+</div>
+<p>Our container is up and running inside a pod. A pod is like as set of one or many containers and they role is to make them behave as single entity. To test that everything is running correctly</p>
+
+<h2 id="making-a-new-release">Making a new release</h2>
+
+<p>Let&rsquo;s make some changes into our program, we have at the moment something like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">).</span><span class="nx">createServer</span><span class="p">((</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+ <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span> <span class="s1">&#39;Hello World V1&#39;</span><span class="p">)</span>
+<span class="p">}).</span><span class="nx">listen</span><span class="p">(</span><span class="mi">8080</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div>
+<p>Let&rsquo;s bump the version and see how we can update this application:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-js" data-lang="js"><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">).</span><span class="nx">createServer</span><span class="p">((</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">=&gt;</span> <span class="p">{</span>
+ <span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span> <span class="s1">&#39;Hello World V2&#39;</span><span class="p">)</span>
+<span class="p">}).</span><span class="nx">listen</span><span class="p">(</span><span class="mi">8080</span><span class="p">)</span>
+</code></pre></td></tr></table>
+</div>
+</div>
+<p>First we need to build the code again, but this time we don&rsquo;t need to create everything again, we just need to trigger a build.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># start a new build, pull our code, build, new image, etc...
+</span><span class="c1"></span>oc start-build node-build --follow
+<span class="c1"># build &#34;node-build-2&#34; started
+</span><span class="c1"></span># ...</code></pre></td></tr></table>
+</div>
+</div>
+<p>Once the image is create let&rsquo;s deploy it:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># ... after the new image is pushed to the registry.
+</span><span class="c1"></span>oc rollout latest node-server  </code></pre></td></tr></table>
+</div>
+</div>
+<p>Now let check that our application is updated. To check this I won&rsquo;t create a service or router for this, I want to show you another way to comunicate with your pods using <code>oc exec</code>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1">#first we need the pod name.
+</span><span class="c1"></span>oc get pod
+node-server-2-tdhg6   <span class="m">1</span>/1       Running     <span class="m">0</span>           1m
+
+oc <span class="nb">exec</span> node-server-2-tdhg6 -- curl <span class="m">0</span>.0.0.0:8080  
+# Hello World V2</code></pre></td></tr></table>
+</div>
+</div>
+<p>A simple explanation is that <code>oc exec</code> allows you to run shell command in remote pod is like <code>docker run</code> in another computer. I just run <code>curl -s</code> against the local IP address in port 8080, which basically return the server payload. Use this command when you need to debug or do a quick check in your pods, also this is useful when you deal with Jenkins.</p>
+
+<h1 id="automating">Automating</h1>
+
+<p>With our knowledge so far, we can automate our release by merging those two command in one script, but I&rsquo;ll show you a more civilize way. I just want to push my code into the branch and in few minutes I just want see the new change being deployed, so let&rsquo;s take that flow as our goal.</p>
+
+<p>Let&rsquo;s start by solving the part where we push into the git repository, for that we need the git provider to somehow notify OpenShift on any new push.</p>
+
+<h2 id="webhooks">Webhooks</h2>
+
+<p>Webhook are just a notification protocol implemented by some popular git providers like GitHub, Bitbucket, VST, etc. It usually work by setting up an URL address where we want to send the notification and an action (that may vary depending on providers) to trigger this notification. The receiver can be any web service capable of handling that request like a BuildConfig, Jenkins Pipeline, etc.</p>
+
+<p>BuildConfig&rsquo;s has two Webhook endpoints to trigger automatic builds, one is a generic Webhook hanlder the other endpoint is specific for Github&rsquo;s Webhook. I&rsquo;m going to use Github for this because my sample project is hosted there but the instructions are the same for other providers as well.</p>
+
+<h3 id="before-we-start">Before we start</h3>
+
+<p>Before we start make sure your OpenShift instance is accessible from the internet, that means you cannot test this with <code>oc-cli</code> or minishift. One alternative is to use <a href="https://manage.openshift.com/">Openshift.io</a> account.</p>
+
+<ul>
+<li>To setup the Webhook we need to provide the receivers URL. The receiver in this case will be our BuildConfig.</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">oc describe bc node-build <span class="p">|</span> grep Webhook -A <span class="m">1</span>
+
+Webhook GitHub:
+       URL: https://&lt;OCP-big-URL&gt;/.../webhooks/&lt;secret&gt;/github
+Webhook Generic:
+       URL: https://&lt;OCP-big-URL&gt;/.../webhooks/&lt;secret&gt;/generic</code></pre></td></tr></table>
+</div>
+</div>
+<ul>
+<li>Now that we have our URL we need to replace the &lt;<em>secret</em>&gt; part with secrets tokens, both alternative can be found be doing:</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="c1"># getting the secret token for GitHub
+</span><span class="c1"></span>oc get bc node-build -o yaml <span class="p">|</span> grep <span class="s2">&#34;github:\|generic:&#34;</span> -A <span class="m">1</span>
+
+ - github:
+     secret: &lt;some-alpha-numeric-token&gt; <span class="c1">#-QWCCVVVV....
+</span><span class="c1"></span> - generic:
+     secret: .....</code></pre></td></tr></table>
+</div>
+</div>
+<p>This information is also available in the OpenShift Web Console, you need to navigate to the section Project/Builds/Builds, configuration tab.</p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/oc-image-stream/oc-automation/build-webhook-ui.PNG" alt="build-webhook-ui" /></p>
+
+<h3 id="setting-up-our-project">Setting up our project</h3>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/oc-image-stream/oc-automation/webhook-github.PNG" alt="webhook-github" /></p>
+
+<p>If you have a Github account you can <a href="https://github.com/cesarvr/hello-world-nodejs">fork this project</a>. Once your have your project in Github, you need to configure the Webhook in Settings -&gt; WebHooks, and add the following information:</p>
+
+<ul>
+<li>Payload URL: You need to put here the URL of your BuildConfig Webhook.</li>
+<li>Content-type: <strong>Application/JSON</strong></li>
+<li>Secret: <some-alpha-numeric-token></li>
+<li>Which Event: You can configure here what type of events you want(push, delete branch, etc.) I&rsquo;ll choose <strong>Just the push event</strong>.</li>
+<li>Active: should be checked.</li>
+</ul>
+
+<p>Once you complete this information you can test to see if the integration is successful.</p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/oc-image-stream/oc-automation/webhook-deliver.PNG" alt="webhook-delivery" /></p>
+
+<p>Now our build is automatically triggered every time we make a change.</p>
+
+<hr />
+
+<h2 id="deployment">Deployment</h2>
+
+<p>When you run <code>oc new-build</code> two objects with the same name are created, the BuildConfig as we discuss earlier build/package your application inside an image and Image Streams which handles the image address in the registry and more important they notify other objects (like DeploymentConfig&rsquo;s) when a new image is pushed.</p>
+
+<p>First we need to look for the Image Stream we are interested by looking up with <code>oc get is</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">oc get is
+
+NAME             DOCKER REPO
+node-build       docker-registry.default.svc:5000/hello01/node-build</code></pre></td></tr></table>
+</div>
+</div>
+<p>Once we found it, we have to subscribe our DeploymentConfig using <code>oc set trigger</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh"><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">oc <span class="nb">set</span> triggers dc/node-ms --from-image<span class="o">=</span>hello01/node-build:latest -c default-container</code></pre></td></tr></table>
+</div>
+</div>
+<p>First parameter is the DeploymentConfig name, second parameter is the image stream and the third is the name of the container <strong>default-container</strong> is the name by default. Let&rsquo;s take a look at the final result.</p>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/static/ocp-deploy/ocp-automatic-deploy.gif?raw=true" alt="automatic deployment" /></p>
+
+<p>Once get here you can just forget about OpenShift existence and just work on your features, but of course as development progress you should take smaller steps toward introducing testing of this deployments.</p>
+
+<p>Here are some ideas to explore with image streams, automatic triggering of Jenkins pipeline to check the image quality/security/digital signature or automating more <a href="http://cesarvr.github.io/post/ocp-chainbuild/">sophisticated builds</a>.</p>
+    </div>
+
+    
+    
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/openshift/">openshift</a>
+          <a href="/tags/imagestream/">imagestream</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/buildconfig/">
+            <span class="next-text nav-default">4 Ways to Build Applications in Openshift</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  <div class="disqus-comment">
+  <div class="disqus-button" id="load_disqus" onclick="load_disqus()">
+    Show Disqus Comments
+  </div>
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    function load_disqus() {
+      
+      
+      if (window.location.hostname === 'localhost') return;
+
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      var disqus_shortname = 'cesar';
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+
+      $('#load_disqus').remove();
+    };
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+  
+  </div>
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="https://twitter.com/cvaldezr" rel="me noopener" class="iconfont icon-twitter"
+        title="twitter" target="_blank">
+      </a>
+      <a href="https://linkedin.com/in/cesarvr" rel="me noopener" class="iconfont icon-linkedin"
+        title="linkedin" target="_blank">
+      </a>
+  <a href="/index.xml" rel="noopener alternate" type="application/rss&#43;xml" class="iconfont icon-rss"
+    title="rss" target="_blank">
+  </a>
+  </div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    
+       -
+    2018
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span><span class="author">
+        Cesar Valdez
+        
+      </span></span>
+
+  
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+<script type="text/javascript" src="/dist/jane.min.js?v=2.7.0"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
