@@ -4,6 +4,7 @@ date: 2018-07-31T10:05:23+01:00
 description: Learn how to deploy and automate deployments using  Webhooks and ImageStreams in OpenShift.
 tags: [openshift, imagestream]
 categories: [openshift, build, imagestream, webhook]
+draft: true
 author: ""
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
