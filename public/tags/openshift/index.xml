@@ -7,21 +7,10 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Cesar Valdez</copyright>
-    <lastBuildDate>Tue, 31 Jul 2018 10:05:23 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 28 Jul 2018 19:24:19 +0100</lastBuildDate>
     
 	<atom:link href="/tags/openshift/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Automating deployments in Openshift.</title>
-      <link>/post/image-streams/</link>
-      <pubDate>Tue, 31 Jul 2018 10:05:23 +0100</pubDate>
-      
-      <guid>/post/image-streams/</guid>
-      <description>&lt;p&gt;When you deploy an application in Openshift, you are just copying the content of an image inside a Linux container. But OpenShift go an extra mile by creating the containers inside one or more computers in your cluster and making sure that the containers specified by the user are up and running. The piece in charge of this tasks is the DeploymentConfig.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
-    </item>
     
     <item>
       <title>4 Ways to Build Applications in Openshift</title>
