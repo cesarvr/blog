@@ -1,7 +1,7 @@
 ---
 date: "2017-11-12T00:00:00Z"
 title: Exporting external images to Openshift
-tags: [openshift, buildconfig, imagestream]
+categories: [OpenShift, ImageStream]
 ---
 
 # Getting Started
@@ -104,10 +104,3 @@ oc expose service node-example
 ### Demo
 
 <script type="text/javascript" src="https://asciinema.org/a/IJURr9cdQZTX1Q5Ue8jr1S3Zc.js" id="asciicast-IJURr9cdQZTX1Q5Ue8jr1S3Zc" async></script>
-
-
-
-
-
-
-

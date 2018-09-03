@@ -1,6 +1,7 @@
 ---
 date: "2015-11-20T00:00:00Z"
 title: Embedding Javascript v8
+categories: [JavaScript, C, C++]
 ---
 
 # Building V8 Javascript Engine.

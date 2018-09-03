@@ -1,14 +1,14 @@
 baseURL: "/"
 disablePathToLower: true
 languageCode: en-us
-title: Cesar
+title: Nube
 theme: jane
 googleAnalytics: UA-110580110-1
 disqusShortname: cesar
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true
-
+baseURL: "http://localhost:1313/"
 
 PygmentsCodeFences: true
 PygmentsUseClasses: true
@@ -27,12 +27,33 @@ menu:
     name: About
     link: /about
     url: /about/
+  - name: "Categories"
+    weight: 40
+    identifier: "categories"
+    url: "/categories/"
   - text: code
     name: Code
     url:  https://github.com/cesarvr
     link: https://github.com/cesarvr
 
 params:
+  debug: false             # If true, load `eruda.min.js`. See https://github.com/liriliri/eruda
+  since: 2015            # Site creation time          # 站点建立时间
+  homeFullContent: false   # if false, show post summaries on home page. Othewise show full content.
+  rssFullContent: true     # if false, Rss feed instead of the summary
+  moreMeta: true
+  # site info (optional)                                  # 站点信息（可选，不需要的可以直接注释掉）
+  logoTitle: "Jane"        # default: the title value    # 默认值: 上面设置的title值
+  keywords: ["OpenShift", "Javascript","Object Oriented", "Design"]
+  description: "Designing and running software in someone else computers."
+
+
+params:
+  publicCDN:       # load these files from public cdn                          # 启用公共CDN，需自行定义
+    enable: false
+    jquery:   '<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>'
+    slideout: '<script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>'
+
   social:
     c-twitter: https://twitter.com/cvaldezr
     e-linkedin: https://linkedin.com/in/cesarvr

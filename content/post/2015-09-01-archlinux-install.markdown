@@ -1,6 +1,7 @@
 ---
 date: "2015-09-01T19:51:38Z"
 title: Arch Linux install cheat sheet
+categories: [Linux]
 ---
 
 Arch Linux installation instruction for the impatient.

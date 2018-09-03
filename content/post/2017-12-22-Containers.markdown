@@ -1,6 +1,8 @@
 ---
 date: "2017-12-22T00:00:00Z"
 title: Containers For Beginners
+tags: [Containers, Docker]
+categories: ["Linux", "Containers"]
 ---
 
 
@@ -17,7 +19,7 @@ In this article I will introduce basic Docker commands and concepts. After you f
 
 Installation of Docker is a simple task in OS X/Windows using the installation wizard You can find the installer for your OS on the Docker community page, On Linux, Docker is usually available in the distribution package manager.
 
-Installing Docker in [Fedora](https://getfedora.org/es/workstation/): 
+Installing Docker in [Fedora](https://getfedora.org/es/workstation/):
 
 ``` sh
 sudo dnf install docker
@@ -52,14 +54,14 @@ Using **sudo** is only necessary if you are running some Linux distributions, bu
 #### How it works
 
 ```sh
-sudo docker run <options> <image> <command to run inside the container> 
+sudo docker run <options> <image> <command to run inside the container>
 ```
 
 The ```run``` option creates and run a container, one of the properties is that Docker binds the life of the container to the running process (in this case the Linux command echo), which means that when process finish the container will be terminated.
 
 - **name** we set the name of the container, if you don't choose anything Docker will choose one at random.
 
-- **it** this mean interactive, it will connect our terminal to the output of the container virtual TTY, allowing interact with the running process. 
+- **it** this mean interactive, it will connect our terminal to the output of the container virtual TTY, allowing interact with the running process.
 
 - **busybox** This the base image to create the container, think of it as zip file with the files and folders necessary to run the desired application. There is a whole community base images available in [Docker Hub](https://hub.docker.com/), I use [busybox](https://hub.docker.com/r/library/busybox/tags/) because is very light just 715 KB compressed.
 
@@ -78,9 +80,9 @@ When you execute the Docker command for the first time the image is downloaded a
 sudo docker images
 ```
 
-#### Running in Daemon mode 
- 
-In some cases we don't want to interact directly with some applications like servers, in this case we want to spawn the process and get back our terminal to continue doing some work, Docker provide us a way to execute the process in daemon mode using the **-d** parameter like this: 
+#### Running in Daemon mode
+
+In some cases we don't want to interact directly with some applications like servers, in this case we want to spawn the process and get back our terminal to continue doing some work, Docker provide us a way to execute the process in daemon mode using the **-d** parameter like this:
 
 ```sh
 sudo docker run -d --name snooze busybox sleep 15
@@ -92,8 +94,8 @@ This process will run for 15 seconds in the background and then exit.
 
 Once the container is running in the background, you can check its status with **ps**:
 
-```sh 
-sudo docker ps 
+```sh
+sudo docker ps
 ```
 
 
@@ -136,7 +138,7 @@ Let's create an file
 echo 'Hello World' > hello
 ```
 
-Now we want to open the file using an isolated text editor available in busybox: 
+Now we want to open the file using an isolated text editor available in busybox:
 
 ```sh
 # Opening the file with our contained VIM
@@ -162,7 +164,7 @@ Some observations:
 
 Option **p** allow us to expose an isolated port and pass it through a specific **Host** port.
 
-To illustrate how networking works with containers, first let start by writing a simple Javascript script to startup a server, we are going to do this in our local machine, so let's write some code. 
+To illustrate how networking works with containers, first let start by writing a simple Javascript script to startup a server, we are going to do this in our local machine, so let's write some code.
 
 ```js
 require('http')
@@ -193,7 +195,7 @@ curl http://localhost:8080
 #curl: (7) Failed to connect to localhost port 8080: Connection refused
 ```
 
-We are unable to connect because the container network is isolated, we need to forward the port: 
+We are unable to connect because the container network is isolated, we need to forward the port:
 
 ```sh
 # stopping our container
@@ -218,7 +220,7 @@ function new_mongo {
   docker run -d --name mongodb -p  27017:27017 mongo
 }
 
-# the : here means image tag, usually if the image is done correctly 
+# the : here means image tag, usually if the image is done correctly
 # like in this case tag version match the Redis version
 function new_redis {
   docker run -d  --name redis  -p 6379:6379 redis:3.2
@@ -239,10 +241,10 @@ function stop_redis {
 After adding this line to the bottom of your .bashrc || .zshrc , then just execute ``` source ~/.bashrc || source ~/.zshrc ```, then you should be able to do this.
 
 ```sh
-new_mongo # it will spin up a new mongodb instance. 
-new_redis # it will spin up a new redis instance. 
+new_mongo # it will spin up a new mongodb instance.
+new_redis # it will spin up a new redis instance.
 
-# to stop this containers 
+# to stop this containers
 stop_mongo
 stop_redis
 ```
@@ -277,7 +279,3 @@ To enable it again just do:
 ```
 su -c "setenforce 1"
 ```
-
-
-
-

@@ -1,15 +1,17 @@
 ---
-title: "4 Ways to Build Applications in Openshift"
+title: "4 Ways to Build Applications in OpenShift"
 date: 2018-07-28T19:24:19+01:00
 lastmod: 2018-07-28T19:24:19+01:00
 draft: false
 keywords: []
-description: "If you are migrating legacy applications or creating an automatic build system, Openshift BuildConfig offers you various choices to help you with those challenges."
+description: "If you are migrating legacy applications or creating an automatic build system, OpenShift BuildConfig offers you various choices to help you with those challenges."
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
-tags: [openshift, buildconfig]
-categories: []
-author: ""
+categories: [OpenShift, BuildConfig]
+categories:
+  - OpenShift
+  - BuildConfig
+  - ImageStream
 
 # You can also close(false) or open(true) something for this content.
 # P.S. comment can only be closed
@@ -18,8 +20,6 @@ toc: true
 autoCollapseToc: true
 # You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
 contentCopyright: false
-reward: false
-mathjax: false
 ---
 We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:
 <!--more-->
