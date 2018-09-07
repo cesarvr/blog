@@ -105,4 +105,6 @@ That method *gl.getError()* logs to the console any exception that happens in th
 
 I rollback those ugly changes and run the code again, [the demo now runs](http://webgl-hello01.7e14.starter-us-west-2.openshiftapps.com/gl_point/) at 60 FPS across all browsers (Android included). The main problem here was assuming I can solve that problem without measuring and doing that is just wasting time and energy. As Michael Abrash put it his awesome book, [Graphic Programming Black Book](http://www.jagregory.com/abrash-black-book/#understanding-high-performance).
 
-> Assume nothing... If you don’t measure performance, you’re just guessing, and if you’re guessing, you’re not very likely to write top-notch code.    
+> Assume nothing... If you don’t measure performance, you’re just guessing, and if you’re guessing, you’re not very likely to write top-notch code.
+
+If you want to take a look at the source code, the project is published in [Github](https://github.com/cesarvr/vortex/tree/gl_point).    
