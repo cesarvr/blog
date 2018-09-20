@@ -8,7 +8,6 @@ disqusShortname: cesar
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true
-baseURL: "http://localhost:1313/"
 
 PygmentsCodeFences: true
 PygmentsUseClasses: true
@@ -30,7 +29,7 @@ menu:
   - name: "Categories"
     weight: 40
     identifier: "categories"
-    url: "/categories/"
+    url: "categories/"
   - text: code
     name: Code
     url:  https://github.com/cesarvr
