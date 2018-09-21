@@ -2,7 +2,7 @@
 title: "Prometheus"
 date: 2018-09-19T14:30:07+01:00
 lastmod: 2018-09-19T14:30:07+01:00
-draft: true
+draft: false
 keywords: []
 description: ""
 tags: []
@@ -188,7 +188,7 @@ spec:
 
 Then we need to write a program that receive traffic in 8080 and redirect that traffic to 8087. To write the program capable of doing that, our programming language need some library capable of working with TCP/IP. I decide to use C++ because I wanted to learn a bit more about the Unix/Linux network API. But now worries, I hide the ugly implementation details behind some nice interfaces.
 
-If you are interested in to see the full source code, you can find it in [this Github repository.](https://github.com/cesarvr/side-container/tree/master/cpp).   
+
 
 
 ```C++
@@ -213,6 +213,80 @@ int main(){
 
 This program is very simple, we prepare the program listen in 8080 port, the port forwarded by the Pod. and the port 8087 which is going belong to the website.
 
-That Channel class just read from one socket (the one forwarded by the Pod) and the it send the data to the website.
+If you are interested in to see the full source code, you can find it in [this Github repository.](https://github.com/cesarvr/side-container/tree/master/cpp).   
 
-We need to change the port of the website to 8087:
+
+![Channel](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/read-write.png?raw=true)
+
+I wrote a Channel class to create to transmit traffic in both directions.
+
+
+
+# Implementing the Probe
+
+To implement the probe using a binary it can be challenging for those like me using [OpenShift.IO](https://console.starter-us-west-2.openshift.com), because while the service is free they decided to not allow Docker images. This limitations almost jeopardize the whole experiment.
+
+But then I remember that in Node.js some modules use some native dependencies, so I knew that image should have the necessary build tools, to check it, I create a small Pod using Node.js builder image, to see if this image had all the tools I need.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nodejs-pod
+  labels:
+    app: nodejs
+spec:
+  containers:
+  - name: starter   
+    image: nodejs
+    command: ["sh", "-c", "sleep 3600"]
+```
+
+Execute and open a sh connection with the Pod:
+
+```sh
+# Running the Pod
+oc create -f nodejs.yml
+
+
+# login
+oc rsh nodejs-pod
+```
+
+Once I was logged inside I check to see if that I have everything needed to compile my C++ program into a binary:
+
+```sh
+g++
+# g++: fatal error: no input files
+# compilation terminated.
+
+make
+# make
+# make: *** No targets specified and no makefile found.  Stop.
+```
+
+After successfully found this tools, now I can build my binary using the same command section in the template:
+
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: python-pod
+  labels:
+    app: python
+spec:
+  containers:
+  - name: python
+    image: python
+    command: ["sh", "-c", "cd /tmp/ && git clone https://github.com/cesarvr/demos-webgl demos && cd demos/static/ && python -m http.server 8087"]
+    ports:
+    - containerPort: 8087
+  - name: sidecar   
+    image: docker-registry.default.svc:5000/openshift/nodejs
+    command: ["sh", "-c", "curl -L https://github.com/cesarvr/side-container/archive/master.zip -o m.zip && unzip m.zip && cd side-container-master/cpp/ &&  make && ./server"]
+    ports:
+    - containerPort: 8080
+```
+
+Later I also discover that the python image also has the same need (compiling native libraries) so I decided to use that.
