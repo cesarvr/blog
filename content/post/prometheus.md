@@ -155,167 +155,26 @@ wget 0.0.0.0:8080
 # index.html           100% |*****************|   504  0:00:00 ETA
 ```
 
-Good news, this proof that we are able to communicate with the website from within the Pod. Now we just need to develop the program to probe that particular website.  
-
-## Writing Our Probe
-
-This is what we have done so far:
-
-![pod-1](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/pod1.png?raw=true)
-
-
-This is what we want to do:
-
-![pod-2](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/pod2.png?raw=true)
-
-We want to change the port of the website from port 8080 to 8087. So let's do this:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: python-pod
-  labels:
-    app: python
-spec:
-  containers:
-  - name: python-container
-    image: python
-    command: ["sh", "-c", "cd /tmp/ && git clone https://github.com/cesarvr/demos-webgl demos && cd demos/static/ && python -m http.server 8087"]
-    ports:
-    - containerPort: 8087
-  - name: starter   
-    image: busybox
-    command: ["sh", "-c", "sleep 3600"]
-```
-
-Then we need to write a program that receive traffic in 8080 and redirect that traffic to 8087. To write the program capable of doing that, our programming language need some library capable of working with TCP/IP. I decide to use C++ because I wanted to learn a bit more about the Unix/Linux network API. But now worries, I hide the ugly implementation details behind some nice interfaces.
+This is enough proof, now knowing this we can define different strategies.
 
 
 
+# Usage Suggestions
 
-```C++
-#include <iostream>
-#include "network.h"
-#include "pipe.h"
-#include "http.h"
+## Authentication
 
-int main(){
-  Server outside{8080};
-  Client website{"localhost", 8087};
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/auth.png?raw=true)
 
-  server.waitForConnections([&client](int fd_server){
-        auto fd_client = client.establishConnection();
+Here you can create two application by two separated teams one team handle the security side of the application the other handles the business logic. This strategy make sense when you want to isolate the security details from application business rules.
 
-        Tunnel tunnel;
-
-        auto tmm = timming();
-        tunnel.from(fd_server)
-              .to(fd_client)
-              .join();
-        });
-
-  return 0;
-}
-```
-
-It looks prettier than Java!. We the program does is to listen in 8080 port, which is forwarded by the Pod. and connect to the port 8087 which is going belong to the website.
-
-If you are interested in to see the full source code, you can find it in [this Github repository.](https://github.com/cesarvr/side-container/tree/master/cpp).   
-
-
-![Channel](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/read-write.png?raw=true)
-
-I wrote a Channel class to create a "tunnel" between both sockets.
+Also by using this method you can reuse the security module for other applications out of the box.
 
 
 
-# Implementing the Probe
+## Sidecar
 
-Implementing the probe using a binary can be challenging for those using [OpenShift.IO](https://console.starter-us-west-2.openshift.com), because they don't allow Docker images. This limitation almost jeopardize my whole experiment, but I found out a solution.
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/assets.png?raw=true)
 
-I remember that in Node.js, some modules use native dependencies, so I figure out that the builder image provided by OpenShift should have the necessary build tools.
+This represent two modules sharing the same filesystem storage, this application can be a web server or content management system, whose content is updated independently from the web server in charge of serving the data.
 
-To know if I can do this, I create a small Pod using Node.js builder image:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nodejs-pod
-  labels:
-    app: nodejs
-spec:
-  containers:
-  - name: starter   
-    image: nodejs
-    command: ["sh", "-c", "sleep 3600"]
-```
-
-Execute and open a sh connection with the Pod:
-
-```sh
-# Running the Pod
-oc create -f nodejs.yml
-
-
-# login
-oc rsh nodejs-pod
-```
-
-Once I was logged inside the container I started to explore to see if I can find the tooling:
-
-```sh
-g++
-# g++: fatal error: no input files
-# compilation terminated.
-
-make
-# make
-# make: *** No targets specified and no makefile found.  Stop.
-```
-
-Awesome!, I found the tools, now I can build my binary by writing a small shell command:
-
-```sh
-curl -L https://github.com/cesarvr/side-container/archive/master.zip -o m.zip
-unzip m.zip
-cd side-container-master/cpp/
-make
-./server
-```
-
-This script grab the zip file with the project from [Github](https://github.com/cesarvr/side-container/tree/master/cpp), extract and compile into a binary.  
-
-Next step is to write this into the ```python.yml``` template:
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: python-pod
-  labels:
-    app: python
-spec:
-  containers:
-  - name: python
-    image: python
-    command: ["sh", "-c", "cd /tmp/ && git clone https://github.com/cesarvr/demos-webgl demos && cd demos/static/ && python -m http.server 8087"]
-    ports:
-    - containerPort: 8087
-  - name: sidecar   
-    image: docker-registry.default.svc:5000/openshift/nodejs
-    command: ["sh", "-c", "curl -L https://github.com/cesarvr/side-container/archive/master.zip -o m.zip && unzip m.zip && cd side-container-master/cpp/ &&  make && ./server"]
-    ports:
-    - containerPort: 8080
-```
-
-
-Look the two containers run side by side in the the OpenShift dashboard.
-
-![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar.png)
-
-
-
-
-# Measuring Performance
+Also it can be a container collecting server logs and streaming it to storage system. 
