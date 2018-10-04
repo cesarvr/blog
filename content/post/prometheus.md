@@ -1,10 +1,10 @@
 ---
-title: "Prometheus"
+title: "Containers Patterns"
 date: 2018-09-19T14:30:07+01:00
 lastmod: 2018-09-19T14:30:07+01:00
 draft: false
 keywords: []
-description: ""
+description: "How to separate an application behaviours in multiple reusable containers."
 tags: []
 categories: []
 author: ""
@@ -20,11 +20,11 @@ reward: false
 mathjax: false
 ---
 
-One of the advantages of running applications on containers aside from running in isolation, is that we can easily can create applications that collaborate between each other. They can collaborate via intranet by making call to other nodes inside the cluster but they can collaborate internally inside the pod.
+The Pod is an abstraction in Kubernetes and OpenShift that models a machine, this mean that the containers running inside a Pod share resources like filesystem (same PVC) and network namespaces. We can use multiple containers to isolate various aspect of the applications.
+
 
 <!--more-->
 
-The pod is a abstraction in Kubernetes/OpenShift that models a machine from the point of view of the container, this mean that they are some properties that hold true for the containers running inside the pod, like they are able to share resources like filesystem (same PVC) and same network namespaces. This is has great side effects, as we can extend and improve functionality of existing running applications.
 
 To illustrate this point I going to write two containers/applications one application will serve a static web pages and the other one will intercept and measure the traffic handle by the first one.
 
@@ -155,11 +155,11 @@ wget 0.0.0.0:8080
 # index.html           100% |*****************|   504  0:00:00 ETA
 ```
 
-This is enough proof, now knowing this we can define different strategies.
+Now that we can interact with the web server container, we can define a different set of strategies.
 
 
 
-# Usage Suggestions
+# Patterns
 
 ## Authentication
 
@@ -170,11 +170,17 @@ Here you can create two application by two separated teams one team handle the s
 Also by using this method you can reuse the security module for other applications out of the box.
 
 
-
 ## Sidecar
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/assets.png?raw=true)
 
 This represent two modules sharing the same filesystem storage, this application can be a web server or content management system, whose content is updated independently from the web server in charge of serving the data.
 
-Also it can be a container collecting server logs and streaming it to storage system. 
+Also it can be a container collecting server logs and streaming it to storage system.
+
+
+## Hot Plug
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/interpreter.png?raw=true)
+
+This is very similar to the Sidecar but instead of asset, but for interpreted languages you can have one container scanning the repository for changes and as soon it detect a new version tag it clones the code to the shared filesystem. The other container detects the change and restart the application.
