@@ -1,0 +1,26 @@
+
+# Patterns
+
+## Authentication
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/auth.png?raw=true)
+
+Here you can create two application by two separated teams one team handle the security side of the application the other handles the business logic. This strategy make sense when you want to isolate the security details from application business rules.
+
+Also by using this method you can reuse the security module for other applications out of the box.
+
+
+## Sidecar
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/assets.png?raw=true)
+
+This represent two modules sharing the same filesystem storage, this application can be a web server or content management system, whose content is updated independently from the web server in charge of serving the data.
+
+Also it can be a container collecting server logs and streaming it to storage system.
+
+
+## Hot Plug
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/prometheus/interpreter.png?raw=true)
+
+This is very similar to the Sidecar but instead of asset, but for interpreted languages you can have one container scanning the repository for changes and as soon it detect a new version tag it clones the code to the shared filesystem. The other container detects the change and restart the application.
