@@ -7,32 +7,26 @@ keywords: []
 description: "Or how to encapsulate application behaviours in reusable containers."
 tags: [openshift, imagestream]
 categories: [openshift, build, imagestream, webhook]
-draft: true
+toc: true
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
-toc: true
--
-
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-comment: false
-toc: true
-autoCollapseToc: false
-# You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
-contentCopyright: false
-reward: false
-mathjax: false
 ---
 
-I just wanted a excuse to put in practice some of the concepts behind container patterns, which is just a way to (like object oriented programming) isolate behaviour in containers (objects) and make them work together to solve a problem.  
-
-What I want to do is to create a reusable container that allow me to perform some actions like counting how many time people visit certain endpoint, calculate the response speed, etc, make this container collaborate with other containers following the rule of "Single Responsability Principle", which means they doesn't know about each other (again, very much like OOP).  
+I just wanted an excuse to write a container oriented application, what do I mean by that? that's not why micro-services are just a bunch of containers talking to one each other. That's true but what I mean is separate different behaviour of an application inside containers and then reuse this containers in other applications.   
 
 <!--more-->
 
-# Serving Web Pages Behaviour 
+A good example of this separation of concerns are the so-called *"service mesh"* frameworks like Istio, Linkdr?, Prometheus, etc. You add some container to your application and you get some new functionality without affecting (in theory) your application main purpose. They can be thought as the equivalent to an object [decorator](https://en.wikipedia.org/wiki/Decorator_pattern) in object oriented programming.  
 
-The first container we are going to make is a dumb server application. Have you work with python SimpleHTTPServer before? if not, then is just a python command line tool serves the content of an arbitrary folder. 
+To understand how to create this type of applications, I decided to deploy a dumb server and enhance/decorate this server with new functionalities, but I'll follow the open close principle or in other words, without modify or touching the source code. By this I'll reasure the re-usability of both containers. 
+
+But before adding any functionality, first we need to learn how we setup our application to run multiple containers and more important how we can handle communication between the two. 
+
+# Simple Web Server 
+
+We are going to create a dumb web server using Python SimpleHTTPServer module which is a command line tool to serve the content of an arbitrary folder. 
+
+Usage example:
 
 ```sh
  cd ~/some-folder 
@@ -41,7 +35,7 @@ The first container we are going to make is a dumb server application. Have you 
 
 ## Deploy 
 
-Now that we got this web server we can encapsulate it inside a container and run it in Kubernetes/OpenShift. We just need to create a template. 
+Now that we got this web server we can encapsulate it inside a container to run it later in Kubernetes/OpenShift, for this we just need to create a template. 
 
 ```sh
 apiVersion: v1
@@ -59,7 +53,7 @@ spec:
     - containerPort: 8080
 ```
 
-This template defines that our container will use python base image, after all we need Python interpreter to run that command, then we define the command we want to run inside our container, that goes as follow:
+This template defines that our container will use python base image, after all we need Python interpreter to run that command. then we define the command we want to run inside our container, that goes as follow:
 
 ```sh
 cd /tmp/    # jump to the /tmp folder. 
@@ -72,10 +66,10 @@ The content of the Github repository is just a bunch of static HTML pages, if yo
 We save this template in a file called [python.yml](https://gist.github.com/cesarvr/b1ce3b5098292fd01b42b13697301b17) and passed this template to OpenShift like this:
 
 ```sh
- oc create -f python.yml
+oc create -f python.yml
 
- # or this way it will pick the template from the github.gist.
- oc create -f https://gist.githubusercontent.com/cesarvr/b1ce3b5098292fd01b42b13697301b17/raw/2e730e761b7ac99ac6b8186caac1f0c31e10063f/python.yml
+# or this way it will pick the template from the github.gist.
+oc create -f https://gist.githubusercontent.com/cesarvr/b1ce3b5098292fd01b42b13697301b17/raw/2e730e761b7ac99ac6b8186caac1f0c31e10063f/python.yml
 ```
 
 Voila!, in a few seconds our container should be running in our cluster, now let's do some quick configuration to send some traffic, by creating a Service.
