@@ -12,180 +12,271 @@ images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Some days ago I was having some fun writing my WebGL graphics API, when I decide it was time to do some demos. I always like to run some complicated stuff and see how they perform and then do benchmarks like iOS vs Android, etc. And because of that I want those demos to be available in the cloud. I choose to the OpenShift instance because is easier for me.  
+Istio is a new framework promising to put some order to your mesh of services, and for me there is not better way to understand how it works than to try to replicate some of its functionalities and more important learn how to use this techniques to create powerful applications. I'll try to separate this article in the three following sections: 
 
 <!--more-->
 
-To share the demos I though to do the minimum work as possible, so I decide to setup a container with a dumb server using Python SimpleHTTPServer module (I don’t expect a high volume of traffic) and some statics files with the HTML/CSS/Javascript demos and run the container on OpenShift, because I very familiar with the environment and also because I have a free account.
+- How to deploy applications with supporting multiple containers.  
+- Develop a simple Decorator/Proxy, this proxy will gather some basic telemetry and application traceability.  
+- Write a simple dashboard. This dashboard will allow us to read the distributed telemetry and work as a remote control for our services.  
 
-To deploy my simple server I used this template:  
+Before start make sure you the [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some concept just use this [guide to learn the basics](https://github.com/cesarvr/Openshift). 
 
-```sh
+# Understanding The Pod
+
+We can think of **pods** like a container of containers, they provide a [layer of virtualisation](http://cesarvr.github.io/post/2018-05-22-create-containers/) very similar to the one provided by your typical container provider (like Docker), this mean that containers running inside, share the same resources like memory, cpu time and volumes.
+
+## Anatomy of the Pod 
+
+This is a quick example of a [pod template](https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444):
+
+```yml 
 apiVersion: v1
 kind: Pod
 metadata:
-  name: python-pod
+  name: myapp-pod
   labels:
-    app: python
+    app: myapp
 spec:
   containers:
-  - name: python
-    image: python
-    command: ["sh", "-c", "cd /tmp/ && git clone https://github.com/cesarvr/demos-webgl demos && cd demos/static/ && python -m http.server 8080"]
+  - name: myapp-container
+    image: busybox
+command: ['sh', '-c', 'echo Hello World! && sleep 3600']
+```
+
+We are interested in the **containers** section which is the one defining the pods content, here we tell OpenShift to create an image using busybox (a very small Linux distro) and we want to display "echo Hello World" and sleep for 3000 seconds. Pay special attention to this section as we are going to revisit later. 
+
+If you save this in a file called pod.yml, you can feed this template to Kubernetes/OpenShift like this:
+
+```sh
+oc create -f pod.yml 
+
+# or you can create using a template stored somewhere else 
+oc create -f https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444 
+```
+
+
+# Hello World!
+
+Our next stop in the road to create our "service mesh" is to learn how we can create a pod capable of running multiple containers. First, let's deploy a simple web server application. 
+
+For the application we are going to run a simple Node.js application serving some static HTML:   
+
+```sh
+  oc new-app nodejs~https://github.com/cesarvr/demos-webgl
+```
+
+This command creates all the [deployment controller and services](https://github.com/cesarvr/Openshift) to run our application, from this [source code](https://github.com/cesarvr/demos-webgl). After this application is deployed the only thing remaining is to create an route.  
+
+
+To create a route we just need to execute the following: 
+
+```sh   
+  # First let expose our service to outside traffic
+  oc expose svc demos-webgl
+
+  # Check the route and make a request with the browser
+  oc get route | awk '{print $2}'
+
+  HOST/PORT
+  demos-webgl-web-apps.7e14.starter-us-west-2.openshiftapps.com
+
+  # curl demos-webgl-web-apps.7e14.starter-us-west-2.openshiftapps.com
+  # <HTML...
+```
+
+# Adding Container
+
+Adding a new container is very simple, we just need to modify the configuration in charge of our application deployment:
+
+We need to lookup the available deployment configurations by running this command:
+
+```sh
+oc get dc | awk '{print $1}'
+
+NAME
+webgl-demos
+```
+
+We need to edit this resource (```webgl-demos```):
+
+```sh
+#You can setup the editor by editing the variable OC_EDIT (example: export OC_EDIT=vim).
+
+oc edit dc/webgl-demos
+```
+The deployment configuration is provided in the form of a YAML document, we need to navigate to the **containers** section:
+
+```yaml
+containers:
+  - image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
+    imagePullPolicy: Always
+    name: webgl-demos
     ports:
     - containerPort: 8080
+      protocol: TCP
+    - containerPort: 8443
+      protocol: TCP
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
 ```
 
-This template just create a **pod** called *python-pod* using Python base image from the OpenShift catalog. This image includes the Python 3 interpreter needed to run the SimpleHTTPServer module.  
-
-Here is the command section in more detail:
-
-```sh
-cd /tmp/    
-```
-The Python image ( from the OpenShift catalog ) drops the privilege for almost all folders but ```/tmp```, this is because they recommend to use this image with S2I, but for now that folder its all what I need.
-
-```sh
- git clone https://github.com/cesarvr/demos-webgl demos  
-```
-Clone the website and save it inside a folder called demos.
-
-```sh
-# actual folder /tmp/
-cd demos/static/     
-python -m http.server 8080   
-```
-Jump into the static sub-folder and run the Python server module, if you want a closer look to the folder structure you can found it in this [repository.](https://github.com/cesarvr/demos-webgl)
-
-Save this template as ```python.yml``` and run using:
-
-```sh
-oc create -f python.yml
-
-# or this way it will pick the template from the github.gist.
-oc create -f https://gist.githubusercontent.com/cesarvr/b1ce3b5098292fd01b42b13697301b17/raw/2e730e761b7ac99ac6b8186caac1f0c31e10063f/python.yml
-```
-
-Voila!, in just a few seconds the web server should be running in our cluster.
-
-Now let's send some traffic:
-
-```sh
- oc create service loadbalancer python-pod --tcp=8080:8080
-```
-
-The service object by default send traffic to the pods with label ``` app: <name-of-your-pods> ```, creating the service with the same name as the pod give us the tag we want.
-
-```yml
-selector:
-    app: python-pod
-```
-
-Next thing is to expose the service:
-
-```sh
-oc expose svc python-pod
-
-oc get route
-
-NAME         HOST/PORT                                                      PATH      SERVICES    
-my-service   python-pod-web-apps.7e14.starter-us-west-2.openshiftapps.com             my-service   8080                    None
-
-curl python-pod-web-apps.7e14.starter-us-west-2.openshiftapps.com
-# HTML from the static site...
-```
-
-Now the website [available](http://my-service-web-apps.7e14.starter-us-west-2.openshiftapps.com/).
-
-If you never hear before the concept of pod, service or router you can follow this [guide](https://github.com/cesarvr/Openshift) for beginners.
-
-
-# Enhancing The Web Server
-
-After a few days I started to pay the price of choosing a dumb static web server, because I started to feel like adding more functionalities to the server side, like a visiting counter for each demo for example or how much time it is taking to process a request to debug network problem.
-
-I started thinking about this so called *service meshes* like Istio or Prometheus, the only problem is that my OpenShift account won't give me the account privilege to install any of that. Then I though what if I put another container in front that receive the request take care of the statistic and forward the request to the static web server.
-
-It might seem like a very complex way of adding new behaviour to a existing application but take a look at few advantages:
-
-* It follows the Open/Close principle: Meaning the you don't have to modify the web server container or in a real case the business logic.
-  - You want to migrate a group of legacy services that use some deprecated authentication protocol, you can create a container that works as an adapter for that case, avoiding the need to touch the code of those applications.
-
-* Increase re-usability: I can reuse the statistics container with other applications out of the box, I'll demonstrate this in the final article.
-
-* Single responsibility principle: Each container do one thing and do it well, this very good to put multiple teams working in different key functionalities and also if your container follow this rules (like in OOP) you increase reusability.
-
-* Plug and Play: Adding that behavior is a matter of adding or removing the container.
-
-Sounds like a good idea but first I needed to learn how to make containers run side by side and more important how to make sure they can collaborate.
-
-# Side Container
-
-We can think about **pods** like a container of containers, meaning that we can run more than one container inside, and this containers can share resources like network namespace (port mapping) and they can share mounting points (folders).
-
-
-## Internal Communication
-
-To proof that containers can communicate between each other at **pod** level I decide to run an experiment, I just needed to execute a new container inside the pod.
+It's a little bit messy, but is very the syntax is very similar to the simpler version above.
 
 ```yaml
 - name: sidecar   
   image: busybox
   command: ["sh", "-c", "sleep 3600"]
 ```
-This block will create a container named *sidecar*, we are going to use a base image from Busybox (Thinking about OOP it sound like a base class) which include a ssh and the sleep command. Then in the command section we are going to execute the sleep command for 36000 seconds, this will keep the image alive, so we can run try some ideas.    
 
-Our final template will look something like this:
+Here we are going to define our second container, we are going to name it *sidecar*. We just need to add this block immediately below the **containers** section. 
 
 ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: python-pod
-  labels:
-    app: python
-spec:
-  containers:
-  - name: python
-    image: python
-    command: ["sh", "-c", "cd /tmp/ && git clone https://github.com/cesarvr/demos-webgl demos && cd demos/static/ && python -m http.server 8080"]
-    ports:
-    - containerPort: 8080
+containers:
+
   - name: sidecar   
     image: busybox
     command: ["sh", "-c", "sleep 3600"]
+
+  - image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
+    imagePullPolicy: Always
+    name: webgl-demos
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    - containerPort: 8443
+      protocol: TCP
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
 ```
 
-The only difference here is that I just added this new container at the bottom.
+Now we got two container we save and close our editor and we should got the message ```"deploymentconfig.apps.openshift.io "webgl-demos" edited"```, after this configuration has change the container will get re-deployed.
+
+# Sending Messages
+
+If everything is fine our pod should be running two containers instead of one, now we want to check if the theory holds true and we can really interface somehow with containers running inside the same **pod**, for this we want to login inside the new container (**sidecar**) and test the communication with the web server.
+
+Get the running pods: 
+
+```sh
+  oc get pod
+```
+
+We got this pod ```webgl-demos-3-md7z4```, now remember we have added a new container before so login to the container inside the pod is not as obvious as to write ```oc rsh webgl-demos-3-md7z4```, we need now to specify the container.
 
 
 ```sh
-oc delete pod python-pod
-oc create -f python.yml
+oc rsh -c sidecar webgl-demos-3-md7z4
 ```
-I re-create the pods applying the template modifications.
 
-
-## Messaging
-
-First thing I did was to run ```oc describe``` to check if everything was fine:
+Finally let see if we can communicate with the other container.
 
 ```sh
-python:
-  Container ID:  docker://5b410a99310a8474455ea684e0a63a7633b9620b8f44ce534050446e14af0456
-  Image:         python
-sidecar:
-  Container ID:  docker://8c31392e2fb1921e9ce2eb6079aba02b52cda6b7cb221d506b6b683dc2f35c0a
-  Image:         docker-registry.default.svc:5000/web-apps/ambassador
+# This will call send a message to the container with ..
+# the webserver asking for the index.html
+wget -q0- 0.0.0.0:8080/index.html
+#<a href="fire_1">fire_1</a><br><a href="gl_point">gl_point</a><br><a href="stars-1">stars-1</a><br><a href="tunnel-1">tunnel-1</a>
+
 ```
 
-Here I saw the **pod** having to containers now let see, if they share the same network namespace then I just have to login into the new created container and request the web page using the 8080 port assigned to the *python* container.
+Here is the whole process: 
 
-```sh
-oc rsh -c sidecar python-pod
+![sidecar-deployment](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif)
 
-wget 0.0.0.0:8080
-# index.html           100% |****************|
+# Sending Messages (FileSystem)
+
+We have proved that our container are able to communicate via Unix sockets, now and for completeness send messages via filesystem. The easiest way is to create an internal pod volume. 
+
+## Volume 
+
+We can do this with [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) but those can work across all pods, instead we are going to use a private volume which is just like a storage which is local to the pod. 
+
+```yml
+volumes:
+- emptyDir: {}
+  name: cache-volume
 ```
 
-It works!, Now the next step is to create the application to handle the request, get the information we want and delegate it to the web server.
+We need to edit again our deployment configuration and jump to the ```containers``` section: 
+
+```yml 
+containers:
+
+  - name: sidecar   
+    image: busybox
+    command: ["sh", "-c", "sleep 3600"]
+    volumemounts:
+    - mountpath: /tmp
+      name: cache-volume
+
+  - image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
+    imagePullPolicy: Always
+    name: webgl-demos
+    ports:
+    - containerPort: 8080
+      protocol: TCP
+    - containerPort: 8443
+      protocol: TCP
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+
+volumes:
+  - emptyDir: {}
+    name: cache-volume
+```
+
+Here we defined volumes at the same level of containers, this basically tell us that this particular resource storage is shared globally across containers running inside the pod. But this doesn't mean that our containers will pick up automatically we need to setup mounting points. 
+
+For our *sidecar* container: 
+
+```yml
+- name: sidecar   
+    image: busybox
+    command: ["sh", "-c", "sleep 3600"]
+    volumemounts:
+    - mountpath: /tmp
+      name: cache-volume
+``` 
+
+For our *sidecar* container: 
+
+```yml
+- image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
+  imagePullPolicy: Always
+  name: webgl-demos
+  volumemounts:
+  - mountpath: /tmp
+    name: cache-volume
+``` 
+
+> If to messy just put the block below the name of each container
+
+We save the changes and it automatically will trigger the deployment. Now our two containers can meet each other in the same folder and same storage the only thing left is to prove it.  
+
+
+```sh 
+ # Write "hello world" inside a file /tmp/hello in the container named hello.
+ oc exec -c sidecar demos-webgl-9-hx5q9  -- sh -c "echo hello World > /tmp/hello "
+
+
+ # Read "hello world" inside a file /tmp/hello in the container named hello.
+ oc exec -c demos-webgl demos-webgl-9-hx5q9  -- sh -c "tail /tmp/hello"
+```
+
+
+
+## Container Patterns 
+
+Here are some ideas on applications using more that one containers: 
+
+- You can divide applications in two containers one container handles the business logic, other container handles the network security. 
+- You can encapsulate the networking recovering capabilities (circuit breaker, etc) inside a container you know like Istio.
+- I'll try to make an example in the next article, inmagine having a group of services and you can turn on and off certain endpoints. 
+
+For more ideas here is a nice [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf) that was the inspiration behind this post.  
+
+
+
