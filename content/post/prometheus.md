@@ -12,47 +12,43 @@ images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-I'll try to introduce you to the art of encapsulating behaviour in multiple containers (like objects in programming languages) and make them co-operate together to develop robust applications. 
+Let say we have web service that handle some typical business logic, and we need to get some information about how many times a particular endpoint is being hit or imagine that we want to have the option to shut down a particular endpoint on demand.
 
 <!--more-->
 
-# Separation Of Concerns  
+The typical way to solve this is by modifying the codebase of the existing service, we maybe make use of a Decorator pattern to wrap the object in charge of the request, this look like a nice solution. But what happen if we discover we want to apply this rules to more services running in our cluster and those services are written in other programming languages/framework.
 
-Let say for example you have a web service that handle some typical business and it need some data from a second web service which require a legacy/complex authentication. To integrate this services you have two options: 
+# Separation Of Concerns
 
-- The classic approach is to modify the codebase of the existing service adding a module/class called authentication. 
+A nice solution can be to separate that particular behavior, let's call it "Telemetry" into it's own container. This container can receive the request save the data and then delegate to next service.
 
-- You can create re-usable "Authenticate" container that handle the authentication problem and then delegates/forward the business part to the service. 
+Sound's great but we need to solve how this "Telemetry" container will intercept/forward the responses to the underlying services. And to achieve this we need to follow a good software engineer rule, the services shouldn't know nothing about the existence of the "Telemetry" container.  
 
-Here are some advantages of this solution: 
-
-* Reusable: If done well, you can reuse the authenticator container with any other service with those authentication requirements. 
-* Isolation: Your application is free from code that don't belong there. 
-* The two containers can be develop by separated teams. 
-
-This type of encapsulation is what makes frameworks like Istio so powerful, you can add a new set of behaviours like circuit breakers, telemetry, etc., to your applications without (*hopefully*) making your application aware of their existence, following the [single responsibility principle](https://en.wikipedia.org/wiki/Single_responsibility_principle). 
 
 # Before We Start
 
-In this articles I'll try to reproduce some of the Istio features and some other experimental ideas using this multiple containers paradigm. The content will be organized as follows: 
+Our Istio like framework will be divided into three sections:
 
-- How to deploy applications with supporting multiple containers.  
-- Develop and deploy a simple "Decorator" container, we are going to plug this container to any service and get back some simple telemetry.  
-- Write a simple dashboard. Once the "Decorator" container is deployed we are going to signal our dashboard with information.   
+- **Part One**: How to deploy applications supporting multiple containers.  
+- **Part Two**: Develop and deploy our "Telemetry" container, we are going to plug this container to any service and get back some simple telemetry in the stdout.  
+- **Part Three**: Write a simple dashboard. Once the "Telemetry" container is deployed we are going to signal our dashboard with information.   
 
-I'm going to use OpenShift because is the Kubernetes distro I'm more familiar with it but this techniques should work in Kubernetes as well. Also before we start make sure you have installed [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you can use this [OpenShift getting started guide](https://github.com/cesarvr/Openshift). 
+I'm going to use OpenShift because is the Kubernetes distro I'm more familiar with, but this techniques should work in Kubernetes as well.
+
+Also make sure you have installed [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
 
 
 # Understanding The Pod
 
-We can think of **pods** like a container of containers, they provide a [layer of virtualisation](http://cesarvr.github.io/post/2018-05-22-create-containers/) very similar to the one provided by your typical Linux container (like Docker). This have some advantages in one hand containers running inside share resources like Memory, CPU time and pod storage. In the other they have more mechanism for inter process communication like they communicating via ```localhost``, as I going to show you demonstrate later.  
-      
+We can think of **pods** like a container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) very similar to the one provided by your typical Linux container (like Docker), and because of this, containers running inside share resources like Memory, CPU time and storage associated to the pod.
 
-## Anatomy of the Pod 
+Also they allow containers to communicate between each other using inter process communication like System V semaphore, POSIX shared memory or Linux sockets (through ``localhost``). We are going to use sockets as or communication medium for this guide, remember we don't want to touch any service to make this work.  
 
-This is a quick example of what a [pod definition template](https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444) looks like:
+## How It Looks
 
-```xml 
+This is a quick example of what a [pod](https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444) looks like:
+
+```xml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -66,28 +62,31 @@ spec:
     command: ['sh', '-c', 'echo Hello World! && sleep 3600']
 ```
 
-Here we are defining a pod named ```my-pod``` and inside we are creating a container using busybox (a very small Linux distro), once this image is deployed it will look for the ```echo``` command and display "Hello World" after that it will sleep for 3000 seconds, this will keep the process and container running.
+Here we are defining a pod named ```my-pod```, inside we are going to deploy a busybox (a very small Linux distribution) container, once this image is deployed, we are going display "Hello World" and sleep to keep the entire container alive for 3 thousand seconds.
 
 We save this in a file called pod.yml and we execute the following command:
 
 ```sh
-oc create -f pod.yml 
+oc create -f pod.yml
 
-# or you can create using a template stored somewhere else 
-oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444/raw/52cde49116a6d6261a1f813034b957058180a7ee/pod.yml 
+# or you can create using a template stored somewhere else
+oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444/raw/52cde49116a6d6261a1f813034b957058180a7ee/pod.yml
 ```
 
-Doing that is similar to do ```docker run -it busybox echo Hello World!; sleep 3600`` with the only difference that in the version above the container is executed in a remote machine.  
 
-We can login into the container by running the following command: 
+The container section of that template is similar to do ```docker run -it busybox echo Hello World!; sleep 3600```, only difference is that instead of a pod is running your machine and also that container get executed in a remote machine.  
 
-```sh 
-oc rsh my-pod 
+We can login into the container by running the following command:
+
+```sh
+oc rsh my-pod
 ```
 
-# More Containers 
+This will open a remote shell inside the container running by default in the pod.
 
-Adding a new container to existing pod is very simple, we just need add a new entry in the template: 
+# More Containers
+
+Adding a new container to existing pod is very simple, we just need add a new entry in the template:
 
 ```xml
 apiversion: v1
@@ -106,47 +105,47 @@ spec:
     command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We re-create the pod using the same instructions above: 
+We re-create the pod using the same instructions above:
 
 
 ```sh
 # if you create a pod before, you need to deleted first.
-oc delete pod my-pod 
+oc delete pod my-pod
 
 # create it again.
 oc create -f pod.yml
 
-#or 
+#or
 
 oc create -f https://gist.githubusercontent.com/cesarvr/97a0139ca2dba9412254d9919da64e69/raw/5e593a9a4b9fff9af06c53670f939fd9caef94ff/pod.yml
 ```
 
-Login into the containers get a little bit trickier as we need to specify what container we want to login, let say we want to login into the ```first-container``` container: 
+Login into the containers get a little bit trickier as we need to specify what container we want to login, let say we want to login into the ```first-container``` container:
 
 ```sh
-oc rsh -c first-container my-pod 
+oc rsh -c first-container my-pod
 ```
 
-If you want to login into the ```second-container```: 
+If you want to login into the ```second-container```:
 
 ```sh
 oc rsh -c second-container my-pod
 ```
- 
 
-# Communication Between Pods 
 
-## Simple Server 
+# Communication Between Pods
 
-By now we should understand all the theory behind the how the pod works, so let's put some of this theory to practice and deploy a simple Node.js static web server. 
+## Simple Server
+
+By now we should understand all the theory behind how the pod works, so let's put some of this theory to practice and deploy a simple Node.js static web server.
 
 ```sh
   oc new-app nodejs~https://github.com/cesarvr/demos-webgl
 ```
 
-This command creates [deployment controller](https://github.com/cesarvr/Openshift#deploy) which are in charge of creating pods that will host the our static server, the source code for the static server can be found [here](https://github.com/cesarvr/demos-webgl).   
+This [new-app](https://github.com/cesarvr/Openshift#using-the-oc-client) command creates [deployment controller](https://github.com/cesarvr/Openshift#deploy) which are in charge of creating pods that will host our static server, the source code for the static server can be found [here](https://github.com/cesarvr/demos-webgl).   
 
-Only thing missing is to create a [route](https://github.com/cesarvr/Openshift#router) to send outside traffic to our pod: 
+Only thing missing is to create a [route](https://github.com/cesarvr/Openshift#router) to send outside traffic to our pod:
 
 ```sh   
   # First let expose our service to outside traffic
@@ -162,7 +161,7 @@ Only thing missing is to create a [route](https://github.com/cesarvr/Openshift#r
   # <HTML...
 ```
 
-## New Container 
+## Adding A Container
 
 To add a new container, we just need to modify deployment configuration:
 
@@ -205,7 +204,7 @@ It's a little bit messy, but this syntax looks very familiar, we are going to ad
   command: ["sh", "-c", "sleep 3600"]
 ```
 
-This is the block we want to add just a simple busybox container, the end result should look like this: 
+This is the block we want to add just a simple busybox container, the end result should look like this:
 
 ```xml
 containers:
@@ -234,7 +233,7 @@ We save the content of our editor and we should see ```deploymentconfig.apps.ope
 
 We got two container ```webgl-demos``` running the static server in port 8080 and ```sidecar``` running a sleep process, let see if we can connect to the server container from ```sidecar```.   
 
-Get the running pods: 
+Get the running pods:
 
 ```sh
 oc get pod
@@ -242,7 +241,7 @@ oc get pod
 oc rsh -c sidecar webgl-demos-3-md7z4
 ```
 
-Let's communicate using ```localhost```: 
+Let's communicate using ```localhost```:
 
 ```sh
 # This will call send a message to the container with ..
@@ -252,16 +251,15 @@ wget -q0- 0.0.0.0:8080/index.html
 
 ```
 
-Here is the whole process: 
+Here is the whole process:
 
 ![sidecar-deployment](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif)
 
-## Container Patterns 
+## Container Patterns
 
-This article went longer than I though, but I think now you should now enough to put this knowledge into practise, here are some suggestion where using multiples container can be interesting: 
+This article went longer than I though, but I think now you should now enough to put this knowledge into practice, here are some suggestion where using multiples container can be interesting:
 
-- You can divide applications in two containers one container handles the business logic, other container handles the network security. 
+- You can divide applications in two containers one container handles the business logic, other container handles the network security.
 - You can encapsulate the networking recovering capabilities (circuit breaker, etc) inside a container you know like Istio.
 
-For more ideas here is a nice [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf) that was the inspiration behind this post.  
-
+For more ideas here is a nice [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf) we more containers patterns. In the next post we are going to write our Ambassador container to read the telemetry. Cheers!.
