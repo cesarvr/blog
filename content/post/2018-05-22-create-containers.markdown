@@ -770,7 +770,7 @@ Let's write the code to create the folder:
 
 void limitProcessCreation() {
   // create a folder
-  mkdir( PID_CGROUP_FOLDER, S_IRUSR | S_IWUSR);  
+  mkdir( CGROUP_FOLDER, S_IRUSR | S_IWUSR);  
 
 }
 
