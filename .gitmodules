@@ -1,12 +1,1 @@
-[submodule "comments"]
-	path = comments
-	url = https://github.com/cesarvr/hugo-comments
-[submodule "public"]
-	path = public
-	url = git@github.com:cesarvr/cesarvr.github.io.git
-[submodule "themes/jane"]
-	path = themes/jane
-	url = https://github.com/xianmin/hugo-theme-jane
-[submodule "themes/sam"]
-	path = themes/sam
-	url = https://github.com/vickylai/hugo-theme-sam.git
+

@@ -6,43 +6,42 @@ draft: false
 keywords: []
 description: "Or how to encapsulate application behaviours in reusable containers."
 tags: [openshift, imagestream]
-categories: [openshift, build, webhook]
+categories: [openshift, webhook]
 toc: true
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have web service that handle some typical business logic, and we need to get some information about how many times a particular endpoint is being hit or imagine that we want to have the option to shut down a particular endpoint on demand.
+Let say we have a web service that handle some business logic and we need to get some information about how many times a particular endpoint is being hit or imagine that we want to have the option to shut down a particular endpoint on demand.
 
 <!--more-->
 
-The typical way to solve this is by modifying the codebase of the existing service, we maybe make use of a Decorator pattern to wrap the object in charge of the request, this look like a nice solution. But what happen if we discover we want to apply this rules to more services running in our cluster and those services are written in other programming languages/framework.
+The typical way to solve this is by modifying the codebase of the existing service, we maybe make use of a Decorator pattern to wrap the object in charge of the request. But what happen if we discover we want to apply this rules to more services, and, what happen if those services are written in other programming languages/framework or even worst what happen if we don't want to touch those services at all (we are afraid of looking at the codebase).
 
 # Separation Of Concerns
 
-A nice solution can be to separate that particular behavior, let's call it "Telemetry" into it's own container. This container can receive the request save the data and then delegate to next service.
-
-Sound's great but we need to solve how this "Telemetry" container will intercept/forward the responses to the underlying services. And to achieve this we need to follow a good software engineer rule, the services shouldn't know nothing about the existence of the "Telemetry" container.  
-
+Other solution can be to separate this new functionality into it's own container. That new container will act as a decorator for the whole application, providing this new functionality without modifying the underlying service. This paradigm can bring lot of advantages, because we don't care about the programming language behind service as long as we use the same protocol and in the case that the protocol change we just need to change one codebase. 
 
 # Before We Start
 
-Our Istio like framework will be divided into three sections:
+The objective here is to learn how we can leverage container technology to get this type of flexibility. We can create applications that *enhance* other applications, that's what frameworks like Istio does very well. I'm going to illustrate how you this, by building an Istio like framework. 
+
+This guide will be divide in three parts:
 
 - **Part One**: How to deploy applications supporting multiple containers.  
-- **Part Two**: Develop and deploy our "Telemetry" container, we are going to plug this container to any service and get back some simple telemetry in the stdout.  
-- **Part Three**: Write a simple dashboard. Once the "Telemetry" container is deployed we are going to signal our dashboard with information.   
+- **Part Two**: Develop and deploy our "Telemetry" container, we are going to plug this container to any service and gather some simple telemetry.  
+- **Part Three**: Write a simple dashboard. Once this "Telemetry" container is appended to other services, we are going to signal our dashboard with the usage information across our "service mesh".   
 
-I'm going to use OpenShift because is the Kubernetes distro I'm more familiar with, but this techniques should work in Kubernetes as well.
+I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should work in Kubernetes as well.
 
-Also make sure you have installed [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
+If you want to follow this guide you can install [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
 
 
 # Understanding The Pod
 
-We can think of **pods** like a container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) very similar to the one provided by your typical Linux container (like Docker), and because of this, containers running inside share resources like Memory, CPU time and storage associated to the pod.
+Pods are the building blocks to create applications in the cluster, but for our purposes we can think of them as a container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside believe they are running in a single machine.   
 
-Also they allow containers to communicate between each other using inter process communication like System V semaphore, POSIX shared memory or Linux sockets (through ``localhost``). We are going to use sockets as or communication medium for this guide, remember we don't want to touch any service to make this work.  
+And like processes running in a "single machine", contained processes running inside can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets. 
 
 ## How It Looks
 
@@ -74,15 +73,13 @@ oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdf
 ```
 
 
-The container section of that template is similar to do ```docker run -it busybox echo Hello World!; sleep 3600```, only difference is that instead of a pod is running your machine and also that container get executed in a remote machine.  
+The container section of that template is similar to do ```docker run -it busybox echo Hello World!; sleep 3600``` in your machine, only difference is that in the case of OpenShift you container is running in a remote computer.  
 
 We can login into the container by running the following command:
 
 ```sh
 oc rsh my-pod
 ```
-
-This will open a remote shell inside the container running by default in the pod.
 
 # More Containers
 
@@ -120,7 +117,7 @@ oc create -f pod.yml
 oc create -f https://gist.githubusercontent.com/cesarvr/97a0139ca2dba9412254d9919da64e69/raw/5e593a9a4b9fff9af06c53670f939fd9caef94ff/pod.yml
 ```
 
-Login into the containers get a little bit trickier as we need to specify what container we want to login, let say we want to login into the ```first-container``` container:
+Login into the containers gets a little bit trickier as we need to specify what container we want to login, let say we want to login into the ```first-container``` container:
 
 ```sh
 oc rsh -c first-container my-pod
@@ -132,12 +129,11 @@ If you want to login into the ```second-container```:
 oc rsh -c second-container my-pod
 ```
 
-
 # Communication Between Pods
 
 ## Simple Server
 
-By now we should understand all the theory behind how the pod works, so let's put some of this theory to practice and deploy a simple Node.js static web server.
+By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple Node.js static web server.
 
 ```sh
   oc new-app nodejs~https://github.com/cesarvr/demos-webgl
@@ -145,7 +141,7 @@ By now we should understand all the theory behind how the pod works, so let's pu
 
 This [new-app](https://github.com/cesarvr/Openshift#using-the-oc-client) command creates [deployment controller](https://github.com/cesarvr/Openshift#deploy) which are in charge of creating pods that will host our static server, the source code for the static server can be found [here](https://github.com/cesarvr/demos-webgl).   
 
-Only thing missing is to create a [route](https://github.com/cesarvr/Openshift#router) to send outside traffic to our pod:
+Only thing missing is to create a [router](https://github.com/cesarvr/Openshift#router) to send outside traffic to our pod:
 
 ```sh   
   # First let expose our service to outside traffic
@@ -174,7 +170,7 @@ NAME
 webgl-demos
 ```
 
-We need to edit this resource (```webgl-demos```), for that we can use the ```oc edit```:
+We need to edit this resource (```webgl-demos```) using ```oc edit```:
 
 ```sh
 #You can setup the editor by editing the variable OC_EDIT (example: export OC_EDIT=vim).
@@ -196,7 +192,7 @@ containers:
       protocol: TCP
 ```
 
-It's a little bit messy, but this syntax looks very familiar, we are going to add the new container just below the ```containers:``` section, this way we avoid mistakes.
+It's a little bit messy, but this syntax should look very familiar, we are going to add the new container just below the ```containers:``` section, this way we avoid mistakes.
 
 ```xml
 - name: sidecar   
