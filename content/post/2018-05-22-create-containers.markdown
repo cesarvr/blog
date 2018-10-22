@@ -93,7 +93,27 @@ Now our process will look something like this:
   +--------+
 ```
 
-Our next step is to invoke the system call to create the child process, for this we are going to use the [clone](http://man7.org/linux/man-pages/man2/clone.2.html) system call.
+Our next step is to invoke the system call to create the child process, for this we are going to use the [clone](http://man7.org/linux/man-pages/man2/clone.2.html) system call. 
+
+For the **clone** system call to work we need to provide some memory for the new process to run, for this we are going to create a function that allocate some memory for us: 
+
+```cpp
+char* stack_memory() {
+  const int stackSize = 65536;
+  auto *stack = new (std::nothrow) char[stackSize];
+
+  if (stack == nullptr) { 
+    printf("Cannot allocate memory \n");
+    exit(EXIT_FAILURE);
+  }  
+
+  return stack+stackSize;  //move the pointer to the end of the array because the stack grows backward. 
+}
+```
+
+Here we are going to provide some arbitrary memory size 65K bytes, after we allocate this memory we are going to return a pointer to the end of the array. This is required because when **clone** load this process the stack (the memory the process need to run) grows backward. 
+
+Our final version will look like this: 
 
 ```c
 #include <iostream>
@@ -101,6 +121,18 @@ Our next step is to invoke the system call to create the child process, for this
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/wait.h>
+
+char* stack_memory() {
+  const int stackSize = 65536;
+  auto *stack = new (std::nothrow) char[stackSize];
+
+  if (stack == nullptr) { 
+    printf("Cannot allocate memory \n");
+    exit(EXIT_FAILURE);
+  }  
+
+  return stack+stackSize;  //move the pointer to the end of the array because the stack grows backward. 
+}
 
 int jail(void *args) {
   printf("Hello !! ( child ) \n");
@@ -116,7 +148,7 @@ int main(int argc, char** argv) {
 }
 ```
 
-The first parameter is our entry point function, *second* parameter requires a pointer to allocated memory, *third* (SIGCHLD) this flag tells the process to emit a signal when finished and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```.
+The first parameter is our entry point function, *second* parameter is our function to allocate memory, *third* (SIGCHLD) this flag tells the process to emit a signal when finished and the *fourth* and last one is only necessary if we want to pass arguments to the ```jail``` function, in this case we pass just ```0```.
 
 
 ```
@@ -354,7 +386,7 @@ int main(int argc, char** argv) {
   printf("Hello, World! ( parent ) \n");
   printf("parent %d", getpid());
 
-  clone(child, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
+  clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
   #                            ^^ new flag
   wait(nullptr);
   return EXIT_SUCCESS;
@@ -486,7 +518,7 @@ int jail(void *args) {
 int main(int argc, char** argv) {
   printf("parent %d", getpid());
 
-  clone(child, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
+  clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
   wait(nullptr);
   return EXIT_SUCCESS;
 }
@@ -531,7 +563,7 @@ int jail(void *args) {
 int main(int argc, char** argv) {
   printf("parent %d", getpid());
 
-  clone(child, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
+  clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
   wait(nullptr);
   return EXIT_SUCCESS;
 }
@@ -568,7 +600,7 @@ Let's start by grouping our process creation instructions into a reusable functi
 int main(int argc, char** argv) {
   printf("parent %d", getpid());
 
-  clone(child, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
+  clone(jail, stack_memory(), CLONE_NEWPID | CLONE_NEWUTS | SIGCHLD, 0);
   wait(nullptr);
 
   return EXIT_SUCCESS;
