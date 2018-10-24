@@ -16,7 +16,7 @@ Let say we have a micro-service exposing some business API and we would like to 
 
 <!--more-->
 
-One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is, how we can reuse this functionality across all your micro-services ? Even when all the services are written in the same language this can a challenging task.
+One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is: How we can reuse this functionality across all our micro-services ?, This can be a challenging task, even scenario where all those micro-services share the same programming language.
 
 # Separating Of Concerns
 
@@ -241,7 +241,7 @@ Let's communicate using ```localhost```:
 
 ```sh
 # This will call send a message to the container with ..
-# the webserver asking for the index.html
+# the web-server asking for the index.html
 wget -q0- 0.0.0.0:8080/index.html
 #<a href="fire_1">fire_1</a><br><a href="gl_point">gl_point</a><br><a href="stars-1">stars-1</a><br><a href="tunnel-1">tunnel-1</a>
 
@@ -251,8 +251,9 @@ Here is the whole process:
 
 ![sidecar-deployment](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif)
 
+
 ## Container Patterns
 
-This article went longer than I though, but now you should be able to create applications with multiple containers and how to achieve this using OpenShift.
+This article went longer than I though, but now we should be able to create applications with multiple containers. Also we demonstrate that containers running inside the pod share the same network. We are going to use this fact in the next article to create our "Telemetry" container and communicate with other containers.  
 
-If you want to know more about the container patterns you can take a look a this [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf). In the next post we are going to write our Ambassador container so we can read some usage pattern on any arbitrary servicez.
+If you want to know more about the container patterns you can take a look a this [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf). 
