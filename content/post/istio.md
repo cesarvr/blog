@@ -40,7 +40,7 @@ If you want to follow this guide you can install [oc-client](https://github.com/
 
 Pods are the building blocks to create applications in the cluster, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside believe they are running in a single machine.   
 
-And like processes running in a "single machine", contained processes running inside can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets.
+And like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets. 
 
 ## How It Looks
 
