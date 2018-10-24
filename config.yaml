@@ -4,7 +4,6 @@ languageCode: en-us
 title: Nube
 theme: hugo-paper 
 googleAnalytics: UA-110580110-1
-disqusShortname: cesar
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true

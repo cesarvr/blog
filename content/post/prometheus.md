@@ -12,11 +12,11 @@ images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we would like to get gather some data about usage pattern, like how many time the endpoints are being called.
+Let say we have a micro-service exposing some business API and we would like to get gather some data about its usage pattern, like how many time the endpoints are being called.
 
 <!--more-->
 
-One way to solve this is by defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is, how we can reuse this functionality across micro-services ?.
+One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is, how we can reuse this functionality across all your micro-services ? Even when all the services are written in the same language this can a challenging task.
 
 # Separating Of Concerns
 
@@ -24,12 +24,12 @@ Other solution can be to separate this new functionality into it's own container
 
 # Before We Start
 
-But how we can create this container? That's the objective of these articles, we are going to learn how we can encapsulate behaviour in containers and use them to enhance existing applications, pretty much like Istio does.
+But how we can create container like this? That's the objective of this post, we are going to learn how we can encapsulate behaviour in containers and use them to enhance existing applications, pretty much like **Istio** or <put-here-your-service-mesh> does. The objective is to identify what is the magic behind this frameworks, so in case of problems you know what to do. Also because, as we are going to see, we can come up with very powerful patterns.
 
 This guide will be divide in three parts:
 
-- **Part One**: How to deploy applications supporting multiple containers.  
-- **Part Two**: Develop and deploy our "Telemetry" container, we are going to plug this container to any service and gather some simple telemetry.  
+- **Part One**: How to deploy applications that runs in multiple containers.  
+- **Part Two**: We are going to develop a reusable "Telemetry" container, to gather information about other services.  
 - **Part Three**: Write a simple dashboard. Once this "Telemetry" container is appended to other services, we are going to signal our dashboard with the usage information across our "service mesh".   
 
 I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
