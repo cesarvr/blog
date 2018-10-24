@@ -58,6 +58,15 @@
     </item>
     
     <item>
+      <title>Container</title>
+      <link>/categories/container/</link>
+      <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
+      
+      <guid>/categories/container/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Containers</title>
       <link>/categories/containers/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
@@ -103,6 +112,15 @@
     </item>
     
     <item>
+      <title>Kubernetes</title>
+      <link>/categories/kubernetes/</link>
+      <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
+      
+      <guid>/categories/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Linux</title>
       <link>/categories/linux/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
@@ -139,11 +157,11 @@
     </item>
     
     <item>
-      <title>Webhook</title>
-      <link>/categories/webhook/</link>
+      <title>Services</title>
+      <link>/categories/services/</link>
       <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
       
-      <guid>/categories/webhook/</guid>
+      <guid>/categories/services/</guid>
       <description></description>
     </item>
     

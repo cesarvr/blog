@@ -7,6 +7,15 @@
   
   <title>Chaining Builds In Openshift - Nube</title>
   
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Using chained builds to improve the size of your images and overall deployment performance in Openshift." />
+  <meta name="twitter:title" content="Chaining Builds In Openshift" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="" />
+
   <meta name="description" content="New application Creating a Node.js application in Openshift is simple:
 oc login -u user oc new-project hello # Assuming you are logged and you have a project you can start here. oc new-app --name node-app nodejs~https://github.com/cesarvr/hello-world-nodejs #new app using nodejs:latest (Node.js 8)  This command will create the backbone (BuildConfig, DeploymentConfig and Service) to orchestrate the different stages from source code to a running application.
 The size problem But this nice abstraction come with a cost, to explain what I mean, let&rsquo;s review size of our final image using du:">
@@ -285,31 +294,11 @@ Hello World%
   
   
   
-  <div id="disqus_thread"></div>
-  <script>
-    var disqus_shortname = 'cesar';
-    (function() { 
-      var d = document, s = d.createElement('script');
-      s.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-      s.setAttribute('data-timestamp', +new Date());
-      (d.head || d.body).appendChild(s);
-    })();
-  </script>
-  <noscript>
-    Please enable JavaScript to view the
-    <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
-  </noscript>
-  
-  
   
 </article>
 </main>
 <footer class="footer">
   <span>&copy; 2018 Nube</span>
-  <span>&middot;</span>
-  <span>Powered by <a href="https://gohugo.io/" target="_blank">Hugo️️</a>️</span>
-  <span>&middot;</span>
-  <span>Designed by <a href="http://21beats.com/" target="_blank">️21beats️</a>️</span>
 </footer>
 <script src="https://cdn.bootcss.com/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
 <script data-no-instant>InstantClick.init();</script>
