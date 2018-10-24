@@ -12,19 +12,19 @@ images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a web service that handle some business logic and we need to get some information about how many times a particular endpoint is being hit or imagine that we want to have the option to shut down a particular endpoint on demand.
+Let say we have a micro-service exposing some business API and we would like to get gather some data about usage pattern, like how many time the endpoints are being called.
 
 <!--more-->
 
-The typical way to solve this is by modifying the codebase of the existing service, we maybe make use of a Decorator pattern to wrap the object in charge of the request. But what happen if we discover we want to apply this rules to more services, and, what happen if those services are written in other programming languages/framework or even worst what happen if we don't want to touch those services at all (we are afraid of looking at the codebase).
+One way to solve this is by defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is, how we can reuse this functionality across micro-services ?.
 
-# Separation Of Concerns
+# Separating Of Concerns
 
-Other solution can be to separate this new functionality into it's own container. That new container will act as a decorator for the whole application, providing this new functionality without modifying the underlying service. This paradigm can bring lot of advantages, because we don't care about the programming language behind service as long as we use the same protocol and in the case that the protocol change we just need to change one codebase. 
+Other solution can be to separate this new functionality into it's own container. That new container will act as a decorator for the whole application, providing this new functionality without modifying the underlying service. This paradigm bring lot of advantages, because we don't care about the programming language behind the service as long as we use the same protocol and in the case there is a change in protocol we just need to update our container.
 
 # Before We Start
 
-The objective here is to learn how we can leverage container technology to get this type of flexibility. We can create applications that *enhance* other applications, that's what frameworks like Istio does very well. I'm going to illustrate how you this, by building an Istio like framework. 
+But how we can create this container? That's the objective of these articles, we are going to learn how we can encapsulate behaviour in containers and use them to enhance existing applications, pretty much like Istio does.
 
 This guide will be divide in three parts:
 
@@ -32,16 +32,16 @@ This guide will be divide in three parts:
 - **Part Two**: Develop and deploy our "Telemetry" container, we are going to plug this container to any service and gather some simple telemetry.  
 - **Part Three**: Write a simple dashboard. Once this "Telemetry" container is appended to other services, we are going to signal our dashboard with the usage information across our "service mesh".   
 
-I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should work in Kubernetes as well.
+I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
 
 If you want to follow this guide you can install [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
 
 
 # Understanding The Pod
 
-Pods are the building blocks to create applications in the cluster, but for our purposes we can think of them as a container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside believe they are running in a single machine.   
+Pods are the building blocks to create applications in the cluster, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside believe they are running in a single machine.   
 
-And like processes running in a "single machine", contained processes running inside can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets. 
+And like processes running in a "single machine", contained processes running inside can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets.
 
 ## How It Looks
 
@@ -253,9 +253,6 @@ Here is the whole process:
 
 ## Container Patterns
 
-This article went longer than I though, but I think now you should now enough to put this knowledge into practice, here are some suggestion where using multiples container can be interesting:
+This article went longer than I though, but now you should be able to create applications with multiple containers and how to achieve this using OpenShift.
 
-- You can divide applications in two containers one container handles the business logic, other container handles the network security.
-- You can encapsulate the networking recovering capabilities (circuit breaker, etc) inside a container you know like Istio.
-
-For more ideas here is a nice [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf) we more containers patterns. In the next post we are going to write our Ambassador container to read the telemetry. Cheers!.
+If you want to know more about the container patterns you can take a look a this [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf). In the next post we are going to write our Ambassador container so we can read some usage pattern on any arbitrary servicez.
