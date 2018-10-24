@@ -11,11 +11,12 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we would like to get gather some data about its usage pattern, like how many time the endpoints are being called.
+Let say we have a micro-service exposing some business API and we would like to get gather some data about its usage pattern, like how many time the endpoints are being called. One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. 
 
 <!--more-->
 
-One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. After successfully deploying this solution the question now is: How we can reuse this functionality across all our micro-services ?, This can be a challenging task, even scenario where all those micro-services share the same programming language.
+After successfully deploying this solution the question now is: *How we can reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require we go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.), let's see if we can find a more elegant way to do this.  
+
 
 # Separating Of Concerns
 
