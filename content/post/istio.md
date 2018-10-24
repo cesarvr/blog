@@ -38,9 +38,9 @@ If you want to follow this guide you can install [oc-client](https://github.com/
 
 # Understanding The Pod
 
-Pods are the building blocks to create applications in the cluster, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside believe they are running in a single machine.   
+Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.   
 
-And like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets. 
+Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets.  
 
 ## How It Looks
 
@@ -80,7 +80,7 @@ We can login into the container by running the following command:
 oc rsh my-pod
 ```
 
-# More Containers
+# How To Add More Containers 
 
 Adding a new container to existing pod is very simple, we just need add a new entry in the template:
 
@@ -253,6 +253,6 @@ Here is the whole process:
 
 ## Container Patterns
 
-This article went longer than I though, but now we should be able to create applications with multiple containers. Also we demonstrate that containers running inside the pod share the same network. We are going to use this fact in the next article to create our "Telemetry" container and communicate with other containers.  
+By now we should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod share the same network. Keep this in mind as we are going to use this in the next article to create our “Telemetry” container to collect information about the usage of the website we deployed earlier. 
 
 If you want to know more about the container patterns you can take a look a this [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf). 
