@@ -15,6 +15,15 @@
   </title>
   <!-- Meta -->
   {{- if eq .Kind "page" }}
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="{{ .Params.description }}" />
+  <meta name="twitter:title" content="{{ .Params.title }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="{{ .Params.image }}" />
+
   <meta name="description" content="{{ .Summary }}">
   <meta name="author" content="{{ .Params.author | default .Site.Params.author }}">
   {{ else }}

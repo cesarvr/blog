@@ -4,12 +4,11 @@ date: 2018-09-19T14:30:07+01:00
 lastmod: 2018-09-19T14:30:07+01:00
 draft: false
 keywords: []
-description: "Or how to encapsulate application behaviours in reusable containers."
-tags: [openshift, imagestream]
-categories: [openshift, webhook]
+description: "How we can add/remove features to existing micro-services just by adding/removing containers."
+tags: [openshift, container, services, kubernetes ]
+categories: [openshift, container, services, kubernetes ]
 toc: true
-images:
-  - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
+image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
 Let say we have a micro-service exposing some business API and we would like to get gather some data about its usage pattern, like how many time the endpoints are being called.
