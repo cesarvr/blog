@@ -11,23 +11,22 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we would like to gather some data about its usage pattern, like how many time the endpoints are being called. One way to solve this require modifying the existing code base adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), then we re-deploying our service and we are done. 
+Let say we have a micro-service exposing some business API, and we want to gather some data about its usage pattern such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), testing and re-deploying. 
 
 <!--more-->
 
-After successfully deploying this solution the question now is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require we go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.), let's see if we can find a more elegant way to do this.  
+After successfully deploying this solution the question now is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if I got services running in C++ and my solution is in Ruby?*  In that case, supporting multiple codebase sounds like a bad idea.  
 
 
 # Separating Of Concerns
 
-Other solution can be to separate the new functionality into it's own container. That new container add this functionality to the whole application, and it should do it without modifying the underlying service. This has some advantages, one is, we don't care about the programming language behind the service as long as we use the same protocol and all further enhancements are local to each applications.
+An elegant solution can be to separate the new functionality into it's own container. In a way that we can add the container to those services that need this "Telemetry" information. This has some advantages, one is, we don't care about the programming language behind the service as long as we use the same protocol, second, all further enhancements are local to that container, and third, each container is specialized in their own domain.
 
-
-But how we can create container like this? That's the answer this posts try to respond, pretty much like **Istio** or <put-here-your-service-mesh>, we are going to try to define a set of "plug and play" behaviour to existing applications. The objective is to learn how to achieve some of the functionalities provided by Istio, so in the future you can replace this functionalities with some real flexible solutions.
+*But how we can create such container?* That's the answer this posts will try to respond. Pretty much like **Istio** or <put-here-your-service-mesh>, we are going to enhance existing services. The objective is to learn how to achieve some of the functionalities provided by Istio, so in the future you can replace them with your own ideas.
 
 ## Simple Use Case Scenario  
 
-Here goes one example, imagine you want to enforce some OAuth across all your services, you can write an "Ambassador" container that take care of that on behalf of your services and you are done. If you want to change the security protocol ? You change the code in one place, and re-deploy.
+If you need another example, imagine you want to enforce some *OAuth* across all your services, you can write a container that take care of that on behalf of your "business" container and you are done. *Do you want to change or upgrade the security protocol ?* Just change the code in one place and re-deploy.
 
 # Before We Start
 
@@ -46,7 +45,7 @@ If you want to follow this guide you can install [oc-client](https://github.com/
 
 Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.   
 
-Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Unix/Linux environment like System V semaphore, POSIX shared memory or Linux sockets.  
+Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Unix/Linux environment like System V semaphore, POSIX shared memory or Linux sockets. You can use this facts to achieve other type of collaboration between containers. In this article we are going to collaborate with other containers the local network through "localhost". 
 
 ## How It Looks
 
@@ -136,118 +135,95 @@ oc rsh -c second-container my-pod
 
 ## Simple Server
 
-By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple Node.js static web server.
+By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple web server using python, first we need to build our image:
 
 ```sh
-  oc new-app nodejs~https://github.com/cesarvr/demos-webgl
+  oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
 ```
+Here we are using [new-build](https://cesarvr.io/post/buildconfig/) to create an image. We are going to provide this [repository](https://github.com/cesarvr/demos-webgl), where we got some simple HTTP pages.
 
-This [new-app](https://github.com/cesarvr/Openshift#using-the-oc-client) command creates [deployment controller](https://github.com/cesarvr/Openshift#deploy) which are in charge of creating pods that will host our static server, the source code for the static server can be found [here](https://github.com/cesarvr/demos-webgl).   
-
-Only thing missing is to create a [router](https://github.com/cesarvr/Openshift#router) to send outside traffic to our pod:
-
-```sh   
-  # First let expose our service to outside traffic
-  oc expose svc demos-webgl
-
-  # Check the route and make a request with the browser
-  oc get route | awk '{print $2}'
-
-  HOST/PORT
-  demos-webgl-web-apps.7e14.starter-us-west-2.openshiftapps.com
-
-  # curl demos-webgl-web-apps.7e14.starter-us-west-2.openshiftapps.com
-  # <HTML...
-```
-
-## Adding A Container
-
-To add a new container, we just need to modify deployment configuration:
-
-We need to lookup the available deployment configurations by running this command:
+We can check the location of our new image using the following command:
 
 ```sh
-oc get dc | awk '{print $1}'
+oc get is
 
-NAME
-webgl-demos
+# NAME          DOCKER REPO                                             TAGS
+# web           docker-registry.default.svc:5000/web-apps/web           latest    
 ```
 
-We need to edit this resource (```webgl-demos```) using ```oc edit```:
-
-```sh
-#You can setup the editor by editing the variable OC_EDIT (example: export OC_EDIT=vim).
-
-oc edit deploymentconfig webgl-demos
-```
-
-The deployment configuration is provided in the form of a YAML document, from here we are interested in the  **containers** section:
+Now we need to update our template to add our newly created image:   
 
 ```xml
-containers:
-  - image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
-    imagePullPolicy: Always
-    name: webgl-demos
-    ports:
-    - containerPort: 8080
-      protocol: TCP
-    - containerPort: 8443
-      protocol: TCP
-```
-
-It's a little bit messy, but this syntax should look very familiar, we are going to add the new container just below the ```containers:``` section, this way we avoid mistakes.
-
-```xml
-- name: sidecar   
-  image: busybox
-  command: ["sh", "-c", "sleep 3600"]
-```
-
-This is the block we want to add just a simple busybox container, the end result should look like this:
-
-```xml
-containers:
-
-  - name: sidecar   
+apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'echo Hello World && sleep 3600']
+  - name: proxy
     image: busybox
-    command: ["sh", "-c", "sleep 3600"]
-
-  - image: 172.30.254.23:5000/web-apps/webgl-demos@sha256:....ffff3
-    imagePullPolicy: Always
-    name: webgl-demos
-    ports:
-    - containerPort: 8080
-      protocol: TCP
-    - containerPort: 8443
-      protocol: TCP
-    resources: {}
-    terminationMessagePath: /dev/termination-log
-    terminationMessagePolicy: File
+    command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We save the content of our editor and we should see ```deploymentconfig.apps.openshift.io "webgl-demos" edited``` message and just after this our pod will get re-created by the deployment controller.
+Here I just renamed containers name for clarity, we got the **web** container using our Python image we created before, and the second container to **proxy**. The only thing left is to edit the command section in the **web** container so we deploy a web server instead of just showing a message.
 
-
-# Sending Messages
-
-We got two container ```webgl-demos``` running the static server in port 8080 and ```sidecar``` running a sleep process, let see if we can connect to the server container from ```sidecar```.   
-
-Get the running pods:
-
-```sh
-oc get pod
-
-oc rsh -c sidecar webgl-demos-3-md7z4
+```xml
+apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'cd static && python -m http.server 8087']
+ - name: proxy
+    image: busybox
+    command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-Let's communicate using ```localhost```:
+This command is very simple, once the container is created it will jump to the [static folder](https://github.com/cesarvr/demos-webgl/tree/master/static) and then run the [HTTP.Server module](https://docs.python.org/3/library/http.server.html).
+
+The only thing remaining is to re-create our pods:
 
 ```sh
-# This will call send a message to the container with ..
-# the web-server asking for the index.html
-wget -q0- 0.0.0.0:8080/index.html
-#<a href="fire_1">fire_1</a><br><a href="gl_point">gl_point</a><br><a href="stars-1">stars-1</a><br><a href="tunnel-1">tunnel-1</a>
+oc delete my-pod
 
+oc create my-pod.yml
+# or ...
+
+oc create -f https://gist.githubusercontent.com/cesarvr/cecaf693a17b6f09b9eb3f5d38f33165/raw/2227781e4c3e71ecb68b22d052bdf8cd2c083c55/my-pod.yml
+```
+
+Now let's test that our containers can talk to each other inside the pod, for that we are going to the command [oc exec](https://docs.openshift.com/enterprise/3.0/dev_guide/executing_remote_commands.html) (which is similar to [docker exec](https://dzone.com/articles/docker-for-beginners) allow us to execute remote shell commands.
+
+The syntax goes as follows:
+
+```sh
+  oc exec -c <container-name> <pod-name> -- <shell-command>
+```
+
+Let's run [wget](https://www.computerhope.com/unix/wget.htm) Linux command to fetch the webpage in our **web** container:  
+
+```sh
+oc exec -c web my-pod -- wget -qO- 0.0.0.0:8087
+
+# <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">  
+```
+
+This means that our web server is running, now let's test same remote command with the **proxy** container and we should get the same result:
+
+```sh
+oc exec -c proxy my-pod -- wget -qO- 0.0.0.0:8087
+
+#<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"
 ```
 
 Here is the whole process:
@@ -257,6 +233,6 @@ Here is the whole process:
 
 ## Container Patterns
 
-By now we should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod share the same network. Keep this in mind as we are going to use this in the next article to create our “Telemetry” container to collect information about the usage of the website we deployed earlier. 
+By now we achieved our first goal, we should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod share the same network. This is very important as we are going to use this in the next article to create our “Proxy” container to collect information about the usage of the website we deployed earlier. 
 
-If you want to know more about the container patterns you can take a look a this [paper](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45406.pdf). 
+If you want to know more about the container patterns you can take a look a this [paper](https://ai.google/research/pubs/pub45406). 
