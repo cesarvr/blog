@@ -11,20 +11,25 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we would like to get gather some data about its usage pattern, like how many time the endpoints are being called. One way to solve this require modifying the existing code base and then defining the wanted behaviour in the form of a class or a set of functions (if functional is your thing) and re-deploying our changes. 
+Let say we have a micro-service exposing some business API and we would like to gather some data about its usage pattern, like how many time the endpoints are being called. One way to solve this require modifying the existing code base adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), then we re-deploying our service and we are done. 
 
 <!--more-->
 
-After successfully deploying this solution the question now is: *How we can reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require we go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.), let's see if we can find a more elegant way to do this.  
+After successfully deploying this solution the question now is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require we go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.), let's see if we can find a more elegant way to do this.  
 
 
 # Separating Of Concerns
 
-Other solution can be to separate this new functionality into it's own container. That new container will act as a decorator for the whole application, providing this new functionality without modifying the underlying service. This paradigm bring lot of advantages, because we don't care about the programming language behind the service as long as we use the same protocol and in the case there is a change in protocol we just need to update our container.
+Other solution can be to separate the new functionality into it's own container. That new container add this functionality to the whole application, and it should do it without modifying the underlying service. This has some advantages, one is, we don't care about the programming language behind the service as long as we use the same protocol and all further enhancements are local to each applications.
+
+
+But how we can create container like this? That's the answer this posts try to respond, pretty much like **Istio** or <put-here-your-service-mesh>, we are going to try to define a set of "plug and play" behaviour to existing applications. The objective is to learn how to achieve some of the functionalities provided by Istio, so in the future you can replace this functionalities with some real flexible solutions.
+
+## Simple Use Case Scenario  
+
+Here goes one example, imagine you want to enforce some OAuth across all your services, you can write an "Ambassador" container that take care of that on behalf of your services and you are done. If you want to change the security protocol ? You change the code in one place, and re-deploy.
 
 # Before We Start
-
-But how we can create container like this? That's the objective of this post, we are going to learn how we can encapsulate behaviour in containers and use them to enhance existing applications, pretty much like **Istio** or <put-here-your-service-mesh> does. The objective is to identify what is the magic behind this frameworks, so in case of problems you know what to do. Also because, as we are going to see, we can come up with very powerful patterns.
 
 This guide will be divide in three parts:
 
@@ -41,7 +46,7 @@ If you want to follow this guide you can install [oc-client](https://github.com/
 
 Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.   
 
-Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Linux environment like System V semaphore, POSIX shared memory or Linux sockets.  
+Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Unix/Linux environment like System V semaphore, POSIX shared memory or Linux sockets.  
 
 ## How It Looks
 
@@ -61,7 +66,7 @@ spec:
     command: ['sh', '-c', 'echo Hello World! && sleep 3600']
 ```
 
-Here we are defining a pod named ```my-pod```, inside we are going to deploy a busybox (a very small Linux distribution) container, once this image is deployed, we are going display "Hello World" and sleep to keep the entire container alive for 3 thousand seconds.
+This YAML template defines a pod named *my-pod*, inside we are going to deploy a container using busybox (a very small Linux distribution) base image. Then we are going display "Hello World" and sleep to keep the entire container alive for 3 thousand seconds.
 
 We save this in a file called pod.yml and we execute the following command:
 
@@ -72,10 +77,9 @@ oc create -f pod.yml
 oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444/raw/52cde49116a6d6261a1f813034b957058180a7ee/pod.yml
 ```
 
+That template creates the big jail (the pod) and once created it execute inside something similar to this: ```docker run -it busybox echo Hello World!; sleep 3600```.    
 
-The container section of that template is similar to do ```docker run -it busybox echo Hello World!; sleep 3600``` in your machine, only difference is that in the case of OpenShift you container is running in a remote computer.  
-
-We can login into the container by running the following command:
+We can login into the pods running container using this *magic words*:
 
 ```sh
 oc rsh my-pod
@@ -83,7 +87,7 @@ oc rsh my-pod
 
 # How To Add More Containers 
 
-Adding a new container to existing pod is very simple, we just need add a new entry in the template:
+Adding a new container to existing pod is not difficult, we just need add a new entry in the template:
 
 ```xml
 apiversion: v1
@@ -102,8 +106,7 @@ spec:
     command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We re-create the pod using the same instructions above:
-
+As you can observe that containers section is a collection, you can add as many containers as you want. After editing our template we just need to load the new template into OpenShift.
 
 ```sh
 # if you create a pod before, you need to deleted first.
@@ -117,7 +120,7 @@ oc create -f pod.yml
 oc create -f https://gist.githubusercontent.com/cesarvr/97a0139ca2dba9412254d9919da64e69/raw/5e593a9a4b9fff9af06c53670f939fd9caef94ff/pod.yml
 ```
 
-Login into the containers gets a little bit trickier as we need to specify what container we want to login, let say we want to login into the ```first-container``` container:
+Logging into the pod gets a bit trickier now as we need to specify the container, let say we want to login into the ```first-container``` container:
 
 ```sh
 oc rsh -c first-container my-pod
