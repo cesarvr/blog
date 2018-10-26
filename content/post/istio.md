@@ -15,7 +15,7 @@ Let say we have a micro-service exposing some business API, and we want to gathe
 
 <!--more-->
 
-After successfully deploying this solution the question now is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if I got services running in C++ and my solution is in Ruby?*  In that case, supporting multiple codebase sounds like a bad idea.  
+After successfully deploying this solution the question is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if I got services running in C++ and my solution is in Ruby?*  In that case, supporting multiple codebase sounds like a bad idea.  
 
 
 # Separating Of Concerns
@@ -65,7 +65,7 @@ spec:
     command: ['sh', '-c', 'echo Hello World! && sleep 3600']
 ```
 
-This YAML template defines a pod named *my-pod*, inside we are going to deploy a container using busybox (a very small Linux distribution) base image. Then we are going display "Hello World" and sleep to keep the entire container alive for 3 thousand seconds.
+This YAML template defines a pod named *my-pod*, inside we are going to deploy a container using Busybox (a very small Linux distribution) base image. Then we are going display "Hello World" and sleep to keep the entire container alive for 3 thousand seconds.
 
 We save this in a file called pod.yml and we execute the following command:
 
@@ -138,7 +138,7 @@ oc rsh -c second-container my-pod
 By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple web server using python, first we need to build our image:
 
 ```sh
-  oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
+oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
 ```
 Here we are using [new-build](https://cesarvr.io/post/buildconfig/) to create an image. We are going to provide this [repository](https://github.com/cesarvr/demos-webgl), where we got some simple HTTP pages.
 
@@ -207,7 +207,7 @@ Now let's test that our containers can talk to each other inside the pod, for th
 The syntax goes as follows:
 
 ```sh
-  oc exec -c <container-name> <pod-name> -- <shell-command>
+oc exec -c <container-name> <pod-name> -- <shell-command>
 ```
 
 Let's run [wget](https://www.computerhope.com/unix/wget.htm) Linux command to fetch the webpage in our **web** container:  
