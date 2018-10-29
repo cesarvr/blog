@@ -11,22 +11,13 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API, and we want to gather some data about its usage pattern such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), testing and re-deploying. 
+Let say we have a micro-service exposing some business API and we want to gather some data about its usage pattern, such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions, testing and re-deploying. 
 
 <!--more-->
 
-After successfully deploying this solution the question is: *How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if I got services running in C++ and my solution is in Ruby?*  In that case, supporting multiple codebase sounds like a bad idea.  
+*How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the codebases adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if we got some services developed in C++ and this functionality is writen in Ruby?*  In that case, supporting the same functionality across multiple programming language can be a maintenance nightmare. 
 
-
-# Separating Of Concerns
-
-An elegant solution can be to separate the new functionality into it's own container. In a way that we can add the container to those services that need this "Telemetry" information. This has some advantages, one is, we don't care about the programming language behind the service as long as we use the same protocol, second, all further enhancements are local to that container, and third, each container is specialized in their own domain.
-
-*But how we can create such container?* That's the answer this posts will try to respond. Pretty much like **Istio** or <put-here-your-service-mesh>, we are going to enhance existing services. The objective is to learn how to achieve some of the functionalities provided by Istio, so in the future you can replace them with your own ideas.
-
-## Simple Use Case Scenario  
-
-If you need another example, imagine you want to enforce some *OAuth* across all your services, you can write a container that take care of that on behalf of your "business" container and you are done. *Do you want to change or upgrade the security protocol ?* Just change the code in one place and re-deploy.
+In these articles we are going to explore how we can solve the problem above by encapsulating a particular functionality inside a re-usable container.  
 
 # Before We Start
 
