@@ -11,34 +11,36 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we want to gather some data about its usage pattern, such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions, testing and re-deploying. 
+Let say we have a micro-service exposing some business API and we want to gather some data about its usage pattern such as usage frequency, payload size, errors, response time, etc. Adding this feature usually involves writing some code, do some testing and the re-deployment of a new version.     
 
 <!--more-->
 
-*How can we reuse this functionality across all our micro-services ?* One way is to create a re-usable module, but that will require us to go through all the codebases adding that specific module, which is hard work (testing, compatibility, etc.). *But what happen if we got some services developed in C++ and this functionality is writen in Ruby?*  In that case, supporting the same functionality across multiple programming language can be a maintenance nightmare. 
+But there is something that feel wrong, that code has nothing to do with the main purpose of that service. This is a clear signal that this behaviour need to be isolated. Making a class is fine, but with containers we can do even better.  
 
-In these articles we are going to explore how we can solve the problem above by encapsulating a particular functionality inside a re-usable container.  
+## Container Oriented Programming 
+
+Making a class will make this functionalities reusable in the context of their programming language, but if we choose to encapsulate this set of functionalities in a container we can reuse this functionality with other micro-services. That's why we are going to put this functionality into its own container, then we are going to create a single service made of two containers, one in charge of the business side and the other will handle the performance profiling. Once we got that we are going to re-use the "profiling" container with other services.  
 
 # Before We Start
 
 This guide will be divide in three parts:
 
-- **Part One**: How to deploy applications that runs in multiple containers.  
-- **Part Two**: We are going to develop a reusable "Telemetry" container, to gather information about other services.  
-- **Part Three**: Write a simple dashboard. Once this "Telemetry" container is appended to other services, we are going to signal our dashboard with the usage information across our "service mesh".   
+- **Part One**: We learn how to setup multiples containers in a single pod.   
+- **Part Two**: We are going to write a simple server to read the usage pattern of any micro-service.  
+- **Part Three**: Write a simple dashboard. Once this "Telemetry" container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our "service mesh".   
 
 I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
 
 If you want to follow this guide you can install [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
 
-
 # Understanding The Pod
 
 Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a [isolation layer](http://cesarvr.github.io/post/2018-05-22-create-containers/) similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.   
 
-Like processes running in a "single machine", contained processes can communicate between each other using some of the mechanism we can find in a Unix/Linux environment like System V semaphore, POSIX shared memory or Linux sockets. You can use this facts to achieve other type of collaboration between containers. In this article we are going to collaborate with other containers the local network through "localhost". 
+Like processes running in a "single machine", contained processes running inside the pod can communicate between each other using System V semaphore, POSIX shared memory or Linux sockets through "localhost".   
 
-## How It Looks
+
+## Pod Creation 
 
 This is a quick example of what a [pod](https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444) looks like:
 
@@ -75,7 +77,7 @@ We can login into the pods running container using this *magic words*:
 oc rsh my-pod
 ```
 
-# How To Add More Containers 
+## Adding More Containers 
 
 Adding a new container to existing pod is not difficult, we just need add a new entry in the template:
 
@@ -122,9 +124,9 @@ If you want to login into the ```second-container```:
 oc rsh -c second-container my-pod
 ```
 
-# Communication Between Pods
+## Communication Between Pods
 
-## Simple Server
+### Simple Server
 
 By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple web server using python, first we need to build our image:
 
@@ -221,9 +223,8 @@ Here is the whole process:
 
 ![sidecar-deployment](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif)
 
-
 ## Container Patterns
 
-By now we achieved our first goal, we should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod share the same network. This is very important as we are going to use this in the next article to create our “Proxy” container to collect information about the usage of the website we deployed earlier. 
+We should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod operate similar as it they where in a single machine, this is very important as we are going to use this in the next article to create our “Telemetry” container.  
 
 If you want to know more about the container patterns you can take a look a this [paper](https://ai.google/research/pubs/pub45406). 
