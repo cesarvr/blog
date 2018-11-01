@@ -19,9 +19,9 @@ To share this functionality with other services we can share the code in the for
 
 ## Service Mesh 
 
-Are you familiar with the ["Decorator Pattern"](https://en.wikipedia.org/wiki/Decorator_pattern)? This pattern is about adding behaviour at runtime to an individual object **without affecting the behavior** of other objects from the same class. That's my favorite part because implies that I don't need to see/touch the code; following then the "open for extension, close for modification" principle. 
+Are you familiar with the ["Decorator Pattern"](https://en.wikipedia.org/wiki/Decorator_pattern)? This pattern is about adding behaviour at runtime to an individual object **without affecting the behavior** of other objects from the same class. That's my favorite part because implies that I don't need to touch the code; following then the "open for extension, close for modification" principle. 
 
-We are are going to learn how to do this with running containers (services) in *Kubernetes/OpenShift*, by encapsulating the behaviour inside a container, and applying it to the services we want to decorate.     
+We are are going to learn how to do this with running containers (micro-services) in *Kubernetes/OpenShift*, by encapsulating the behaviour inside a container, and applying it to the services we want to decorate.     
 
 
 ## "Real World" Examples 
