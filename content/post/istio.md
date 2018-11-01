@@ -11,15 +11,24 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we want to gather some data about its usage pattern such as usage frequency, payload size, errors, response time, etc. Adding this feature usually involves writing some code, do some testing and the re-deployment of a new version.     
+Let say we have a micro-service exposing some business API and we want to gather some data about its usage such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involves writing some code, some testing and re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.      
 
 <!--more-->
 
-But there is something that feel wrong, that code has nothing to do with the main purpose of that service. This is a clear signal that this behaviour need to be isolated. Making a class is fine, but with containers we can do even better.  
+To share this functionality with other services we can share the code in the form of a module or library, but unfortunately this will lock us down to a programming language, without mentioning that adding that module to a messy, untested, legacy code can involve to much unnecessary suffering. 
 
-## Container Oriented Programming 
+## Service Mesh 
 
-Making a class will make this functionalities reusable in the context of their programming language, but if we choose to encapsulate this set of functionalities in a container we can reuse this functionality with other micro-services. That's why we are going to put this functionality into its own container, then we are going to create a single service made of two containers, one in charge of the business side and the other will handle the performance profiling. Once we got that we are going to re-use the "profiling" container with other services.  
+Are you familiar with the ["Decorator Pattern"](https://en.wikipedia.org/wiki/Decorator_pattern)? This pattern is about adding behaviour at runtime to an individual object **without affecting the behavior** of other objects from the same class. That's my favorite part because implies that I don't need to see/touch the code; following then the "open for extension, close for modification" principle. 
+
+We are are going to learn how to do this with running containers (services) in *Kubernetes/OpenShift*, by encapsulating the behaviour inside a container, and applying it to the services we want to decorate.     
+
+
+## "Real World" Examples 
+
+- [Istio](https://istio.io/).
+- [Linkerd](https://linkerd.io/)
+
 
 # Before We Start
 
@@ -27,11 +36,13 @@ This guide will be divide in three parts:
 
 - **Part One**: We learn how to setup multiples containers in a single pod.   
 - **Part Two**: We are going to write a simple server to read the usage pattern of any micro-service.  
-- **Part Three**: Write a simple dashboard. Once this "Telemetry" container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our "service mesh".   
+- **Part Three**: Write a simple dashboard. Once this container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our "service mesh".   
 
 I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
 
 If you want to follow this guide you can install [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
+
+When you deploy a service in Kubernetes/OpenShift you are making use of an entity called a pod, this entity provide a space for you application to run. The first thing we need to understand is that we can deploy multiple containers in the same pod. We are going to make use of this fact in the next post, for now here is a quick introduction.  
 
 # Understanding The Pod
 
