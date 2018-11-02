@@ -11,36 +11,35 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let say we have a micro-service exposing some business API and we want to gather some data about its usage such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involves writing some code, some testing and re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.      
+Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.      
 
 <!--more-->
 
-One way to share this functionality is to create a module or library, but this adds the complexity of having to manually add the code, which comes with the risk of dealing with legacy or untested codebases. 
+One way to reuse this functionality is to create a module or library, but this bring the complexity of having to add the library manually by each service, plus the fact that this library only work for services using the same programming language.  
 
 ## Service Mesh 
 
-What we are looking for is a non-intrusive way to add behaviour to a running services, in the context of Kubernetes/OpenShift. To achieve this goal we are going to take advantage of some advance deployment capabilities of this platforms, like running a service compose of multiple containers and creating containers that [decorates](https://en.wikipedia.org/wiki/Decorator_pattern) a running service.    
+What we are looking for is a non-intrusive way to add behaviour to a running services in Kubernetes/OpenShift. To achieve this goal we are going to take advantage of some advance deployment capabilities of this platforms, like running a service composed of multiple containers and creating containers that [decorates](https://en.wikipedia.org/wiki/Decorator_pattern) or add some additional functionality to a running service.    
 
 ## "Real World" Examples 
 
-This may sound like magic, but some examples of framework that use this techniques: 
+This may sound like magic, but here are some examples of framework that use this techniques: 
 
 - [Istio](https://istio.io/).
 - [Linkerd](https://linkerd.io/).
 
 # Before We Start
 
-This guide will be divide in three parts:
+In these post we are going to learn how to do this: 
 
 - **Part One**: We learn how to setup multiples containers in a single pod.   
 - **Part Two**: We are going to write a simple server to read the usage pattern of any micro-service.  
 - **Part Three**: Write a simple dashboard. Once this container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our "service mesh".   
 
-I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
+For the examples I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.
 
 If you want to follow this guide you can install [oc-client](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md) with oc-cluster-up or even better make a free account in [OpenShift.io](https://manage.openshift.com). If you have trouble understanding some of the concepts, you read this [OpenShift getting started guide](https://github.com/cesarvr/Openshift).
 
-When you deploy a service in Kubernetes/OpenShift you are making use of an entity called a pod, this entity provide a space for you application to run. The first thing we need to understand is that we can deploy multiple containers in the same pod. We are going to make use of this fact in the next post, for now here is a quick introduction.  
 
 # Understanding The Pod
 
