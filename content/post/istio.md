@@ -15,7 +15,7 @@ Let say we have a micro-service exposing some business API and we want to gather
 
 <!--more-->
 
-To share this functionality with other services we create a module or library, but unfortunately this will lock us down to a single programming language and we may want to support other services running in other programming languages, also it adds the complexity of having to manually add the code, which comes with the risk of dealing with legacy or untested codebases. 
+One way to share this functionality is to create a module or library, but this adds the complexity of having to manually add the code, which comes with the risk of dealing with legacy or untested codebases. 
 
 ## Service Mesh 
 
