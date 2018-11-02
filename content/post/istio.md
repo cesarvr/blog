@@ -15,20 +15,18 @@ Let say we have a micro-service exposing some business API and we want to gather
 
 <!--more-->
 
-To share this functionality with other services we can share the code in the form of a module or library, but unfortunately this will lock us down to a programming language, without mentioning that adding that module to a messy, untested, legacy code can involve to much unnecessary suffering. 
+To share this functionality with other services we create a module or library, but unfortunately this will lock us down to a single programming language and we may want to support other services running in other programming languages, also it adds the complexity of having to manually add the code, which comes with the risk of dealing with legacy or untested codebases. 
 
 ## Service Mesh 
 
-Are you familiar with the ["Decorator Pattern"](https://en.wikipedia.org/wiki/Decorator_pattern)? This pattern is about adding behaviour at runtime to an individual object **without affecting the behavior** of other objects from the same class. That's my favorite part because implies that I don't need to touch the code; following then the "open for extension, close for modification" principle. 
-
-We are are going to learn how to do this with running containers (micro-services) in *Kubernetes/OpenShift*, by encapsulating the behaviour inside a container, and applying it to the services we want to decorate.     
-
+What we are looking for is a non-intrusive way to add behaviour to a running services, in the context of Kubernetes/OpenShift. To achieve this goal we are going to take advantage of some advance deployment capabilities of this platforms, like running a service compose of multiple containers and creating containers that [decorates](https://en.wikipedia.org/wiki/Decorator_pattern) a running service.    
 
 ## "Real World" Examples 
 
-- [Istio](https://istio.io/).
-- [Linkerd](https://linkerd.io/)
+This may sound like magic, but some examples of framework that use this techniques: 
 
+- [Istio](https://istio.io/).
+- [Linkerd](https://linkerd.io/).
 
 # Before We Start
 
