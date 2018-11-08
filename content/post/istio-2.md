@@ -10,17 +10,22 @@ categories: [openshift, container, services, kubernetes ]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
-Services that implement our reusable container will be capable of this 3 features:
 
-- Get usage frequency, how many time a endpoint is being called.
-- Get Response time.
-- Override 404 Page with a custom one.
+Last post we learn how the pod simulates a logical host (machine), how we can run multiple containers inside and how they share the same network IP address. Now in this post we are going take advantage of this to add functionality to new or existing services running in Kubernetes/OpenShift.
 
-# TCP/Server
+First of all we are going to create a set of nice features, then we are going to explore how we can make those features reusable across services talking our same language.    
 
-The first feature our container need to be able to do is to talk the same dialect that our services, in our "service mesh", let assume that all our services talks using the HTTP protocol.  
+Let's start by defining our service features:  
 
-For flexibility we are going to create a TCP/Server, because is the minimum common denominator and because we want to retain the integrity of the incoming calls.
+- How many time a HTTP resource is being requested.
+- Handle 404 Page.
+- How fast is this resource being served.
+
+# Let's Write Some Code
+
+## Server
+
+We can start by creating a HTTP server, to do this we are going to use a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
 
 ```js
 var net = require('net')
@@ -32,7 +37,7 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-This code as we mention before is the [Node.js](https://nodejs.org/en/) way to create a simple TCP server, feel free to re-write this code in your favourite language.
+Here we require the [net](https://nodejs.org/api/net.html) which has all the libraries we need to manipulate sockets, then we start listening in port 8080 for incoming request, we got an incoming request we close the port and finish. Why a raw socket? Because we want to keep the main HTTP request as raw and untouched as possible, you will see why later.
 
 We are going to name this file as ```sitio.js``` and run this script with:
 
@@ -45,24 +50,27 @@ Calling in our browser will give us this response:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/empty-response.png?raw=true)
 
-Notice that say *empty response* this mean that we are connecting but doing nothing. Let's write our first feature!.
+Notice that it say *empty response* this mean that we are connecting but doing nothing.
 
-# Usage frequency
+## Input/Output
 
-## Input/Output 
-
-Before we can measure we need to write some boilerplate code to handle the I/O of our server socket.
+Let's write some boilerplate code to handle the I/O and create our the class in charge of handling the service statistics.
 
 ```js
 var net = require('net')
 
+class Stats {
+  constructor({socket}) {
+    socket.on('data', data => this.read(data))
+  }
 
-function read(data) {
-  console.log(data.toString())
+  read(data){
+    console.log('data->', data)
+  }
 }
 
 function handle(socket) {
-  socket.on('data', read)
+  let stats = new Stats({socket})
 }
 
 console.log('Listening for request in 8080')
@@ -72,114 +80,124 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-In[Node.js](https://nodejs.org/en/) the I/O is handled by events, instead of blocking the file descriptor we just wait for the OS to notify when data is available. To handle when *data* is available in the socket we pass the *read* function, this then print to the [stdout](http://www.linfo.org/standard_output.html).
+This is very straight forward, here we are handling the socket in one function (**handle**), and we wrote this class *Stats* which take care of subscribing to the socket incoming data, if a new data arrives its own method *read* will take care of that.
+
+We run our script again and we should get this:
 
 ```#!/bin/sh
-node app.js
+node sitio.js
 
 # GET / HTTP/1.1
 # Host: localhost:8080
 # ....
 ```
+We got a full HTTP request, this will give us the flexibility to get the information we want and handover this request to other services.  
 
-## Parsing HTTP 
- 
-After we handle the I/O, we can write a function to extract the endpoint from that HTTP header.
+## Parsing HTTP
 
-```
-function extractURL(http_block) {
-  let str = http_block.split('\n')[0]
-
-  return str.replace("GET", "")
-    .replace("HTTP\/1.1","")
-    .trim()
-}
-```
-
-Here we just focus in the first line of the [HTTP request header](https://developer.mozilla.org/en-US/docs/Glossary/Request_header), and extract the request URL.
-
-We just parse this ```sh GET /hello HTTP/1.1 ``` to get this ```/hello```.
-
-Once we got the URL, next step is to implement an algorithm to persist the URL entries. This quick and dirty key-store in memory database will do the job.
+Now that we setup our class  *Stats*, let's add some HTTP parsing capabilities.
 
 ```js
-let track = function() {
-  let db = {}
-  return {
-    save: function(key) {
-      if( db[key] === undefined )
-        db[key] = 1
-       else
-        db[key]+= 1
-    },
-    all: function(){
-      return db
-    }
+class Stats {
+  constructor({socket}) {
+    socket.on('data', data => this.read(data))
   }
-}() 
+
+  getResource(http_block) {
+    let str = http_block.split('\n')[0]
+
+    return str.replace("GET", "")
+      .replace("HTTP\/1.1","")
+      .trim()
+  }
+
+  read(data){
+    let str_data = data.toString()
+    let endpoint = this.getResource(str_data)
+  }
+}
 ```
 
-We edit the function in charge of I/O: 
+We added the method *getResource* which takes some raw [HTTP request header](https://developer.mozilla.org/en-US/docs/Glossary/Request_header) and extract the endpoint URL. It basically takes this header ```GET /hello HTTP/1.1 ``` and get this URL ```/hello```.
+
+## In-Memory Cache
+
+We got our URL, next step is to persist the URL somewhere. To make it simple let's create a class to handle that particular behaviour.
 
 ```js
-function read(data) {
-  let str_data = data.toString()
+class Store {
+  constructor() {
+    this.db = {}
+  }
 
-  // parsing the HTTP Header
-  let endpoint = extractURL(str_data)
+  save(value) {
+    this.db[value.endpoint]      =  this.db[value.endpoint] || {}
+    this.db[value.endpoint].hit  =  this.db[value.endpoint].hit || 0
+    this.db[value.endpoint].hit +=1
+  }
 
-  // save URL route   
-  track.save(endpoint)
-
-  console.log('endpoint: \n', track.all() )
+  get all(){
+    return this.db
+  }
 }
-``` 
+```
 
-We put this together:
+This very rudimentary in-memory store will do the persistence for us, any time an endpoint URL gets repeated we just add one to the *hit* counter.
+
+We put all together:
 
 ```js
 var net = require('net')
 
-let track = function() {
-  let db = {}
-  return {
-    save: function(key) {
-      if( db[key] === undefined )
-        db[key] = 1
-       else
-        db[key]+= 1
-    },
-    all: ()=>{
-      return db
-    }
+class Store {
+  constructor() {
+    this.db = {}
   }
-}()
 
-function extractURL(http_block) {
-  let str = http_block.split('\n')[0]
+  save(value) {
+    this.db[value.endpoint]      = this.db[value.endpoint] || {}
+    this.db[value.endpoint].hit  = this.db[value.endpoint].hit || 0
+    this.db[value.endpoint].hit += 1
+  }
 
-  return str.replace("GET", "")
-    .replace("HTTP\/1.1","")
-    .trim()
+  get all(){
+    return this.db
+  }
 }
 
-function read(data) {
-  let str_data = data.toString()
+class Stats {
+  constructor({socket, store}) {
+    socket.on('data', data => this.read(data))
+  }
 
-  // parsing the HTTP Header
-  let endpoint = extractURL(str_data)
+  getEndPoint(http_block) {
+    let str = http_block.split('\n')[0]
 
-  // save URL route   
-  track.save(endpoint)
+    return str.replace('GET', '')
+      .replace('HTTP\/1.1','')
+      .trim()
+  }
 
-  console.log('endpoint: \n', track.all() )
+  read(data){
+    let str_data = data.toString()
+    let endpoint = this.getEndPoint(str_data)
+
+    store.save({endpoint})
+  }
 }
+
+let store = new Store()
+
+// We added this for now to get an update on the stats every 5 seconds.
+setInterval(() =>
+  console.log('endpoint->', store.all),
+  5000)
 
 function handle(socket) {
-  socket.on('data', read)
+  let stats = new Stats({socket})
 }
 
-console.log('Listening for request in 8080')
+console.log('Listening for request in 8080!!')
 net.createServer( function (socket) {
   console.log('new connection!')
   handle(socket)
@@ -187,10 +205,10 @@ net.createServer( function (socket) {
 
 ```
 
-We run our application again, to see the new changes: 
+When we run our application again, we can see now we are able to tell what resources the browser is trying to get access to:
 
 ```
-node app.js
+node sitio.js
 
 #Listening for request in 8080!!
 #endpoint:  { '/': 1 }
@@ -204,19 +222,61 @@ node app.js
 #endpoint:  { '/': 3, '/my_service': 2 }
 ```
 
-When we browse ```localhost:8080``` our process is able to gather usage information. Now let's see how we can reuse this nice feature with other services.
+## Custom 404
+
+Other thing we wanted to do is to show our own page, any time we can found a resource in our service. We are going to encapsulate this behaviour in its own class.
+
+```js
+
+const HTTP404 = `
+HTTP/1.0 404 File not found
+Server: Sitio 💥
+Date: Thu, 08 Nov 2018 12:25:33 GMT
+Content-Type: text/html
+Connection: close
+
+<body>
+  <H1>Endpoint Not Found</H1>
+  <img src="https://www.wykop.pl/cdn/c3201142/comment_E6icBQJrg2RCWMVsTm4mA3XdC9yQKIjM.gif">
+</body>`
+
+class Traffic {
+  constructor({socket}) {
+    socket.write(HTTP404)
+    socket.end()
+  }
+}
+```
+For simplicity we define our HTML in a constant, at the moment every call to our service will show this page. We call this class inside our handle function and we are good to go.  
+
+
+```js
+
+function handle(socket) {
+  let stats = new Stats({socket})
+  let traffic = new Traffic({socket})
+}
+
+```
+
+
 
 # Reusing Features
 
-If you execute this command:
+Let's first build a service, just to have something that we can enhance we new functionality. To make sure we don't cheat let make this service in other programming language or even better let's do it in a way we cannot touch the source code.
+
+For this web server we are going to use Python SimpleHTTPServer module which can be use to serve the content of a folder:
+
+![python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)  
+
+You can serve any folder using this command:
 
 ```sh
   python -m SimpleHTTPServer 8087
 ```
+Great what we are going to do is to transform our application into some kind of Proxy, but in reality we just going to handle the request do our stuff and then delegate the request to the service.
 
-Python will create a simple web server and will serve the folder from your call this command from.  
-
-To delegate the request to other service we are going to create a TCP Socket pointing to service we want to delegate the request to.
+Let's write some code to do this, let's start by making a connection with our image service:
 
 ```js
 let delegate = function(port){
@@ -227,40 +287,46 @@ let delegate = function(port){
   return client
 }
 ```
-This function just connect to the localhost using a TCP Socket, through the port we specify in the function parameter.
+This function will create a connection to localhost port 8087 and will return the socket. Next step, is to stream the content from the incoming traffic to this newly created socket.
 
-Let revisit function that handles the socket server.
+Every time a browser opens a new connection, we need to make contact with the service:
 
 ```js
 function handle(socket) {
-
+  let client = delegate(8087)
   socket.on('data', read)
-
 }
 ```
 
-The first thing we want to do is that any time we got a new connection, we need to delegate and to delegate we need to open a new connection to the service, so let's write that.
+When the contact has been established, we want our service to do its thing and then just proxy the HTTP payload to its real target(the service).
+
+```js
+
+function read(data) {
+  let str_data = data.toString()
+  let endpoint = extractURL(str_data)
+  track.save(endpoint)
+  console.log('endpoint: ', track.all() )
+  return data
+}
+
+function handle(socket) {
+  let client = delegate(8087)
+  socket.on('data', data => client.write(read(data)))
+}
+```
+
+In the ```read``` function we added a return routine, so this function return the HTTP payload, then tunel the incoming traffic. When the request hit the service we need to handle the response back.
 
 ```js
 function handle(socket) {
+  let client = delegate(8087)
 
-let client = delegate(8087)
-
-socket.on('data', data => client.write(read(data)))
+  socket.on('data', data => client.write(read(data)))
+  client.on('data', data => socket.write(data))
 }
 ```
-
-We receive some data from the server socket, we perform our task (measuring) and we delegate to the next service. Now we need to allow the service to respond, otherwise the caller of the service will wait forever.
-
-We can do this by "reverting" the operation, or basically delegate every data coming from the service to the caller.
-
-
-```js
-client.on('data', data => socket.write(data))
-```
-
-This delegate all packets to the one calling the service. The final version look like this:
-
+The only thing left is to free up the resources, for that we just going to wait for a 'end/close' signal from the socket and we disposse all the resources.
 
 ```js
 function handle(socket) {
