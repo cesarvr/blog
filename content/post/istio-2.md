@@ -2,7 +2,7 @@
 title: "Creating Your Own Istio (Part 2)"
 date: 2018-11-07
 lastmod: 2018-11-07
-draft: false
+draft: true
 keywords: []
 description: "Creating our reusable container."
 tags: [openshift, container, services, kubernetes ]
@@ -259,7 +259,7 @@ function handle(socket) {
 
 ```
 
-
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/traffic_stats.gif?raw=true)
 
 # Reusing Features
 
