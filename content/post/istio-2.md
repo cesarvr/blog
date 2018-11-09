@@ -155,18 +155,42 @@ For simplicity here we are using a constant and we using JavaScript [string inte
 
 Here we are saying, if we got some incoming request just send back the 404 page. 
 
+![HTTP 404](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/404.png)
 
-## Parsing HTTP
 
-Now that we setup our class *Stats*, let's add some HTTP parsing capabilities.
+## Usage Patterns 
+
+Now our service is able to return a 404 page, but let make it a bit more interesting add a supervisor that checks and save the usage patterns of our service.  
+
+Let's start by encapsulating this new behaviour in a class. 
 
 ```js
-class Stats {
-  constructor({socket}) {
-    socket.on('data', data => this.read(data))
-  }
+class Stats  {
 
-  getResource(http_block) {
+  read(httpHeader){
+    let head = httpHeader.toString()
+  }
+}
+
+```
+
+This class will have a *read* method, that will take a HTTP header in the form of a [Buffer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjSxv6_q8feAhWSPFAKHX_lBwIQFjAAegQIBhAB&url=https%3A%2F%2Fnodejs.org%2Fapi%2Fbuffer.html&usg=AOvVaw1jQcAyZipqNZ410cf4j8HS). The Buffer object is just a Node.js abstraction to save binary data, we use the method *toString* to transform it into *utf-8* string.  
+
+### Parsing The HTTP Header
+
+We we transform the buffer into a string we are going to get something like this: 
+
+```sh
+ GET /user HTTP/1.1
+ Host: 0.0.0.0:8080
+ User-Agent: curl/7.54.0
+```
+
+To keep it simple we just want to keep track how many call we receive per endpoint. To do this we just parse this block to retrieve the destination URL ``  /user ``.   
+
+```js
+class Stats  {
+  getEndPoint(http_block) {
     let str = http_block.split('\n')[0]
 
     return str.replace("GET", "")
@@ -174,231 +198,234 @@ class Stats {
       .trim()
   }
 
-  read(data){
-    let str_data = data.toString()
-    let endpoint = this.getResource(str_data)
+  read(httpHeader){
+    let head = httpHeader.toString()
+    let endpoint = this.getEndPoint(head)
   }
 }
 ```
-
-We added the method *getResource* which takes some raw [HTTP request header](https://developer.mozilla.org/en-US/docs/Glossary/Request_header) and extract the endpoint URL. It basically takes this header ```GET /hello HTTP/1.1 ``` and get this URL ```/hello```.
-
-## In-Memory Cache
-
-We got our URL, next step is to persist the URL somewhere. To make it simple let's create a class to handle that particular behaviour.
+The method ``getEndpoint`` removes the HTTP Verb and the HTTP version and give us back the URL. Now let's create some way to persist this information and add some mechanism to keep the count of how many time our endpoint get visited.
 
 ```js
-class Store {
-  constructor() {
+class Stats  {
+
+  constructor(){
     this.db = {}
   }
 
-  save(value) {
+  //getEndPoint(http_block) ... 
+
+  save(value){
     this.db[value.endpoint]      =  this.db[value.endpoint] || {}
     this.db[value.endpoint].hit  =  this.db[value.endpoint].hit || 0
-    this.db[value.endpoint].hit +=1
-  }
-
-  get all(){
-    return this.db
-  }
-}
-```
-
-This very rudimentary in-memory store will do the persistence for us, any time an endpoint URL gets repeated we just add one to the *hit* counter.
-
-We put all together:
-
-```js
-var net = require('net')
-
-class Store {
-  constructor() {
-    this.db = {}
-  }
-
-  save(value) {
-    this.db[value.endpoint]      = this.db[value.endpoint] || {}
-    this.db[value.endpoint].hit  = this.db[value.endpoint].hit || 0
     this.db[value.endpoint].hit += 1
   }
 
-  get all(){
+  read(httpHeader){
+    let head = httpHeader.toString()
+    let endpoint = this.getEndPoint(head)
+
+    this.save({endpoint})
+  }
+
+  get all() {
     return this.db
   }
 }
+```
 
-class Stats {
-  constructor({socket, store}) {
-    socket.on('data', data => this.read(data))
+Our "*sophisticated quick and dirty in-memory data store*" does just that. We just make a dictionary to save all the entries and to keep the counting using the *hit* property. Next we are going to instantiate the *Stat* class to make it persistent through the live cycle of the application, also we are going to take the liberty to report every 2 seconds to the [stdout](http://www.linfo.org/standard_output.html).  
+
+```sh 
+let stats = new Stats()
+
+setInterval(() =>
+  console.log('endpoint->', stats.all),
+  2000)
+
+function handle(socket) {
+  let traffic = new IncomingTraffic({socket})
+
+  traffic.on('traffic:incoming', incomingData => stats.read(incomingData))
+  traffic.on('traffic:incoming', incomingTraffic => traffic.send([HTTP404]) )
+}
+
+```
+
+If we re-execute our script we get something like this:
+
+![Traffic and Statistics](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/traffic_stats.gif)
+
+
+# Decorating Other Services 
+
+## Web Server
+
+If you remember the key of all this is to learn how to re-use functionality across micro-services, before we start we need a service, so let's start by making a simple web server. 
+
+To make thing more interesting we are going to use Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. We are going to choose this because we don't have control over the source code and because the only thing we have in common is the we talk the same protocol *HTTP*.  
+ 
+A have some folder in a folder so I'll create some sort of HTTP photo library. 
+
+```sh
+cd /my_photo_folder
+
+# Python 2.xx
+python SimpleHTTPServer 8087
+
+# Python 3.xx
+python -m simple.http 8087
+```
+
+![Python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)
+
+
+## Communicating With Other services
+
+This web server looks good, but we want to know what pictures are more popular and also if our users make a mistake they will be redirected to a generic 404. Let's write some code to transfer apply this new features. The first step is to create a connection with this new service.
+
+We can start by revisiting our `` sitio.js`` and create a new class called *Service*. 
+
+```js
+class Service {
+  constructor(_port) {
+    let port = _port || 8087
+    let client = new net.Socket()
+
+    client.connect(port, '0.0.0.0', () => {
+      console.log(`connected to ${port}`)
+    })
+  }
+}
+
+```
+
+This class handles the creation of a new socket, but this time, the socket is opening communication with a port inside our logical host (0.0.0.0). Do you remember that pods simulate a machine? We are going to use this fact later to connect to any container running in our same neighborhood. 
+
+
+Next thing we need to implement is how we send/receive information from that socket. 
+
+```js 
+
+class Service {
+  constructor(_port) {
+
+    let port = _port || 8087
+    let client = new net.Socket()
+
+    client.connect(port, '0.0.0.0', () => {
+      console.log(`connected to ${port}`)
+    })
+
+    client.on('data', data => this.read(data))
+    client.on('end', data  => this.finish(data))
+    client.on('error', err  => console.log('err->', err))
+
+    this.client = client
+    this.buffer = []
   }
 
-  getEndPoint(http_block) {
-    let str = http_block.split('\n')[0]
-
-    return str.replace('GET', '')
-      .replace('HTTP\/1.1','')
-      .trim()
+  send(data) {
+    this.client.write(data)
   }
 
   read(data){
-    let str_data = data.toString()
-    let endpoint = this.getEndPoint(str_data)
+    this.buffer.push(data)
+  }
 
-    store.save({endpoint})
+  finish(){
+    // The service has finished... do something.
   }
 }
+``` 
 
-let store = new Store()
+The plan here is simple, we implemented a *send* method to send any type of data to the service, then the response is handled by the method *read* which gets call when the remote service sends some data back. To enhance our compatibility we are handling responses coming in chunks, of course if some service is streaming 1GB back we are in trouble, but for demo purposes is good enough. 
 
-// We added this for now to get an update on the stats every 5 seconds.
-setInterval(() =>
-  console.log('endpoint->', store.all),
-  5000)
+They are two things remaining we want to override that ugly HTTP 404 response, to do that we need to write some code that detects when something like that happens in the service so we are able to replace that page with our page.  
 
-function handle(socket) {
-  let stats = new Stats({socket})
-}
-
-console.log('Listening for request in 8080!!')
-net.createServer( function (socket) {
-  console.log('new connection!')
-  handle(socket)
-}).listen(8080)
+Our service will respond something like this:  
 
 ```
-
-When we run our application again, we can see now we are able to tell what resources the browser is trying to get access to:
-
-```
-node sitio.js
-
-#Listening for request in 8080!!
-#endpoint:  { '/': 1 }
-#new connection!
-#endpoint:  { '/': 2 }
-#new connection!
-#endpoint:  { '/': 3 }
-#new connection!
-#endpoint:  { '/': 3, '/my_service': 1 }
-#new connection!
-#endpoint:  { '/': 3, '/my_service': 2 }
-```
-
-## Custom 404
-
-Other thing we wanted to do is to show our own page, any time we can found a resource in our service. We are going to encapsulate this behaviour in its own class.
-
-```js
-
-const HTTP404 = `
 HTTP/1.0 404 File not found
-Server: Sitio 💥
-Date: Thu, 08 Nov 2018 12:25:33 GMT
-Content-Type: text/html
-Connection: close
+```
 
-<body>
-  <H1>Endpoint Not Found</H1>
-  <img src="https://www.wykop.pl/cdn/c3201142/comment_E6icBQJrg2RCWMVsTm4mA3XdC9yQKIjM.gif">
-</body>`
+We just need to read the second parameter separated by space from left to right, to do just that we are going to write a helper function. 
 
-class Traffic {
-  constructor({socket}) {
-    socket.write(HTTP404)
-    socket.end()
+```js
+let HTTP = Object.create({
+  getStatus: function(data){
+    let headerFirstLine = data.toString().split('\n')[0]
+    let status = headerFirstLine.split(' ')[1].trim()
+    return status
+  }
+})
+
+class Service {
+  constructor(_port) {
+    //...stuff
+  }
+
+  // We cache everything in buffer
+
+  finish(){
+    let status = HTTP.getStatus(this.buffer[0])
   }
 }
 ```
-For simplicity we define our HTML in a constant, at the moment every call to our service will show this page. We call this class inside our handle function and we are good to go.  
+
+Here we pass the first data chuck which contain the HTTP response header and we get back the status.
 
 
-```js
-
-function handle(socket) {
-  let stats = new Stats({socket})
-  let traffic = new Traffic({socket})
-}
-
-```
-
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/traffic_stats.gif?raw=true)
-
-# Reusing Features
-
-Let's first build a service, just to have something that we can enhance we new functionality. To make sure we don't cheat let make this service in other programming language or even better let's do it in a way we cannot touch the source code.
-
-For this web server we are going to use Python SimpleHTTPServer module which can be use to serve the content of a folder:
-
-![python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)  
-
-You can serve any folder using this command:
-
-```sh
-  python -m SimpleHTTPServer 8087
-```
-Great what we are going to do is to transform our application into some kind of Proxy, but in reality we just going to handle the request do our stuff and then delegate the request to the service.
-
-Let's write some code to do this, let's start by making a connection with our image service:
+The second thing missing here is that we should look for a way to communicate all this to other components of the application. For this again, we are going to make this object inherit from Events. 
 
 ```js
-let delegate = function(port){
-  let client = new net.Socket()
-  client.connect(port || 8087, '0.0.0.0', function() {
-    console.log(`connected to ${port}`)
-  })
-  return client
+class Service extends Events {
+  constructor(_port) {
+    super()
+    // Initialization...
+  }
+
+  finish(){
+    let status = HTTP.getStatus(this.buffer[0])
+    this.emit(`service:response:${status}`, this.buffer)
+  }
 }
 ```
-This function will create a connection to localhost port 8087 and will return the socket. Next step, is to stream the content from the incoming traffic to this newly created socket.
+The important part here is the usage of ``this.emit``. We are going to create a new event of the form ``service:response:`` and we going to append the status at then end. This will give us the flexibility to append behaviour to each case as we see fit.   
 
-Every time a browser opens a new connection, we need to make contact with the service:
-
-```js
-function handle(socket) {
-  let client = delegate(8087)
-  socket.on('data', read)
-}
-```
-
-When the contact has been established, we want our service to do its thing and then just proxy the HTTP payload to its real target(the service).
 
 ```js
+class Service extends Events {
+  constructor(_port) {
+    super()
+    // Initialization...
+  }
 
-function read(data) {
-  let str_data = data.toString()
-  let endpoint = extractURL(str_data)
-  track.save(endpoint)
-  console.log('endpoint: ', track.all() )
-  return data
+  finish(){
+    let status = HTTP.getStatus(this.buffer[0])
+    this.emit(`service:response:${status}`, this.buffer)
+  }
 }
 
 function handle(socket) {
-  let client = delegate(8087)
-  socket.on('data', data => client.write(read(data)))
+  let service = new Service()
+  let traffic = new IncomingTraffic({socket})
+
+  traffic.on('traffic:incoming', incomingData => stats.read(incomingData))
+  traffic.on('traffic:incoming', incomingData => service.send(incomingData))
+
+  service.on('service:response:200', response => traffic.send(response) )
+  service.on('service:response:404', response => traffic.send([HTTP404]) )
 }
 ```
 
-In the ```read``` function we added a return routine, so this function return the HTTP payload, then tunel the incoming traffic. When the request hit the service we need to handle the response back.
+Any time we got a 404 we send our page and if we got a 200 we just return the service response. I saw a demo of Istio where they show how the framework mask HTTP 500 by sending a previously cached response. How you will implement that ?.   
 
-```js
-function handle(socket) {
-  let client = delegate(8087)
 
-  socket.on('data', data => client.write(read(data)))
-  client.on('data', data => socket.write(data))
-}
-```
-The only thing left is to free up the resources, for that we just going to wait for a 'end/close' signal from the socket and we disposse all the resources.
 
-```js
-function handle(socket) {
 
-  let client = delegate(8087)
 
-  socket.on('data', data => client.write(read(data)))
-  client.on('data', data => socket.write(data))
-  socket.on('end', end => client.end())
-  socket.on('close', end => client.end())
-}
-```
+
+
+ 
+
