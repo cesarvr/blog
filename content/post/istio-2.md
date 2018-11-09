@@ -142,7 +142,7 @@ Connection: close
 </body>`
 ```
 
-For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info. We can safely assume that our service doesn't have nothing to show yet so we can just code the response like this. 
+For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info. We can safely assume that our service doesn't have nothing to show yet so we can just code the response like this.
 
 
 ```js
@@ -151,18 +151,18 @@ For simplicity here we are using a constant and we using JavaScript [string inte
 
     traffic.on('traffic:incoming', incomingTraffic => traffic.send([HTTP404]) )
   }
-``` 
+```
 
-Here we are saying, if we got some incoming request just send back the 404 page. 
+Here we are saying, if we got some incoming request just send back the 404 page.
 
 ![HTTP 404](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/404.png)
 
 
-## Usage Patterns 
+## Usage Patterns
 
 Now our service is able to return a 404 page, but let make it a bit more interesting add a supervisor that checks and save the usage patterns of our service.  
 
-Let's start by encapsulating this new behaviour in a class. 
+Let's start by encapsulating this new behaviour in a class.
 
 ```js
 class Stats  {
@@ -178,7 +178,7 @@ This class will have a *read* method, that will take a HTTP header in the form o
 
 ### Parsing The HTTP Header
 
-We we transform the buffer into a string we are going to get something like this: 
+We we transform the buffer into a string we are going to get something like this:
 
 ```sh
  GET /user HTTP/1.1
@@ -213,7 +213,7 @@ class Stats  {
     this.db = {}
   }
 
-  //getEndPoint(http_block) ... 
+  //getEndPoint(http_block) ...
 
   save(value){
     this.db[value.endpoint]      =  this.db[value.endpoint] || {}
@@ -236,7 +236,7 @@ class Stats  {
 
 Our "*sophisticated quick and dirty in-memory data store*" does just that. We just make a dictionary to save all the entries and to keep the counting using the *hit* property. Next we are going to instantiate the *Stat* class to make it persistent through the live cycle of the application, also we are going to take the liberty to report every 2 seconds to the [stdout](http://www.linfo.org/standard_output.html).  
 
-```sh 
+```sh
 let stats = new Stats()
 
 setInterval(() =>
@@ -257,15 +257,15 @@ If we re-execute our script we get something like this:
 ![Traffic and Statistics](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/traffic_stats.gif)
 
 
-# Decorating Other Services 
+# Decorating Other Services
 
 ## Web Server
 
-If you remember the key of all this is to learn how to re-use functionality across micro-services, before we start we need a service, so let's start by making a simple web server. 
+If you remember the key of all this is to learn how to re-use functionality across micro-services, before we start we need a service, so let's start by making a simple web server.
 
 To make thing more interesting we are going to use Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. We are going to choose this because we don't have control over the source code and because the only thing we have in common is the we talk the same protocol *HTTP*.  
- 
-A have some folder in a folder so I'll create some sort of HTTP photo library. 
+
+A have some folder in a folder so I'll create some sort of HTTP photo library.
 
 ```sh
 cd /my_photo_folder
@@ -284,7 +284,7 @@ python -m simple.http 8087
 
 This web server looks good, but we want to know what pictures are more popular and also if our users make a mistake they will be redirected to a generic 404. Let's write some code to transfer apply this new features. The first step is to create a connection with this new service.
 
-We can start by revisiting our `` sitio.js`` and create a new class called *Service*. 
+We can start by revisiting our `` sitio.js`` and create a new class called *Service*.
 
 ```js
 class Service {
@@ -300,12 +300,12 @@ class Service {
 
 ```
 
-This class handles the creation of a new socket, but this time, the socket is opening communication with a port inside our logical host (0.0.0.0). Do you remember that pods simulate a machine? We are going to use this fact later to connect to any container running in our same neighborhood. 
+This class handles the creation of a new socket, but this time, the socket is opening communication with a port inside our logical host (0.0.0.0). Do you remember that pods simulate a machine? We are going to use this fact later to connect to any container running in our same neighborhood.
 
 
-Next thing we need to implement is how we send/receive information from that socket. 
+Next thing we need to implement is how we send/receive information from that socket.
 
-```js 
+```js
 
 class Service {
   constructor(_port) {
@@ -337,9 +337,11 @@ class Service {
     // The service has finished... do something.
   }
 }
-``` 
+```
 
-The plan here is simple, we implemented a *send* method to send any type of data to the service, then the response is handled by the method *read* which gets call when the remote service sends some data back. To enhance our compatibility we are handling responses coming in chunks, of course if some service is streaming 1GB back we are in trouble, but for demo purposes is good enough. 
+The plan here is simple, we implemented a *send* method to send any type of data to the service, then the response is handled by the method *read* which gets call when the remote service sends some data back. To enhance our compatibility we are handling responses coming in chunks, of course if some service is streaming 1GB back we are in trouble, but for demo purposes is good enough.
+
+## Overriding Responses
 
 They are two things remaining we want to override that ugly HTTP 404 response, to do that we need to write some code that detects when something like that happens in the service so we are able to replace that page with our page.  
 
@@ -349,7 +351,7 @@ Our service will respond something like this:
 HTTP/1.0 404 File not found
 ```
 
-We just need to read the second parameter separated by space from left to right, to do just that we are going to write a helper function. 
+We just need to read the second parameter separated by space from left to right, to do just that we are going to write a helper function.
 
 ```js
 let HTTP = Object.create({
@@ -375,8 +377,9 @@ class Service {
 
 Here we pass the first data chuck which contain the HTTP response header and we get back the status.
 
+## Handling Service State
 
-The second thing missing here is that we should look for a way to communicate all this to other components of the application. For this again, we are going to make this object inherit from Events. 
+The second thing missing here is that we should look for a way to communicate all this to other components of the application. For this again, we are going to make this object inherit from Events.
 
 ```js
 class Service extends Events {
@@ -391,8 +394,8 @@ class Service extends Events {
   }
 }
 ```
-The important part here is the usage of ``this.emit``. We are going to create a new event of the form ``service:response:`` and we going to append the status at then end. This will give us the flexibility to append behaviour to each case as we see fit.   
 
+The important part here is the usage of ``this.emit``. We are going to create a new event of the form ``service:response:`` and we going to append the status at then end. This will give us the flexibility to append behaviour to each case as we see fit.   
 
 ```js
 class Service extends Events {
@@ -423,9 +426,54 @@ Any time we got a 404 we send our page and if we got a 200 we just return the se
 
 
 
+## Running Locally
+We execute the script again and now we got this:
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/completed-local.gif?raw=true)
+
+We first try using the not-decorated instance service with no telemetry or custom 404 page, then see how executing our "Proxy" process we can add those features.
+
+
+# Container Oriented Programming
+
+We finished with the development for now, let's test deploy our creation in Kubernetes/OpenShift. If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using a template that looks similar to this:
+
+```xml
+apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+ containers:
+ - name: web
+   image: 172.30.1.1:5000/hello/web
+   command: ['sh', '-c', 'cd static && python -m http.server 8087']
+ - name: proxy
+   image: busybox
+   command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
+```
+
+We are going to replace the *proxy* container with our newly created application, but first let setup the traffic for this application.
+
+
+## Getting Started
+
+Before we can use this template we need to build a Python image, so let's do it:
+
+```sh
+oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
+```
+
+We save the template above as ``pod.yml`` and we create our pod, if we didn't before:
+
+```sh
+ oc create -f pod.yml
+```
+
+This will read this will make a pod for use running two containers.
 
 
 
-
- 
 
