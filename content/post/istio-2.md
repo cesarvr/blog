@@ -2,7 +2,7 @@
 title: "Creating Your Own Istio (Part 2)"
 date: 2018-11-07
 lastmod: 2018-11-07
-draft: true
+draft: false
 keywords: []
 description: "Creating our reusable container."
 tags: [openshift, container, services, kubernetes ]
@@ -54,23 +54,14 @@ Notice that it say *empty response* this mean that we are connecting but doing n
 
 ## Input/Output
 
-Let's write some boilerplate code to handle the I/O and create our the class in charge of handling the service statistics.
+We are going to start by taking the socket out to its own function.
 
 ```js
 var net = require('net')
 
-class Stats {
-  constructor({socket}) {
-    socket.on('data', data => this.read(data))
-  }
-
-  read(data){
-    console.log('data->', data)
-  }
-}
 
 function handle(socket) {
-  let stats = new Stats({socket})
+ // handle the socket
 }
 
 console.log('Listening for request in 8080')
@@ -80,22 +71,94 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-This is very straight forward, here we are handling the socket in one function (**handle**), and we wrote this class *Stats* which take care of subscribing to the socket incoming data, if a new data arrives its own method *read* will take care of that.
+Let's make a class to handle all the details about our incoming traffic.
 
-We run our script again and we should get this:
-
-```#!/bin/sh
-node sitio.js
-
-# GET / HTTP/1.1
-# Host: localhost:8080
-# ....
+```js
+class IncomingTraffic {
+  constructor({socket}) {
+    this.socket = socket
+    this.socket.on('data', data => console.log(data))
+  }
+}
 ```
-We got a full HTTP request, this will give us the flexibility to get the information we want and handover this request to other services.  
+We create a simple class that takes the socket subscribe to the socket data events, this mean every time new data is available in the socket that anonymous function get triggered.  
+
+```js
+function handle(socket) {
+  this.incomingTraffic = new IncomingTraffic({socket})
+}
+```
+
+The idea is to have only one place to handle this (IncomingTraffic object). As you might know Node.js uses an asynchronous I/O which is a bit difficult to handle using classic OOP paradigm, for this reason let's make our object capable of emitting events. This way we can easily connect the objects to get what we want.
+
+```js
+class IncomingTraffic extends Events {
+  constructor({socket}) {
+    super()
+    this.buffer = null
+    this.socket = socket
+    this.socket.on('data', data => this.emit('traffic:incoming', data))
+  }
+}
+```
+
+Ok, now our class will control the data flow in behalf of the socket, let's write a method to send data to the socket.
+
+```js
+class IncomingTraffic extends Events {
+  constructor({socket}) {
+    super()
+    this.buffer = null
+    this.socket = socket
+    this.socket.on('data', data => this.emit('traffic:incoming', data))
+  }
+
+  send(chucks){
+    chucks.forEach(data => this.socket.write(data) )
+    this.socket.end() //close socket connection
+  }
+}
+```
+
+Sometimes, the data we want to transfer is to big and can break the socket limit and close the connection unexpectedly. This is why our *send* method will take an array and will feed the socket one chunk at a time, then close the connection.
+
+## Custom 404
+
+After all this code we are still in the same place, but no worries, we are going to demonstrate the use of *IncomingTraffic* class to create our HTTP 404 response. We are going to show this page when the page or resource we are looking for doesn't exist.
+
+First let's define our 404 page:
+
+```js
+const HTTP404 = `
+HTTP/1.0 404 File not found
+Server: Sitio 💥
+Date: ${Date}
+Content-Type: text/html
+Connection: close
+
+<body>
+  <H1>Endpoint Not Found</H1>
+  <img src="https://www.wykop.pl/cdn/c3201142/comment_E6icBQJrg2RCWMVsTm4mA3XdC9yQKIjM.gif">
+</body>`
+```
+
+For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info. We can safely assume that our service doesn't have nothing to show yet so we can just code the response like this. 
+
+
+```js
+  function handle(socket) {
+    let traffic = new IncomingTraffic({socket})
+
+    traffic.on('traffic:incoming', incomingTraffic => traffic.send([HTTP404]) )
+  }
+``` 
+
+Here we are saying, if we got some incoming request just send back the 404 page. 
+
 
 ## Parsing HTTP
 
-Now that we setup our class  *Stats*, let's add some HTTP parsing capabilities.
+Now that we setup our class *Stats*, let's add some HTTP parsing capabilities.
 
 ```js
 class Stats {
