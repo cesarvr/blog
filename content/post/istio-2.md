@@ -446,34 +446,63 @@ metadata:
   labels:
     app: my-pod
 spec:
- containers:
- - name: web
-   image: 172.30.1.1:5000/hello/web
-   command: ['sh', '-c', 'cd static && python -m http.server 8087']
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'cd static && python -m http.server 8087']
  - name: proxy
-   image: busybox
-   command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
+    image: busybox
+    command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We are going to replace the *proxy* container with our newly created application, but first let setup the traffic for this application.
+We are going to replace the *proxy* container with our service running our application, but first let setup the traffic for this application. But before we continue we need to send some traffic towards this pod.
+
+## Sending Traffic
 
 
-## Getting Started
+We add the port 8087 (the [same port](https://gist.github.com/cesarvr/cecaf693a17b6f09b9eb3f5d38f33165#file-my-pod-yml-L11) the python server running inside the container is using) entry to our *web* container, this way the pod will accept incoming communication and pass it to the server:
 
-Before we can use this template we need to build a Python image, so let's do it:
-
-```sh
-oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
+```xml
+apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'cd static && python -m http.server 8087']
+    port: 8087   #
+ - name: proxy
+    image: busybox
+    command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We save the template above as ``pod.yml`` and we create our pod, if we didn't before:
+We save the template above as ``pod.yml`` and we use it to create our pod:
 
 ```sh
  oc create -f pod.yml
 ```
 
-This will read this will make a pod for use running two containers.
+This template will create two containers.
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/pod.png?raw=true)
 
 
+Let's send some traffic to our pod.
 
+```sh
+  oc create service loadbalancer my-pod --tcp=8087:8087
+```
 
+The OpenShift Service object looks for elements in the cluster that match the same label as the name. That's why we named ```my-pod``` as it will automatically look for pods with that label to send some traffic. And we specify port 8087 that match the port we are exposing. Next step is exposing the service, this will setup a router that takes connection coming from outside of the cluster to your OpenShift Service.
+
+```sh
+oc expose svc my-pod
+```
+
+Now we can access to this particular service with our browser.
+
+![]()
