@@ -11,21 +11,21 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Last post we learn how the pod simulates a logical host (machine), how we can run multiple containers inside and how they share the same network IP address. Now in this post we are going take advantage of this to add functionality to new or existing services running in Kubernetes/OpenShift.
+[In the last post](https://cesarvr.io/post/istio/) we learn how the pod simulates a logical host (AKA machine), how we can create pod composed of multiple containers, and how we they can co-operated together.
 
-First of all we are going to create a set of nice features, then we are going to explore how we can make those features reusable across services talking our same language.    
+In this post we are going to create a special type of Proxy with its own domain of expertise, and we are going to share this knowledge with any service in the cluster as long as it support the HTTP protocol.
 
-Let's start by defining our service features:  
+Let's start by defining features we want to share with other service:  
 
 - How many time a HTTP resource is being requested.
 - Handle 404 Page.
 - How fast is this resource being served.
 
-# Let's Write Some Code
+# Writing Some Code
 
 ## Server
 
-We can start by creating a HTTP server, to do this we are going to use a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
+To write our "Proxy" container using JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
 
 ```js
 var net = require('net')
@@ -37,9 +37,9 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-Here we require the [net](https://nodejs.org/api/net.html) which has all the libraries we need to manipulate sockets, then we start listening in port 8080 for incoming request, we got an incoming request we close the port and finish. Why a raw socket? Because we want to keep the main HTTP request as raw and untouched as possible, you will see why later.
+Here we require the [net](https://nodejs.org/api/net.html) library which has the socket API, then we create a new TCP server listening in port 8080 for incoming request. When a new client connects to our server we just do nothing and close the port.
 
-We are going to name this file as ```sitio.js``` and run this script with:
+We are going to name this file as ```sitio.js``` and run it:
 
 ```sh
 node sitio.js
@@ -50,11 +50,10 @@ Calling in our browser will give us this response:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/empty-response.png?raw=true)
 
-Notice that it say *empty response* this mean that we are connecting but doing nothing.
 
 ## Input/Output
 
-We are going to start by taking the socket out to its own function.
+When a new client (like a browser) connects to our server, this function generates a new socket. To make things easy to understand we are going to handle this socket, in a function.
 
 ```js
 var net = require('net')
@@ -71,7 +70,19 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-Let's make a class to handle all the details about our incoming traffic.
+We need to write some code to handle the input/output of data through that socket, so let's handle those behaviours in a class.
+
+
+```js
+class IncomingTraffic {
+  constructor({socket}) {
+    this.socket = socket
+
+  }
+}
+```
+
+Node.js make heavy use of events to handle I/O, so we need to subscribe when the data is coming our way.
 
 ```js
 class IncomingTraffic {
@@ -81,36 +92,15 @@ class IncomingTraffic {
   }
 }
 ```
-We create a simple class that takes the socket subscribe to the socket data events, this mean every time new data is available in the socket that anonymous function get triggered.  
+
+This solves the read at the moment, let's take care of defining a write method.
 
 ```js
-function handle(socket) {
-  this.incomingTraffic = new IncomingTraffic({socket})
-}
-```
-
-The idea is to have only one place to handle this (IncomingTraffic object). As you might know Node.js uses an asynchronous I/O which is a bit difficult to handle using classic OOP paradigm, for this reason let's make our object capable of emitting events. This way we can easily connect the objects to get what we want.
-
-```js
-class IncomingTraffic extends Events {
+class IncomingTraffic {
   constructor({socket}) {
-    super()
     this.buffer = null
     this.socket = socket
-    this.socket.on('data', data => this.emit('traffic:incoming', data))
-  }
-}
-```
-
-Ok, now our class will control the data flow in behalf of the socket, let's write a method to send data to the socket.
-
-```js
-class IncomingTraffic extends Events {
-  constructor({socket}) {
-    super()
-    this.buffer = null
-    this.socket = socket
-    this.socket.on('data', data => this.emit('traffic:incoming', data))
+    this.socket.on('data', data => console.log(data))
   }
 
   send(chucks){
@@ -120,11 +110,31 @@ class IncomingTraffic extends Events {
 }
 ```
 
-Sometimes, the data we want to transfer is to big and can break the socket limit and close the connection unexpectedly. This is why our *send* method will take an array and will feed the socket one chunk at a time, then close the connection.
+We just write a *send* method that will take an array and will feed the socket one chunk at a time and close the connection.
+
+We need to make other objects aware of the data coming to the socket, but at the same time we want to keep this object from knowing to much. So, we are going to share this information by emitting events.
+
+
+```js
+class IncomingTraffic extends Events {
+  constructor({socket}) {
+    super()
+    this.buffer = null
+    this.socket = socket
+    this.socket.on('data', data => this.emit('traffic:new', data))
+  }
+
+  send(chucks){
+    chucks.forEach(data => this.socket.write(data) )
+    this.socket.end() //close socket connection
+  }
+}
+```
+
 
 ## Custom 404
 
-After all this code we are still in the same place, but no worries, we are going to demonstrate the use of *IncomingTraffic* class to create our HTTP 404 response. We are going to show this page when the page or resource we are looking for doesn't exist.
+After all this code we are still in the same place, but no worries, we are going to demonstrate the use of *IncomingTraffic* class to create our HTTP 404 response. We are going to show this page when the resource we are looking for doesn't exist.
 
 First let's define our 404 page:
 
@@ -142,14 +152,23 @@ Connection: close
 </body>`
 ```
 
-For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info. We can safely assume that our service doesn't have nothing to show yet so we can just code the response like this.
+For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info.
 
+
+To implement our 404 web page, we need to implement our class to handle the input/output flow.
 
 ```js
   function handle(socket) {
     let traffic = new IncomingTraffic({socket})
+  }
+```
 
-    traffic.on('traffic:incoming', incomingTraffic => traffic.send([HTTP404]) )
+We subscribe to the ``traffic:new`` event.  
+
+```js
+  function handle(socket) {
+    let traffic = new IncomingTraffic({socket})
+    traffic.on('traffic:new', incomingTraffic => traffic.send([HTTP404]) )
   }
 ```
 
@@ -160,7 +179,7 @@ Here we are saying, if we got some incoming request just send back the 404 page.
 
 ## Usage Patterns
 
-Now our service is able to return a 404 page, but let make it a bit more interesting add a supervisor that checks and save the usage patterns of our service.  
+Now our service is able to return a 404 page, but let make it a bit more interesting by adding usage tracking.  
 
 Let's start by encapsulating this new behaviour in a class.
 
@@ -174,11 +193,11 @@ class Stats  {
 
 ```
 
-This class will have a *read* method, that will take a HTTP header in the form of a [Buffer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjSxv6_q8feAhWSPFAKHX_lBwIQFjAAegQIBhAB&url=https%3A%2F%2Fnodejs.org%2Fapi%2Fbuffer.html&usg=AOvVaw1jQcAyZipqNZ410cf4j8HS). The Buffer object is just a Node.js abstraction to save binary data, we use the method *toString* to transform it into *utf-8* string.  
+This class will have a *read* method, that will take a HTTP header in the form of a [Buffer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjSxv6_q8feAhWSPFAKHX_lBwIQFjAAegQIBhAB&url=https%3A%2F%2Fnodejs.org%2Fapi%2Fbuffer.html&usg=AOvVaw1jQcAyZipqNZ410cf4j8HS). The Buffer object is just a Node.js abstraction to save binary data, we use the method *toString* to transform it to an *UTF-8* string.  
 
 ### Parsing The HTTP Header
 
-We we transform the buffer into a string we are going to get something like this:
+When we transform the buffer into a string we are going to get something like this:
 
 ```sh
  GET /user HTTP/1.1
@@ -186,7 +205,7 @@ We we transform the buffer into a string we are going to get something like this
  User-Agent: curl/7.54.0
 ```
 
-To keep it simple we just want to keep track how many call we receive per endpoint. To do this we just parse this block to retrieve the destination URL ``  /user ``.   
+To keep it simple we just want to keep track how many calls we receive per endpoint.
 
 ```js
 class Stats  {
@@ -204,7 +223,10 @@ class Stats  {
   }
 }
 ```
-The method ``getEndpoint`` removes the HTTP Verb and the HTTP version and give us back the URL. Now let's create some way to persist this information and add some mechanism to keep the count of how many time our endpoint get visited.
+The method ``getEndpoint`` removes the HTTP Verb and the HTTP version and give us back the URL.
+
+
+Now let's persist this information and add a visit counter.
 
 ```js
 class Stats  {
@@ -234,25 +256,35 @@ class Stats  {
 }
 ```
 
-Our "*sophisticated quick and dirty in-memory data store*" does just that. We just make a dictionary to save all the entries and to keep the counting using the *hit* property. Next we are going to instantiate the *Stat* class to make it persistent through the live cycle of the application, also we are going to take the liberty to report every 2 seconds to the [stdout](http://www.linfo.org/standard_output.html).  
+ We just make a dictionary to save all the entries and we keep the counting by using the *hit* property. Next we are going to instantiate the *Stat* class to make it persistent through the application lifecycle.
 
-```sh
+```js
 let stats = new Stats()
-
-setInterval(() =>
-  console.log('endpoint->', stats.all),
-  2000)
 
 function handle(socket) {
   let traffic = new IncomingTraffic({socket})
 
-  traffic.on('traffic:incoming', incomingData => stats.read(incomingData))
-  traffic.on('traffic:incoming', incomingTraffic => traffic.send([HTTP404]) )
+  traffic.on('traffic:new', incomingData => stats.read(incomingData))
+  traffic.on('traffic:new', incomingTraffic => traffic.send([HTTP404]) )
 }
-
 ```
 
-If we re-execute our script we get something like this:
+We add some code to shows the tracking information every two seconds.
+
+```js
+setInterval(() =>
+  console.log('endpoint->', stats.all),
+  2000)
+
+  function handle(socket) {
+    let traffic = new IncomingTraffic({socket})
+
+    traffic.on('traffic:new', incomingData => stats.read(incomingData))
+    traffic.on('traffic:new', incomingTraffic => traffic.send([HTTP404]) )
+  }
+```
+
+We run our script:
 
 ![Traffic and Statistics](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/traffic_stats.gif)
 
@@ -261,11 +293,9 @@ If we re-execute our script we get something like this:
 
 ## Web Server
 
-If you remember the key of all this is to learn how to re-use functionality across micro-services, before we start we need a service, so let's start by making a simple web server.
+To make thing more interesting we are going create a *web server* using Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. This will create a server that we can enhance later.
 
-To make thing more interesting we are going to use Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. We are going to choose this because we don't have control over the source code and because the only thing we have in common is the we talk the same protocol *HTTP*.  
-
-A have some folder in a folder so I'll create some sort of HTTP photo library.
+Let's create some sort of HTTP photo library.
 
 ```sh
 cd /my_photo_folder
@@ -282,7 +312,7 @@ python -m simple.http 8087
 
 ## Communicating With Other services
 
-This web server looks good, but we want to know what pictures are more popular and also if our users make a mistake they will be redirected to a generic 404. Let's write some code to transfer apply this new features. The first step is to create a connection with this new service.
+This web server doesn't looks bad, but let's reuse the features we created before. The first step is to create a connection with this new service.
 
 We can start by revisiting our `` sitio.js`` and create a new class called *Service*.
 
@@ -565,3 +595,58 @@ oc start-build bc/decorator --from-dir=.
 ```
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/start-build.gif)
+
+
+Once our application is build, we just need to locate the image created for us:
+
+```sh
+oc get is
+
+#NAME        DOCKER REPO                      
+#decorator   172.30.1.1:5000/home/decorator
+```
+
+And we replace the busybox image we where using this far.
+
+```xml
+  ...
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'cd static && python -m http.server 8087']
+    port: 8087   #
+  - name: proxy
+    image: 172.30.1.1:5000/home/decorator
+```
+
+
+Also we need to change the port exposed by the pod to 8080, which is the port our "Proxy" container will use.
+
+```xml
+apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+ containers:
+ - name: web
+   image: 172.30.1.1:5000/home/web
+   command: ['sh', '-c', 'cd static && python -m http.server 8087']
+ - name: proxy
+   port: 8080
+   image: 172.30.1.1:5000/home/decorator
+```
+
+We re-create our pod:
+
+```sh
+# Delete
+oc delete pod my-pod
+
+# Create
+oc create -f pod.yml
+```
+And here is our decorated container.
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/decorating%20a%20service.gif)
