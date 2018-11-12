@@ -436,6 +436,12 @@ We first try using the not-decorated instance service with no telemetry or custo
 
 # Container Oriented Programming
 
+## Before We Start
+
+Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some buzz word you can take a look at this [getting started guide](https://github.com/cesarvr/Openshift).
+
+## Pod
+
 We finished with the development for now, let's test deploy our creation in Kubernetes/OpenShift. If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using a template that looks similar to this:
 
 ```xml
@@ -455,10 +461,11 @@ spec:
     command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-We are going to replace the *proxy* container with our service running our application, but first let setup the traffic for this application. But before we continue we need to send some traffic towards this pod.
+We are going to replace the *proxy* container with our service running our application, but first let setup the traffic for this application.
 
-## Sending Traffic
 
+
+## Exposing Server Ports
 
 We add the port 8087 (the [same port](https://gist.github.com/cesarvr/cecaf693a17b6f09b9eb3f5d38f33165#file-my-pod-yml-L11) the python server running inside the container is using) entry to our *web* container, this way the pod will accept incoming communication and pass it to the server:
 
@@ -490,6 +497,7 @@ This template will create two containers.
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/pod.png?raw=true)
 
+## Sending Some Traffic
 
 Let's send some traffic to our pod.
 
@@ -505,4 +513,53 @@ oc expose svc my-pod
 
 Now we can access to this particular service with our browser.
 
-![]()
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/pod-svc-routing.gif?raw=true)
+
+
+We should use a deployment configuration for this but, we are focusing in the understanding of the pod entity.
+
+## Let's Add A Decorator Container
+
+### Making A Container
+
+To make the container I'm going to use the convenient OpenShift [binary build configuration](https://cesarvr.io/post/buildconfig/), this basically delegate the image creation, to OpenShift.
+
+As mentioned before we are going to use an OpenShift builder image, so we need the Node.js version. This version requires we configure the `` package.json`` of our project. We just need to do something like this.
+
+```sh
+cd /jump-to-your-script-folder
+npm init  # Respond all the questions
+```
+
+Open the ``package.json`` and add a **start** entry in the *scripts* section:
+
+```json
+{
+  "name": "sitio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start" : "node app.js"      
+  },
+  "author": "",
+  "license": "ISC"
+}
+```
+
+The project is now ready to be build by OpenShift, let's create the builder configuration.
+
+```sh
+  oc new-build nodejs --binary=true --name=decorator
+```
+
+Now let's copy the content of our project to the build configuration.
+
+```sh
+cd /jump-to-your-script-folder
+
+oc start-build bc/decorator --from-dir=.
+#Uploading directory "." as binary input for the build ...
+#build "decorator-1" started
+```
