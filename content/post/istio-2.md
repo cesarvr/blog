@@ -438,17 +438,30 @@ The *Service* class hides all the complexity of connecting with the micro-servic
 To tunnel the data from the browser to the micro-service we use this:
 
 ```js
-traffic.on('traffic:incoming', incomingData => service.send(incomingData))
+traffic.on('traffic:new', data => service.send(data))
 ```
 
 To tunnel the response from the micro-service to the browser:
-
 
 ```js
 service.on('service:response:200', response => traffic.send(response) )
 ```
 
-![]()
+The final implementation will look something like this:
+
+```js
+function handle(socket) {
+  let service = new Service()
+  let traffic = new IncomingTraffic({socket})
+
+  traffic.on('traffic:new', data => stats.read(data))
+  traffic.on('traffic:new', data => service.send(data))
+
+  service.on('service:response:200', response => traffic.send(response) )
+}
+```
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/relationship.png)
 
 
 ## Overriding Responses
