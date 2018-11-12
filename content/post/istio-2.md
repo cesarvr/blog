@@ -289,32 +289,27 @@ We run our script:
 ![Traffic and Statistics](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/traffic_stats.gif)
 
 
-# Decorating Other Services
+# Proxy
 
-## Web Server
+## Design
 
-To make thing more interesting we are going create a *web server* using Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. This will create a server that we can enhance later.
+Right now our "Proxy" looks something like this:
 
-Let's create some sort of HTTP photo library.
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/404-stats.png).
 
-```sh
-cd /my_photo_folder
+Our browser start communication in *port 8080*, we receive the data, gather some usage statistics and return the 404 page.
 
-# Python 2.xx
-python SimpleHTTPServer 8087
+To make this usage statistics and the 404 page more interesting we need to write some code, that tunnel the request without loosing this functionality.
 
-# Python 3.xx
-python -m simple.http 8087
-```
-
-![Python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/full-proxy.png)
 
 
-## Communicating With Other services
+We want to handle the traffic coming from the browser, apply some logic and then delegate the request to its real destination.
 
-This web server doesn't looks bad, but let's reuse the features we created before. The first step is to create a connection with this new service.
 
-We can start by revisiting our `` sitio.js`` and create a new class called *Service*.
+## Implementation
+
+The *Service* class will handle the communication with the processes running inside the pod.
 
 ```js
 class Service {
@@ -330,15 +325,38 @@ class Service {
 
 ```
 
-This class handles the creation of a new socket, but this time, the socket is opening communication with a port inside our logical host (0.0.0.0). Do you remember that pods simulate a machine? We are going to use this fact later to connect to any container running in our same neighborhood.
+The communication is established again using a [TCP Socket](http://man7.org/linux/man-pages/man2/socket.2.html), but this time, we are connecting to ``localhost`` port *8087*. We choose this port arbitrarily, we just need to match the port of the running service.
 
 
-Next thing we need to implement is how we send/receive information from that socket.
+### Read/Write
+
+To handle the communication we are going to create again two methods:
 
 ```js
 
 class Service {
   constructor(_port) {
+
+    let port = _port || 8087
+    let client = new net.Socket()
+
+    client.connect(port, '0.0.0.0', () => {
+      console.log(`connected to ${port}`)
+    })
+  }
+
+  send(data) {
+    this.client.write(data)
+  }
+}
+```
+
+Method *send*:  For sending data to the deployed micro-service.
+
+```js
+class Service {
+  constructor(_port) {
+    super()
 
     let port = _port || 8087
     let client = new net.Socket()
@@ -348,34 +366,96 @@ class Service {
     })
 
     client.on('data', data => this.read(data))
-    client.on('end', data  => this.finish(data))
-    client.on('error', err  => console.log('err->', err))
-
-    this.client = client
     this.buffer = []
   }
 
   send(data) {
     this.client.write(data)
   }
-
   read(data){
     this.buffer.push(data)
-  }
-
-  finish(){
-    // The service has finished... do something.
   }
 }
 ```
 
-The plan here is simple, we implemented a *send* method to send any type of data to the service, then the response is handled by the method *read* which gets call when the remote service sends some data back. To enhance our compatibility we are handling responses coming in chunks, of course if some service is streaming 1GB back we are in trouble, but for demo purposes is good enough.
+Method *read*: To read the response, coming from the service. We also subscribe the read method, to Node.js ``data`` event.  
+
+### Multi-Chunk Support
+
+To make our "Proxy" more robust we are going to add support for emission of data with multiple chunks. The key to do this is to wait until the micro-service sends a close packet. When Node.js see this packet it emit a ``end`` event.  
+
+```js
+class Service {
+  constructor(_port) {
+    // ...
+    // ...
+    client.on('end', ()  => this.finish())
+    this.buffer = []
+  }
+
+  // ...
+
+  finish(){
+    // We got all the information
+  }
+}
+```
+
+Of course this implementation is holding everything in memory, which make it vulnerable to huge responses. But for our demo purposes will be fine.
+
+### Event Driven
+
+As we did with *IncomingTraffic*, we are going to delegate what to do with this flow of data to more specialised classes by extending from Events.
+
+```js
+class Service extends Events {
+  constructor(_port) {
+    // ...
+    client.on('end', ()  => this.finish())
+    this.buffer = []
+  }
+
+  // ...
+  finish(){
+    this.emit('service:response:200', this.buffer)
+  }
+}
+```
+
+We implement this class like this:
+
+```js
+function handle(socket) {
+  let service = new Service()
+  let traffic = new IncomingTraffic({socket})
+
+  traffic.on('traffic:new', incomingData => stats.read(incomingData))
+}
+```
+
+The *Service* class hides all the complexity of connecting with the micro-service by giving us a set of interfaces.
+
+To tunnel the data from the browser to the micro-service we use this:
+
+```js
+traffic.on('traffic:incoming', incomingData => service.send(incomingData))
+```
+
+To tunnel the response from the micro-service to the browser:
+
+
+```js
+service.on('service:response:200', response => traffic.send(response) )
+```
+
+![]()
+
 
 ## Overriding Responses
 
-They are two things remaining we want to override that ugly HTTP 404 response, to do that we need to write some code that detects when something like that happens in the service so we are able to replace that page with our page.  
+We want to give some personality to our service in the cluster, by sharing our custom HTTP 404 response.
 
-Our service will respond something like this:  
+We need to read the HTTP response of
 
 ```
 HTTP/1.0 404 File not found
@@ -453,6 +533,28 @@ function handle(socket) {
 ```
 
 Any time we got a 404 we send our page and if we got a 200 we just return the service response. I saw a demo of Istio where they show how the framework mask HTTP 500 by sending a previously cached response. How you will implement that ?.   
+
+
+
+
+## Web Server
+
+To make thing more interesting we are going create a *web server* using Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. This will create a server that we can enhance later.
+
+Let's create some sort of HTTP photo library.
+
+```sh
+cd /my_photo_folder
+
+# Python 2.xx
+python SimpleHTTPServer 8087
+
+# Python 3.xx
+python -m simple.http 8087
+```
+
+![Python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)
+
 
 
 
