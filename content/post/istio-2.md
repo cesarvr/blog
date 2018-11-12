@@ -548,7 +548,7 @@ Open the ``package.json`` and add a **start** entry in the *scripts* section:
 }
 ```
 
-The project is now ready to be build by OpenShift, let's create the builder configuration.
+The project is now ready to be build:
 
 ```sh
   oc new-build nodejs --binary=true --name=decorator
@@ -563,3 +563,5 @@ oc start-build bc/decorator --from-dir=.
 #Uploading directory "." as binary input for the build ...
 #build "decorator-1" started
 ```
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/start-build.gif)
