@@ -25,7 +25,7 @@ Let's start by defining features we want to share with other service:
 
 ## Server
 
-To write our "Proxy" container using JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
+To write our "Proxy" using JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
 
 ```js
 var net = require('net')
@@ -461,20 +461,19 @@ function handle(socket) {
 }
 ```
 
-![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/relationship.png)
-
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/relationship-objects.png)
 
 ## Overriding Responses
 
-We want to give some personality to our service in the cluster, by sharing our custom HTTP 404 response.
+It's time to give some personality to the services running in the cluster, by sharing our custom HTTP 404 response.
 
-We need to read the HTTP response of
+To add this we need to make our *Service class*, able to read the HTTP status code from the micro-service. Heres an example:
 
 ```
 HTTP/1.0 404 File not found
 ```
 
-We just need to read the second parameter separated by space from left to right, to do just that we are going to write a helper function.
+We just need to read the second parameter separated by spaces from left to right, to do just that we are going to write a helper function.
 
 ```js
 let HTTP = Object.create({
@@ -485,7 +484,7 @@ let HTTP = Object.create({
   }
 })
 
-class Service {
+class Service extends Events {
   constructor(_port) {
     //...stuff
   }
@@ -498,11 +497,7 @@ class Service {
 }
 ```
 
-Here we pass the first data chuck which contain the HTTP response header and we get back the status.
-
-## Handling Service State
-
-The second thing missing here is that we should look for a way to communicate all this to other components of the application. For this again, we are going to make this object inherit from Events.
+Here we pass the first data chuck which contain the HTTP response header and we get back the HTTP status. We can now introduce the status code as part of our event dispatching function.
 
 ```js
 class Service extends Events {
@@ -518,7 +513,21 @@ class Service extends Events {
 }
 ```
 
-The important part here is the usage of ``this.emit``. We are going to create a new event of the form ``service:response:`` and we going to append the status at then end. This will give us the flexibility to append behaviour to each case as we see fit.   
+We just make ourselves a nice event dispatcher which can be used like this:
+
+```js
+let service = new Service()
+
+service.on('service:response:200', response => //Handle HTTP 200 )
+service.on('service:response:500', response => //Handle HTTP 500 )
+service.on('service:response:404', response => //Handle HTTP 404 )
+//etc...
+
+```
+
+Let's implement the 404 custom response.
+
+
 
 ```js
 class Service extends Events {
@@ -537,22 +546,25 @@ function handle(socket) {
   let service = new Service()
   let traffic = new IncomingTraffic({socket})
 
-  traffic.on('traffic:incoming', incomingData => stats.read(incomingData))
-  traffic.on('traffic:incoming', incomingData => service.send(incomingData))
+  traffic.on('traffic:new', data => stats.read(data))
+  traffic.on('traffic:new', data => service.send(data))
 
   service.on('service:response:200', response => traffic.send(response) )
   service.on('service:response:404', response => traffic.send([HTTP404]) )
 }
 ```
 
-Any time we got a 404 we send our page and if we got a 200 we just return the service response. I saw a demo of Istio where they show how the framework mask HTTP 500 by sending a previously cached response. How you will implement that ?.   
+Any time we got a 404 we send our page and if we got a 200 we just return the service response.
 
+Some days ago I saw an [Istio demo](https://youtu.be/gauOI0O9fRM?t=1720) where they show how the framework mask HTTP 500 by sending a previously cached response. How you will implement that ?.   
 
+# Testing Locally
 
+Before running this in a container let's test this with a web server.
 
-## Web Server
+### Web Server
 
-To make thing more interesting we are going create a *web server* using Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. This will create a server that we can enhance later.
+To create the *web server* we are going to use Python [SimpleHTTPServer](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwjZt_6tscfeAhWSaFAKHc8NBawQFjAAegQIBBAB&url=https%3A%2F%2Fdocs.python.org%2F2%2Flibrary%2Fsimplehttpserver.html&usg=AOvVaw3mE6UK_OSre6HPTQoN3mIF) module. This server will serve as the perfect example of something we don't have control (source code), but we can enhance with "Proxy".
 
 Let's create some sort of HTTP photo library.
 
@@ -568,26 +580,24 @@ python -m simple.http 8087
 
 ![Python server](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)
 
+## Running The Proxy
 
+As you can see above our server is running in *port 8087* and is running in the same logical host (my laptop). So let's start our "Proxy" starting in *port 8080*.  
 
-
-## Running Locally
-We execute the script again and now we got this:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/completed-local.gif?raw=true)
 
-We first try using the not-decorated instance service with no telemetry or custom 404 page, then see how executing our "Proxy" process we can add those features.
-
+We first try using the simple version and the we decorate that service with by executing our process in the same machine.
 
 # Container Oriented Programming
 
 ## Before We Start
 
-Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some buzz word you can take a look at this [getting started guide](https://github.com/cesarvr/Openshift).
+Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some *buzz word*, I'll invite you to take a look at this [getting started guide](https://github.com/cesarvr/Openshift).
 
 ## Pod
 
-We finished with the development for now, let's test deploy our creation in Kubernetes/OpenShift. If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using a template that looks similar to this:
+Let's test deploy our creation in Kubernetes/OpenShift. If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using a template that looks similar to this:
 
 ```xml
 apiversion: v1
@@ -607,8 +617,6 @@ spec:
 ```
 
 We are going to replace the *proxy* container with our service running our application, but first let setup the traffic for this application.
-
-
 
 ## Exposing Server Ports
 
@@ -763,5 +771,10 @@ oc delete pod my-pod
 # Create
 oc create -f pod.yml
 ```
+
 And here is our decorated container.
+
+
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/decorating%20a%20service.gif)
+
+As you see we are executing a different application from the one we tested here.
