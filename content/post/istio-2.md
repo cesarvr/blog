@@ -11,21 +11,27 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-[In the last post](https://cesarvr.io/post/istio/) we learn how the pod simulates a logical host (AKA machine), how we can create pod composed of multiple containers, and how we they can co-operated together.
+[In the last post](https://cesarvr.io/post/istio/) we learn how the pod simulates a logical host (which is something similar to the boundaries created by Linux in a machine) and how we can create pods composed of multiple containers. We are going to use this knowledge to create processes that handle tasks on behalf of other processes.
 
-In this post we are going to create a special type of Proxy with its own domain of expertise, and we are going to share this knowledge with any service in the cluster as long as it support the HTTP protocol.
+If we look this from the perspective of OOP, we are going to create an object (container) that decorates the behaviour of other objects (containers), without modifying their intrinsic nature.
 
-Let's start by defining features we want to share with other service:  
+<!--more-->
 
-- How many time a HTTP resource is being requested.
-- Handle 404 Page.
+This are the features we want to decorate our service with:  
+
+- We want to know monitor the traffic.
+- We want to configure a unique HTTP-404 page.
 - How fast is this resource being served.
 
-# Writing Some Code
+# Writing Our Proxy
+
+## Design
+
+
 
 ## Server
 
-To write our "Proxy" using JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
+To write our "Proxy" we are going to use JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
 
 ```js
 var net = require('net')
@@ -48,7 +54,7 @@ node sitio.js
 
 Calling in our browser will give us this response:
 
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/empty-response.png?raw=true)
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/empty-response.png?raw=true =250x50)
 
 
 ## Input/Output
