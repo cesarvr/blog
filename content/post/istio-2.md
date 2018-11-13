@@ -27,39 +27,52 @@ This are the features we want to decorate our service with:
 
 ## Design
 
+As we mentioned in the last post, a typical Kubernetes/OpenShift application is done by deploy one container inside one pod, the we expose a port and route traffic the pod.
 
+![classic](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/classic.png)
+
+What we are going to do is to introduce a new container to the pod.
+
+![ambassador](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/ambassador.png?raw=true)
+
+This container will take control of the incoming traffic to the pod, perform some tasks and delegate to the service. Also it will make sure that responses from the service are delivered to the initiator of the request. This is pattern is called ["ambassador pattern"](https://storage.googleapis.com/pub-tools-public-publication-data/pdf/45406.pdf).
 
 ## Server
 
-To write our "Proxy" we are going to use JavaScript/Node.js, we can start by creating a TCP server using a raw [Posix/Socket](http://man7.org/linux/man-pages/man2/socket.2.html).
+Enough with the introductions and let's write some code, we are going to write our "ambassador" container in JavaScript/Node.js. I admit it can be difficult to understand because of they way I/O is handle is a bit counter intuitive, but I will make my best effort to make it look like Java.   
+
+A good start for this will be to create a [TCP server](http://man7.org/linux/man-pages/man2/socket.2.html):
 
 ```js
 var net = require('net')
 
 console.log('Listening for request in 8080')
 net.createServer( function (socket) {
+
   console.log('new connection!')
   socket.end()
+
 }).listen(8080)
 ```
 
-Here we require the [net](https://nodejs.org/api/net.html) library which has the socket API, then we create a new TCP server listening in port 8080 for incoming request. When a new client connects to our server we just do nothing and close the port.
+Here we require the [net](https://nodejs.org/api/net.html) library which has the network API, then we create a new TCP server listening in port 8080 for incoming request. When a new client connects to our server we just do nothing and close the port.
 
 We are going to name this file as ```sitio.js``` and run it:
 
 ```sh
-node sitio.js
-# Listening for request in 8080
+  node sitio.js
+  # Listening for request in 8080
 ```
 
-Calling in our browser will give us this response:
+Making a call from our browser will give us this response:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/empty-response.png?raw=true =250x50)
 
-
 ## Input/Output
 
-When a new client (like a browser) connects to our server, this function generates a new socket. To make things easy to understand we are going to handle this socket, in a function.
+The function ``net.createServer`` takes care of any new connection and it give us a representation of the client in the form of a socket.
+
+To make things easy to understand we are going to handle this socket, in a new function.
 
 ```js
 var net = require('net')
@@ -76,7 +89,7 @@ net.createServer( function (socket) {
 }).listen(8080)
 ```
 
-We need to write some code to handle the input/output of data through that socket, so let's handle those behaviours in a class.
+To manage this particular socket we are going to create a new class.
 
 
 ```js
@@ -120,8 +133,9 @@ We just write a *send* method that will take an array and will feed the socket o
 
 We need to make other objects aware of the data coming to the socket, but at the same time we want to keep this object from knowing to much. So, we are going to share this information by emitting events.
 
-
 ```js
+let Events = require('Events')
+
 class IncomingTraffic extends Events {
   constructor({socket}) {
     super()
@@ -137,10 +151,9 @@ class IncomingTraffic extends Events {
 }
 ```
 
-
 ## Custom 404
 
-After all this code we are still in the same place, but no worries, we are going to demonstrate the use of *IncomingTraffic* class to create our HTTP 404 response. We are going to show this page when the resource we are looking for doesn't exist.
+To demonstrate the use of *IncomingTraffic* class. Let's create our HTTP 404 response.
 
 First let's define our 404 page:
 
@@ -158,18 +171,9 @@ Connection: close
 </body>`
 ```
 
-For simplicity here we are using a constant and we using JavaScript [string interpolation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) to add some info.
+Our HTTP 404 page is just a [interpolated string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) constant.
 
-
-To implement our 404 web page, we need to implement our class to handle the input/output flow.
-
-```js
-  function handle(socket) {
-    let traffic = new IncomingTraffic({socket})
-  }
-```
-
-We subscribe to the ``traffic:new`` event.  
+We instantiate and subscribe to the class we created above.  
 
 ```js
   function handle(socket) {
@@ -178,7 +182,7 @@ We subscribe to the ``traffic:new`` event.
   }
 ```
 
-Here we are saying, if we got some incoming request just send back the 404 page.
+When a connection gets open we send our 404 page.
 
 ![HTTP 404](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/404.png)
 
