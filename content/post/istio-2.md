@@ -96,7 +96,6 @@ To manage this particular socket we are going to create a new class.
 class IncomingTraffic {
   constructor({socket}) {
     this.socket = socket
-
   }
 }
 ```
