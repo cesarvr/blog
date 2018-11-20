@@ -411,7 +411,9 @@ spec:
     command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
 ```
 
-This pod deploys a container with a python runtime, then it runs a python web server very similar to the one we have been using so far. 
+This pod deploys a container with a python runtime, then it runs a python web server very similar to the one we have been using so far.
+
+![my-pod](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/deploy-1.png)
 
 ## Exposing Server Ports
 
@@ -574,10 +576,18 @@ We don't necessary need to delete the services or routes, but in our case recrea
 
 As you see we are executing a different application from the one we tested here.
 
+
+### Decorating Java Micro-services
+
+Here is a quick video showing how to by using this steps we can enhance a Java micro-service, with newly developed telemetry and with an enterprise grade 404 page.  
+
+![](https://raw.githubusercontent.com/cesarvr/ambassador/master/assets/final.gif)
+
+
 ## Wrapping Up
 
-Of course our container is light years away to catch with the *Istio*, but after reading you should be able to create you own reusable containers. Some good ideas to apply this is security, let say you have Keycloak and you want all your services to support it, do you prefer to write a module for all your services or you prefer to write a modular and reusable container that apply those rules transparently, I'll sure prefer the later option.
+Of course our container is (still) light years away to catch up with *Istio*, but after reading you should be able to develop and reuse application using the patterns like the ambassador, side-car, etc. To improve legacy or current services without touching the code.
 
-In the next post we are going to implement a simple dashboard to get some information also, I thinking to add some remote control capabilities, like remotely shutting down a endpoint or maybe demoing some circuit breaker pattern.
+In the next post I'm going to implement a central point to control all our the containers, so we can implement some cool ideas, like shutting down an endpoint by just sending a signal from a dashboard.
 
-Also feel free to contribute to the ```node-ambassador``` API, features and improvement are much welcome.  
+Feel free to contribute to the ```node-ambassador``` API, features and improvement are much welcome.
