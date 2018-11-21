@@ -19,7 +19,9 @@ This behaviours are encapsulated in a container running within the [pod](https:/
 
 ## How Does It Work ? 
 
-Why I did there was to create a pod with two containers, one the Java application which is running in isolation and the second container running a Node.js applications which act as the "ambassador" of the Java server. 
+What I did there was to create a pod with two containers, one running the Java application and the second container running a Node.js applications which act as the "ambassador" of the Java server. 
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/design.png)
 
 
 ## What Language
