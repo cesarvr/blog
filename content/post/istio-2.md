@@ -11,8 +11,11 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/java-intro.gif)
 
+What you see here is the deployment of a typical [Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift but with a slightly different behaviour, as you can observe this application shows some telemetry information and also shows an enterprise grade 404 HTML page, the catch here is that none of this are defined in the source code of this application.
 
+This behaviours are defined in a container running within the [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) of that service, this type of container is implemented using the ["Ambassador pattern"](https://ai.google/research/pubs/pub45406). The purpose of this article is to create an application capable of providing those behaviours to any application and by learning how to do this you can create your own service meshes or a least understand how they work.
 
 ## What Language
 
