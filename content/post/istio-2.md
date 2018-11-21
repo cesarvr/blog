@@ -12,17 +12,22 @@ image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.p
 ---
 
 
+
+
+## What Language
+
 We are going to write our "ambassador container" in Javascript using Node.JS framework, aside from this, you just need an [instance of OpenShift](https://github.com/cesarvr/Openshift#openshiftio) and your favourite editor.
 
 ## Making A Tunnel
 
-Let's start by writing a simple proxy application that just takes incoming traffic and pass it to another service. To make things easier I wrote a API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) to avoid cluttering this post with implementation details and keep the focus in the functionalities.
+Let's start by writing a simple proxy application that just takes incoming traffic and pass it to another service. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) to avoid cluttering this post with implementation details and keep the focus in the functionalities.
 
 To get the library we can use [npm](https://www.npmjs.com):
 
 ```sh
-  mkdir /folder-project
-  cd / folder-project
+  mkdir /<project-folder>
+  cd /<folder-project>
+
   npm init # creates the package.json
   npm install node-ambassador —save # install library
 ```
@@ -41,9 +46,9 @@ We should start by writing a server.
  console.log(`Listening for request in ${port}`)
 ```
 
-We instantiate the *HTTPServer* class which takes two parameter the *tcp port* where we want to listen and function (``handleConnection``) that gets call when a new client connects. We also using ``process.env`` to retrieve the port number from the environment variables, this will give us some flexibility.
+To build the server we are going to use the *HTTPServer* class which takes two parameter the *tcp port* where we want to listen and a function (``handleConnection``) that gets call when a new client connects. Also we use the ``PORT`` environment variable to setup alternative port.
 
-The ``httpConnection`` object make use of the ``server:read`` event to inform of any traffic coming our way, we just need to subscribe.
+The ``httpConnection`` object triggers the ``server:read`` event to inform of any traffic coming our way, we just need to subscribe to it.
 
 ```js
 /*...*/
@@ -53,7 +58,7 @@ function handleConnection(httpConnection) {
 /*...*/
 ```
 
-If we execute the script it will create a server, if we connect the browser to port 8080 we should get this:
+If we execute the script a server will be created and if we connect the browser to port 8080 we should get this:
 
 ```xml
 GET / HTTP/1.1
@@ -67,15 +72,15 @@ Cache-Control: max-age=0
 
 We got one part of the bridge, so now let's take care of the part that delivers the incoming data to its destination.
 
-For this we need to import the *HTTPService* class, that like the class above handles the complexity but this time from the service side (the destination).
+To do this we need to import the *HTTPService* class, that like the class above handles the complexity but this time from the service side (the destination).
 
 ```js
-let { HTTPService, HTTPServer } =  require('node-ambassador')
+  let { HTTPService, HTTPServer } =  require('node-ambassador')
 
-function handleConnection(server) {
-  let service = new HTTPService({port: process.env['PORT'] || 8087})
-  /...
-}
+  function handleConnection(httpConnection) {
+    let service = new HTTPService({port: process.env['PORT'] || 8087})
+    /...
+  }
   /...
 ```
 
@@ -92,12 +97,12 @@ But this bridge works in one direction because we need to implement the response
 The bi-directional bridge will look something like this:
 
 ```js
-function handleConnection(server) {
+function handleConnection(httpConnection) {
   let service = new Service({port: process.env['PORT'] || 8087})
 
   // Tunnel
-  server.on( 'server:read',  data => service.send(data) )
-  service.on('service:read', data => server.send(data)  )
+  httpConnection.on( 'server:read',  data => service.send(data) )
+  service.on('service:read', data => httpConnection.send(data)  )
 }
 ```
 
@@ -129,6 +134,8 @@ And we should get our proxy running.
 
 ## More Than Just Proxy
 
+At this stage we just got a simple proxy server, now we are going to build some functionalities on top of this proxy so other services implement it.
+
 ### Overriding Responses
 
 Let's write some code to override the default web server 404 page of our python web server.
@@ -149,47 +156,49 @@ Connection: close
 </body>`
 ```
 
-In the typical scenario the browser or other service send us a request, we proxy it to the service and when the service respond we read the HTTP status code and if this code is 404 we replace the response with our string.
+In the typical scenario a HTTP client opens connection and send us a request, we proxy it to the service and when the service responds we need to read the HTTP status code and take an action accordingly.
 
-To check the response status code we can use the *HTTPService* class which includes events for each HTTP status code, by using this notation ``service:response:{status}`` and handle each situation with a function.
+To handle incoming traffic we are using the *HTTPService* class, but this class does more than that, if the request contains an HTTP header it triggers the event ``service:response:{HTTP_status}`` containing the status and the HTTP payload and this is exactly what we need to create specific responses.
 
 ```js
  service.on('service:response:500', response => if_friday_kill_process(response) )
  service.on('service:response:200', response => send_congratulations )
 ```
 
-We just need to subscribe to the `404` event and send the string if when this condition occurs.
+We just need to subscribe to the `404` event and send the string if when this condition occurs. Next thing we need is to send the response, doing this we need to use the *HTTPServer* method [HTTPServer.respond](https://www.npmjs.com/package/node-ambassador#httpconnection), by using this method we cut the proxied response to send ours.
 
 ```js
 const HTTP404 = `...`
 
-function handleConnection(server) {
+function handleConnection(httpConnection) {
   //...
-  service.on('service:response:404', response => server.respond([HTTP404]) )
+  service.on('service:response:404', response => httpConnection.respond([HTTP404]) )
   //...
 }
 ```
+
+Now we got a proxy, but if for some reason the browser ask for a non-existing resource we override the response with our solid enterprise grade response.
 
 ![proxy-v2](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v2.gif?raw=true)
 
+### Network Profiling
 
-### Profiling
+This is a very useful use case for the Ambassador pattern, as proved by the arrival of "services meshes" everywhere. I personally don't like to write time sampling algorithms inside my business classes, with containers and Kubernetes this type of behaviour can even be isolated in its own container as we are going to observe.
 
-This is a very useful use case for the Ambassador pattern, as proved by the arrival of "services meshes" everywhere. Profiling is the typical problem I don't want my business classes to know nothing about, for that reason it makes a perfect candidate to live in its own isolated container. We are going to write a very simple service network profiler.
+The strategy we are going to take to make our network profiler, is to take advantage of our man in the middle situation to analyse the traffic passing through our proxy.
 
 #### Tracking Endpoints
 
-To make our profiler we first need to know what is the resource the browser or client is trying to access, to get this information we are going to subscribe to the *HTTPSocketServer* event called ``server:http:headers``. When this method get triggered we are going to get a object with some HTTP header information.
+To make our profiler we first need to know what URL resource the client is trying to access, to get this information we are can subscribe to an event provided by the *HTTPServer* class called *[server:http:headers](https://www.npmjs.com/package/node-ambassador#events-1)*, this event gets trigger any time a HTTP header is detected, giving us the following header object:
 
 ```js
 {
-  method,   //HTTP Method   -> GET
-  endpoint  //HTTP Resource -> /home
+  HTTPMethod,   //HTTP Method   -> GET
+  HTTPResource  //HTTP Resource -> /home
 }
-
 ```
 
-We are going to create a class called *Stats*, with the method ``readRequest`` to read the request information.
+We are going to create a class called *Stats*, with the method ``readRequest`` to read and persist the state of the HTTP request header.
 
 ```js
 class Stats  {
@@ -207,22 +216,23 @@ class Stats  {
 }
 ```
 
-Next step is to hook instantiate the class and hook the method to the event listener.
+We subscribe this method to the *[server:http:headers](https://www.npmjs.com/package/node-ambassador#events-1)* event also to persist the state we are going to initialise our new *Stat* object outside of the scope of the function. We are returning an instance of the same class this is just to allow us to chain methods.
 
 ```js
+// bounded to the application life cycle.
 let stats = new Stats()
+
 
 function handleConnection(server) {
   /*...*/
   let service = new HTTPService({port: tport })
 
   server.on('server:http:headers',   
-                          (header, data) => stats.readRequest(header)
-                                                   .start_profile() )
+                          (header, data) => stats.readRequest(header) )
   /*...*/
 }
 ```
-To persist the state we are going to initialise our new *Stat* object outside of the scope of the function.
+
 
 #### Timing
 
@@ -267,12 +277,12 @@ function handleConnection(server) {
 }
 ```
 
-As you might notice in the return type of the methods is an instance of the class, this is handy so we can chain the calls and minimize the event subscription.
+As you might notice in the return type of the methods is an instance of the class, this is handy so we can chain the calls and minimise the clutter.
 
 
 ### In-Memory DataBase and Calculations
 
-To make our *Stat* class useful we are going to keep a registry of the service usage, to persist this data we are going to create a "sophisticated" in-memory database.
+To make our *Stat* class useful we are going to keep a registry of the service usage, to persist this data we are going to create a "sophisticated" in-memory database by using this Javascript object to collect the data.
 
 ```js
 class Stats {
@@ -282,7 +292,7 @@ class Stats {
 }
 ```
 
-We are going to make use of a JS object (which is equivalent to a hash-map or dictionary). Now let's take care of the calculations, for this we are going to expose a new method called ``new_entry``, when this method gets called we save the state of the object.
+Now let's take care of the calculations, for this we are going to expose a new method called ``new_entry``, when this method gets called we perform some calculations and save the state of the object. This calculations include time average, hit count, historic calls, etc.
 
 
 ```js
@@ -320,7 +330,8 @@ class Stats  {
   /*..*/
 }
 ```
-This method can become its own class, but to keep it simple and short here we handle some boring calculations to make our profiler competitive in the *"service mesh"* market.
+
+Next we are going to call this method just after the service has responded, this way we get information from all the circuit.
 
 ```js
 function handleConnection(server) {
@@ -353,7 +364,7 @@ function handleConnection(server) {
 }
 ```  
 
-After we run our service we start our report:
+After we run our proxy we try to call some URL and after 5 seconds we start getting the usage data:
 
 ```json
 {
@@ -383,6 +394,8 @@ After we run our service we start our report:
 	}
 }
 ```
+
+We are getting this information by proxy the information to a local Python server, the next step is to pack this process into a container and the perform the same functionalities 404 included with any other service running in our same logical host (IP address or pod).
 
 ## Deploying
 
