@@ -13,9 +13,14 @@ image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.p
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/java-intro.gif)
 
-What you see here is the deployment of a typical [Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift but with a slightly different behaviour, as you can observe this application shows some telemetry information and also shows an enterprise grade 404 HTML page, the catch here is that none of this are defined in the source code of this application.
+What you see here is the deployment of the typical [Hello World Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift and as you might observe this application seems to implement some mechanism to profile network transactions and also implements an *elegant 404 page*, but none of this functionalities are defined in the Java code; ironically this two behaviours are defined by a Node.JS service operating in the same host. 
 
-This behaviours are defined in a container running within the [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) of that service, this type of container is implemented using the ["Ambassador pattern"](https://ai.google/research/pubs/pub45406). The purpose of this article is to create an application capable of providing those behaviours to any application and by learning how to do this you can create your own service meshes or a least understand how they work.
+This behaviours are encapsulated in a container running within the [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) of that service, this type of container is implemented using the ["Ambassador pattern"](https://ai.google/research/pubs/pub45406) which we are going to learn to implement ourselves in this post.
+
+## How Does It Work ? 
+
+Why I did there was to create a pod with two containers, one the Java application which is running in isolation and the second container running a Node.js applications which act as the "ambassador" of the Java server. 
+
 
 ## What Language
 
@@ -404,7 +409,7 @@ We are getting this information by proxy the information to a local Python serve
 
 ### Before We Start
 
-Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some *buzz words* you can get up to speed by looking at this [getting started guide](https://github.com/cesarvr/Openshift).
+Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some *buzz words* you can get up to speed by looking at this [getting started guide](https://github.com/cesarvr/Openshift) or if you want to understand how the pod allows containers to communicate you can check the [first part](https://cesarvr.io/post/istio/) of this series.
 
 ### Running A Service
 
