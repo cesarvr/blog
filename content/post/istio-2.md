@@ -13,24 +13,24 @@ image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.p
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/java-intro.gif)
 
-What you see here is the deployment of the typical [Hello World Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift and as you might observe this application seems to implement some mechanism to profile network transactions and also implements an *elegant 404 page*, but none of this functionalities are defined in the Java code; ironically this two behaviours are defined by a Node.JS service operating in the same host. 
+What you see here is the deployment of the [Hello World Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift and as you might see this application implements a mechanism to profile network transactions (right side) and also implements an *elegant 404 page*, and the interesting is, that none of this features are defined in the code, ironically this two behaviours are defined in a Node.JS process. 
 
-This behaviours are encapsulated in a container running within the [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) of that service, this type of container is implemented using the ["Ambassador pattern"](https://ai.google/research/pubs/pub45406) which we are going to learn to implement ourselves in this post.
+This process is running (in its own container) from within the same [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) that the Java application is running, this container setup is better known as ["Ambassador pattern"](https://ai.google/research/pubs/pub45406).
 
 ## How Does It Work ? 
 
-What I did there was to create a pod with two containers, one running the Java application and the second container running a Node.js applications which act as the "ambassador" of the Java server. 
+An application running using this pattern thinks is running as usual but the call it makes and receive are modified or enhanced by a container acting as a middleware. This type has some interesting usage, as you can see from the picture above. 
 
-![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/design.png)
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/design.svg?sanitize=true)
 
 
-## What Language
+## Before We Start 
 
 We are going to write our "ambassador container" in Javascript using Node.JS framework, aside from this, you just need an [instance of OpenShift](https://github.com/cesarvr/Openshift#openshiftio) and your favourite editor.
 
 ## Making A Tunnel
 
-Let's start by writing a simple proxy application that just takes incoming traffic and pass it to another service. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) to avoid cluttering this post with implementation details and keep the focus in the functionalities.
+Let's start by writing a simple proxy application that just takes incoming traffic and pass it to another service. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) to avoid cluttering this post with implementation details and keep the focus in interesting stuff.
 
 To get the library we can use [npm](https://www.npmjs.com):
 
@@ -44,7 +44,7 @@ To get the library we can use [npm](https://www.npmjs.com):
 
 ### Incoming Request
 
-We should start by writing a server.
+We should start by writing a simple HTTP server.
 
 ```js
  let { HTTPServer } =  require('node-ambassador')
@@ -63,7 +63,8 @@ The ``httpConnection`` object triggers the ``server:read`` event to inform of an
 ```js
 /*...*/
 function handleConnection(httpConnection) {
-  httpConnection.on('server:read', incomingData => console.log(incomingData))
+  httpConnection.on('server:read', data => 
+                                      console.log(data))
 }
 /*...*/
 ```
@@ -99,10 +100,10 @@ We just need to provide the port where the service we want to target is running.
 To send some data to the connected service we are going to use the ``send`` method, if we connect this method to the server's ``server:traffic`` event we got our bridge from **the client** to **the service**.
 
 ```js
-  server.on('server:traffic', incomingData => service.send(incomingData))
+  server.on('server:traffic', data => service.send(data))
 ```
 
-But this bridge works in one direction because we need to implement the response from **the service** to  **the client**. To do this we can take advantage that *HTTPService* includes event called ``service:read`` so we can know when a TCP response is delivered.
+But this bridge works from **the client** to **the service** now we need to implement the response from **the service** to  **the client**. To do this we can take advantage that *HTTPService* includes an event called ``service:read`` so we can detect when **the service** is sending us a response.
 
 The bi-directional bridge will look something like this:
 
@@ -118,9 +119,9 @@ function handleConnection(httpConnection) {
 
 ### Testing
 
-To test our proxy we just need to run a process in the same IP that understand the HTTP protocol, to make it simple we are going to use Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html).
+To test our proxy we just need to run a process in the same IP that understand the HTTP protocol, to make it simple we are going to use Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html) as our test suite.
 
-To serve a folder and assuming we have python installed we can run the following command:
+To serve a folder and assuming we have python installed, we just run the following command:
 
 ```sh
   python -m SimpleHTTPServer 8087
