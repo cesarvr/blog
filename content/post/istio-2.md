@@ -28,9 +28,9 @@ This is what you call an ["Ambassador pattern"](https://ai.google/research/pubs/
 
 To write our "ambassador" process we are going to use Javascript/Node.JS, which give us a very high level language. If you want to follow the instructions you will need to setup an [OpenShift instance](https://github.com/cesarvr/Openshift#openshiftio) and your favorite text editor.
 
-## Simple Proxy 
+# Writing A Proxy Server 
 
-Let's start by writing a proxy, a program that takes incoming traffic and send it to another process. To make things easier I wrote this API called [node-ambassador](https://www.npmjs.com/package/node-ambassador).
+Let's start by writing a proxy server, which takes incoming TCP traffic and send it to another process. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador).
 
 You can get the library with [npm](https://www.npmjs.com):
 
@@ -42,36 +42,58 @@ You can get the library with [npm](https://www.npmjs.com):
   npm install node-ambassador --save # install library
 ```
 
-### Incoming Request
+## Incoming Request
 
-Let's use this library to start a TCP server capable of understanding HTTP.
+Let's use this library to develop a HTTP server.
+
+### Configuration   
+
+To start a server we just need to instantiate the *HTTPServer* class and setup a **tcp port** 8080. 
 
 ```js
  let { HTTPServer } =  require('node-ambassador')
  let port = process.env['PORT'] || 8080
 
- function handleConnection(httpConnection) { }
-
- new HTTPServer({ port, handler: handleConnection )})
+ new HTTPServer({ port, handler: () => {} )})
  console.log(`Listening for request in ${port}`)
 ```
 
-We start by instantiating the *HTTPServer* class which takes two parameter the *tcp port* where we want to listen and a function (``handleConnection``) that gets call when a new client connects. Also we use the ``PORT`` environment variable to setup alternative port.
+The ``process.env`` read the value TCP port value from environment variables.
 
-The ``httpConnection`` object triggers events (like any input operation in Node.js), this event is called ``server:read`` and it gets triggered when there is new data coming our way.
+
+### Handling New Connections
+
+The *HTTPServer* constructor expects a function to handle any new connection.
 
 ```js
 /*...*/
 function handleConnection(httpConnection) {
-  httpConnection.on('server:read', data => 
-                                      console.log(data))
+}
+
+new HTTPServer({ port, handler: handleConnection )})
+/*...*/
+```
+
+This function receive as parameter a ``httpConnection`` object, this object takes care of the I/O from the client side. 
+
+### Reading Incoming Traffic
+
+To handle data coming our way we need to subscribe to the ``read`` event: 
+
+
+```js
+/*...*/
+function handleConnection(httpConnection) {
+  httpConnection.on('read', (data) => console.log(data))
 }
 /*...*/
 ```
 
-If we execute the script a server will be created and if we connect the browser to port 8080 we should get this:
+If we execute the script we should see something like this when we connect with the browser:
 
 ```xml
+Listening for request in 8080
+
 GET / HTTP/1.1
 Host: localhost:8080
 Connection: keep-alive
@@ -79,11 +101,13 @@ Cache-Control: max-age=0
 ....
 ```
 
-### Sending The Request
+## Proxy The Request
 
 Let's take care of the part that delivers the incoming data to its destination.
 
-We can start by importing the *HTTPService* class, this class is uses a similar interface to the one above but it takes care of connecting to any process running in the same IP address by TCP port, as mentioned in [the first post](http://cesarvr.github.io/post/prometheus/) we can take advantage of fact that the Kubernetes **pod** provides a common address for all containers.
+### More Configuration   
+
+We can start by importing the *HTTPService* class and configuring the target port. 
 
 ```js
   let { HTTPService, HTTPServer } =  require('node-ambassador')
@@ -95,29 +119,35 @@ We can start by importing the *HTTPService* class, this class is uses a similar 
   /...
 ```
 
-We arbitrarily choose the **8087 TCP port**. 
+This follow the same configuration as the *HTTPServer*, but targeting now a running service.
 
-To send some data to the connected service we are going to use the ``send`` method, and if we connect this method to the server's ``server:traffic`` event we can basically connect the output of the event to the input of the method.
 
-```js
-  server.on('server:traffic', data => service.send(data))
-```
+### From Client To Service   
 
-At the moment we got communication flowing from **the client** to **the service** now we need to implement the response from **the service** to  **the client**. To do this the *HTTPService* includes an event called ``service:read`` so we can detect when **the service** emit a HTTP response.
+To send some data to the connected service we are going to use the ``send`` method. 
 
 ```js
-  service.on('service:read', data => httpConnection.send(data)  )
+  service.send(data)
 ```
 
-This 3 lines makes the proxy for us:
+We connect this method to the server's ``read`` event and we are done.
+
+```js
+  server.on('read', data => service.send(data))
+```
+
+### From Service To Client 
+
+Both classes *HTTPServer* and *HTTPService* share the same interfaces for I/O, to reverse the communication flow we just need to write the reverse operation.
+
 
 ```js
 function handleConnection(httpConnection) {
   let service = new Service({port: process.env['PORT'] || 8087})
 
   // Tunnel
-  httpConnection.on( 'server:read',  data => service.send(data) )
-  service.on('service:read', data => httpConnection.send(data)  )
+  httpConnection.on( 'read',  data => service.send(data) )
+  service.on('read', data => httpConnection.send(data)  )
 }
 ```
 
@@ -640,7 +670,11 @@ Your second option is to go to the template we used before and replace the ``bus
     image: 172.30.1.1:5000/home/decorator # replace busybox, with the URL returned by oc get is.
 ```
 
-Also we are interested in demonstrating that we can add our ambassador container without causing any problem to the main container. To keep its integrity we are going to leave the same port for the server and move the exposed port 8080. 
+Also we are interested in demonstrating that we can add our ambassador container without causing any problem to the main container. At the moment we got something that looks like this: 
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/before.svg?sanitize=true) 
+
+We added the ambassador container, now the next thing we need is to change the pod's exposed port so it reflect the ambassador container 8080.
 
 ```xml
 apiversion: v1
@@ -654,10 +688,16 @@ spec:
  - name: web
    image: 172.30.1.1:5000/home/web
    command: ['sh', '-c', 'cd static && python -m http.server 8087']
+   # move the port from here
  - name: proxy
-   port: 8080
+   port: 8080    # to here, and change 8087 to 8080.
    image: 172.30.1.1:5000/home/decorator
 ```
+
+The Node.js process will take care of finding the Python port once it gets deployed giving us this result.
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/after.svg?sanitize=true)
+
 
 We delete the route, services and pods:
 
@@ -665,9 +705,14 @@ We delete the route, services and pods:
 # Delete services and route
 oc delete svc my-pod
 oc delete route my-pod
-
-# Delete
 oc delete pod my-pod
+
+```
+
+We recreate it again: 
+
+
+```sh 
 
 # Recreate
 oc create -f pod.yml
@@ -675,24 +720,25 @@ oc create service loadbalancer my-pod --tcp=8080:8080
 oc expose svc my-pod
 ```
 
-We don't necessary need to delete the services or routes, but in our case recreate this objects is easier than edit this object.
+We don't necessary need to delete the services or routes, but as mentioned before this way I think is more clear.
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/decorating%20a%20service.gif)
 
-As you see we are executing a different application from the one we tested here.
+
+> You just need to create robot that does this add/remove automatically.
 
 
 ### Decorating Java Micro-services
 
-Here is a quick video showing how to by using this steps we can enhance a Java micro-service, with newly developed telemetry and with an enterprise grade 404 page.  
+Here is a quick video showing ambassador container with a Java micro-service.  
 
 ![](https://raw.githubusercontent.com/cesarvr/ambassador/master/assets/final.gif)
 
 
 ## Wrapping Up
 
-Of course our container is (still) light years away to catch up with *Istio*, but after reading you should be able to develop and reuse application using the patterns like the ambassador, side-car, etc. To improve legacy or current services without touching the code.
+If you think about it this what we just did was encapsulating behaviour in a container and make it reusable across a system of processes that communicates using a common protocol, this idea is very powerful and not that different in essence to the objects oriented paradigm we are use to. 
 
-In the next post I'm going to implement a central point to control all our the containers, so we can implement some cool ideas, like shutting down an endpoint by just sending a signal from a dashboard.
+One thing missing is to implement a central point to control all our ambassador containers, it won't be cool to have a dashboard from where to shutdown an endpoint, those are some of the ideas I'll try to incorporate in the next chapter. 
 
-Feel free to contribute to the ```node-ambassador``` API, features and improvement are much welcome.
+One last thing, feel free to contribute to the ```node-ambassador``` API, with any missing features, improvement, etc. 
