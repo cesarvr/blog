@@ -13,38 +13,38 @@ image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.p
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/java-intro.gif)
 
-What you see here is the deployment of the [Hello World Java application](https://github.com/openshift/openshift-jee-sample.git) in OpenShift and as you might see this application implements a mechanism to profile network transactions (right side) and also implements an *elegant 404 page*, and the interesting is, that none of this features are defined in the code, ironically this two behaviours are defined in a Node.JS process. 
-
-This process is running (in its own container) from within the same [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) that the Java application is running, this container setup is better known as ["Ambassador pattern"](https://ai.google/research/pubs/pub45406).
+What you see here is the deployment of the [Java "Hello World" template](https://github.com/openshift/openshift-jee-sample.git) in OpenShift which provides a welcome page, but a closer look will tell you that this application has other features like a network profiler (right section) and also implements an enterprise ready 404 page.
 
 ## How Does It Work ? 
 
-An application running using this pattern thinks is running as usual but the call it makes and receive are modified or enhanced by a container acting as a middleware. This type has some interesting usage, as you can see from the picture above. 
+The Java application running as usual, but in reality, a Node.js process is acting as a middleware performing some task on its behalf. Though two processes share the same [pod](https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/pods_and_services.html) they run in different containers.
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/design.svg?sanitize=true)
 
 
+This is what you call an ["Ambassador pattern"](https://ai.google/research/pubs/pub45406). In this post we are going to focus on how to make use of this pattern to encapsulate and share behaviour across services.
+
 ## Before We Start 
 
-We are going to write our "ambassador container" in Javascript using Node.JS framework, aside from this, you just need an [instance of OpenShift](https://github.com/cesarvr/Openshift#openshiftio) and your favourite editor.
+To write our "ambassador" process we are going to use Javascript/Node.JS, which give us a very high level language. If you want to follow the instructions you will need to setup an [OpenShift instance](https://github.com/cesarvr/Openshift#openshiftio) and your favorite text editor.
 
-## Making A Tunnel
+## Simple Proxy 
 
-Let's start by writing a simple proxy application that just takes incoming traffic and pass it to another service. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) to avoid cluttering this post with implementation details and keep the focus in interesting stuff.
+Let's start by writing a proxy, a program that takes incoming traffic and send it to another process. To make things easier I wrote this API called [node-ambassador](https://www.npmjs.com/package/node-ambassador).
 
-To get the library we can use [npm](https://www.npmjs.com):
+You can get the library with [npm](https://www.npmjs.com):
 
 ```sh
   mkdir /<project-folder>
   cd /<folder-project>
 
   npm init # creates the package.json
-  npm install node-ambassador —save # install library
+  npm install node-ambassador --save # install library
 ```
 
 ### Incoming Request
 
-We should start by writing a simple HTTP server.
+Let's use this library to start a TCP server capable of understanding HTTP.
 
 ```js
  let { HTTPServer } =  require('node-ambassador')
@@ -56,9 +56,9 @@ We should start by writing a simple HTTP server.
  console.log(`Listening for request in ${port}`)
 ```
 
-To build the server we are going to use the *HTTPServer* class which takes two parameter the *tcp port* where we want to listen and a function (``handleConnection``) that gets call when a new client connects. Also we use the ``PORT`` environment variable to setup alternative port.
+We start by instantiating the *HTTPServer* class which takes two parameter the *tcp port* where we want to listen and a function (``handleConnection``) that gets call when a new client connects. Also we use the ``PORT`` environment variable to setup alternative port.
 
-The ``httpConnection`` object triggers the ``server:read`` event to inform of any traffic coming our way, we just need to subscribe to it.
+The ``httpConnection`` object triggers events (like any input operation in Node.js), this event is called ``server:read`` and it gets triggered when there is new data coming our way.
 
 ```js
 /*...*/
@@ -79,11 +79,11 @@ Cache-Control: max-age=0
 ....
 ```
 
-### Passing The Request
+### Sending The Request
 
-We got one part of the bridge, so now let's take care of the part that delivers the incoming data to its destination.
+Let's take care of the part that delivers the incoming data to its destination.
 
-To do this we need to import the *HTTPService* class, that like the class above handles the complexity but this time from the service side (the destination).
+We can start by importing the *HTTPService* class, this class is uses a similar interface to the one above but it takes care of connecting to any process running in the same IP address by TCP port, as mentioned in [the first post](http://cesarvr.github.io/post/prometheus/) we can take advantage of fact that the Kubernetes **pod** provides a common address for all containers.
 
 ```js
   let { HTTPService, HTTPServer } =  require('node-ambassador')
@@ -95,17 +95,21 @@ To do this we need to import the *HTTPService* class, that like the class above 
   /...
 ```
 
-We just need to provide the port where the service we want to target is running.   
+We arbitrarily choose the **8087 TCP port**. 
 
-To send some data to the connected service we are going to use the ``send`` method, if we connect this method to the server's ``server:traffic`` event we got our bridge from **the client** to **the service**.
+To send some data to the connected service we are going to use the ``send`` method, and if we connect this method to the server's ``server:traffic`` event we can basically connect the output of the event to the input of the method.
 
 ```js
   server.on('server:traffic', data => service.send(data))
 ```
 
-But this bridge works from **the client** to **the service** now we need to implement the response from **the service** to  **the client**. To do this we can take advantage that *HTTPService* includes an event called ``service:read`` so we can detect when **the service** is sending us a response.
+At the moment we got communication flowing from **the client** to **the service** now we need to implement the response from **the service** to  **the client**. To do this the *HTTPService* includes an event called ``service:read`` so we can detect when **the service** emit a HTTP response.
 
-The bi-directional bridge will look something like this:
+```js
+  service.on('service:read', data => httpConnection.send(data)  )
+```
+
+This 3 lines makes the proxy for us:
 
 ```js
 function handleConnection(httpConnection) {
@@ -119,7 +123,7 @@ function handleConnection(httpConnection) {
 
 ### Testing
 
-To test our proxy we just need to run a process in the same IP that understand the HTTP protocol, to make it simple we are going to use Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html) as our test suite.
+To test our proxy we just need to run a process in the same IP capable of understanding the HTTP version 1.+) protocol, to make it simple we are going to use Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html) as our test suite.
 
 To serve a folder and assuming we have python installed, we just run the following command:
 
@@ -129,7 +133,7 @@ To serve a folder and assuming we have python installed, we just run the followi
 
 This server will use the *port 8087* to serve its contents.
 
-To execute our script we need to configure the environment variables.
+To execute our script we need to configure the environment variables, ``TARGET_PORT`` to target the Python server and ``PORT`` the TCP port we want to listen to.
 
 ```sh
 export PORT=8080
@@ -138,20 +142,19 @@ export TARGET_PORT=8087
 node app.js
 ```
 
-And we should get our proxy running.
-
-
 ![proxy-v1](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v1.gif?raw=true)
 
 ## More Than Just Proxy
 
-At this stage we just got a simple proxy server, now we are going to build some functionalities on top of this proxy so other services implement it.
+At this stage we just got a simple proxy server, now we need to build something on top of it, so other service can *inherit it*.
 
 ### Overriding Responses
 
-Let's write some code to override the default web server 404 page of our python web server.
+This can be interesting to redefine a behaviour for a service response, let's say you want to return a new kind of Base64 encoded string error message/cause so you user can copy paste in case of trouble, instead of re-writing and re-implementing this behaviour everywhere just add the algorithm to your "ambassador" container and let it override the response for all your services. 
 
-We can start by defining a new 404 page using this [constant string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
+To demonstrate this, let's create a 404 replacement page. 
+
+We can start by defining a 404 page using this [constant string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
 ```js
 const HTTP404 = `
@@ -162,21 +165,21 @@ Content-Type: text/html
 Connection: close
 
 <body>
-  <H1>Endpoint Not Found</H1>
+  <H1>Look Somewhere Else /  Not Found</H1>
   <img src="https://www.wykop.pl/cdn/c3201142/comment_E6icBQJrg2RCWMVsTm4mA3XdC9yQKIjM.gif">
 </body>`
 ```
 
-In the typical scenario a HTTP client opens connection and send us a request, we proxy it to the service and when the service responds we need to read the HTTP status code and take an action accordingly.
+To handle incoming traffic we are using the *HTTPService* class, but this class can do more than that, if the request contains an HTTP header it triggers the event ``service:response:{HTTP_status}`` containing the HTTP status code. 
 
-To handle incoming traffic we are using the *HTTPService* class, but this class does more than that, if the request contains an HTTP header it triggers the event ``service:response:{HTTP_status}`` containing the status and the HTTP payload and this is exactly what we need to create specific responses.
+Take a look at the following implementation examples: 
 
 ```js
- service.on('service:response:500', response => if_friday_kill_process(response) )
+ service.on('service:response:500', response => if_friday_restart_process(response) )
  service.on('service:response:200', response => send_congratulations )
 ```
 
-We just need to subscribe to the `404` event and send the string if when this condition occurs. Next thing we need is to send the response, doing this we need to use the *HTTPServer* method [HTTPServer.respond](https://www.npmjs.com/package/node-ambassador#httpconnection), by using this method we cut the proxied response to send ours.
+We just need to subscribe to the ``404`` event and use the [HTTPServer.respond](https://www.npmjs.com/package/node-ambassador#httpconnection) method. This method stops the **client to service** flow and override the response.
 
 ```js
 const HTTP404 = `...`
@@ -188,18 +191,14 @@ function handleConnection(httpConnection) {
 }
 ```
 
-Now we got a proxy, but if for some reason the browser ask for a non-existing resource we override the response with our solid enterprise grade response.
-
 ![proxy-v2](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v2.gif?raw=true)
 
 ### Network Profiling
 
-This is a very useful use case for the Ambassador pattern, as proved by the arrival of "services meshes" everywhere. I personally don't like to write time sampling algorithms inside my business classes, with containers and Kubernetes this type of behaviour can even be isolated in its own container as we are going to observe.
+The strategy we are going to follow to make our profiler, is to take advantage of our man in the middle situation to analyse the traffic. By reading this information we can know the latency, detect errors, report on service status, payload size, etc.  
 
-The strategy we are going to take to make our network profiler, is to take advantage of our man in the middle situation to analyse the traffic passing through our proxy.
-
-#### Tracking Endpoints
-
+#### Tracking Request
+ 
 To make our profiler we first need to know what URL resource the client is trying to access, to get this information we are can subscribe to an event provided by the *HTTPServer* class called *[server:http:headers](https://www.npmjs.com/package/node-ambassador#events-1)*, this event gets trigger any time a HTTP header is detected, giving us the following header object:
 
 ```js
@@ -209,14 +208,10 @@ To make our profiler we first need to know what URL resource the client is tryin
 }
 ```
 
-We are going to create a class called *Stats*, with the method ``readRequest`` to read and persist the state of the HTTP request header.
+We just need to create a class called *Stats*, with the method ``readRequest`` to read  the state of the HTTP request header.
 
 ```js
 class Stats  {
-
-  constructor(){
-    this.db = {}
-  }
 
   readRequest(header){
     this.method   = header.HTTPMethod
@@ -227,7 +222,19 @@ class Stats  {
 }
 ```
 
-We subscribe this method to the *[server:http:headers](https://www.npmjs.com/package/node-ambassador#events-1)* event also to persist the state we are going to initialise our new *Stat* object outside of the scope of the function. We are returning an instance of the same class this is just to allow us to chain methods.
+We subscribe this method to the *[server:http:headers](https://www.npmjs.com/package/node-ambassador#events-1)* event. 
+
+```js
+
+function handleConnection(server) {
+  /*...*/
+  server.on('server:http:headers',   
+                          (header, data) => stats.readRequest(header) )
+  /*...*/
+}
+```
+
+And to persist the state we are going to initialise our new *Stat* object outside of the scope of the function. 
 
 ```js
 // bounded to the application life cycle.
@@ -244,10 +251,50 @@ function handleConnection(server) {
 }
 ```
 
+This should be enough to register any HTTP request. 
+
+#### Tracking Responses 
+
+Another thing of interest is what response we got from the service, we can track this value first by creating a method. 
+
+```js
+class Stats  {
+  readResponse(response) {
+    this.response = response 
+    return this
+  }
+}  
+
+```
+
+We just need to plug this method to the *HTTPServer* ``service:http:header`` event, and saving the header object which contains the HTTP response headers. 
+
+```js
+// bounded to the application life cycle.
+let stats = new Stats()
+
+
+function handleConnection(server) {
+  /*...*/
+  server.on('server:http:headers',   
+                          (header, data) => stats.readRequest(header) )
+
+  service.on('service:http:headers', (header, data) => 
+                                            stats.readResponse(header) )
+  /*...*/
+}
+```
+
+The header object has this shape: 
+
+```js
+  {"status":"404","state":"File not found"}
+```
+
 
 #### Timing
 
-For the timing we are going to create two methods one handling the beginning of the service transaction (``start_profile``) and other taking a time sample when we got the response (``end_profile``).
+Any decent network profiler has the ability to time the request, we are going to write two methods to handle the timing, one method will handle the beginning of the service transaction (``startProfile``) and a second method taking a time sampling the end of the transaction (the service send a respond) (``endProfile``).
 
 ```xml
   latency = response_time - delivering_time
@@ -259,12 +306,12 @@ Let's implement this idea.
 class Stats  {
 
   //...
-  start_profile(){
+  startProfile(){
     this.start = new Date().getTime()
     return this
   }
 
-  end_profile() {
+  endProfile() {
     this.end =  new Date().getTime() - this.start
     return this
   }
@@ -272,7 +319,7 @@ class Stats  {
 }
 ```
 
-We save this values in the object at the moment.
+We need to subscribe to two events one is triggered when the server is handling a request. 
 
 ```js
 let stats = new Stats()
@@ -284,16 +331,55 @@ function handleConnection(server) {
                           (header, data) => stats.readrequest(header)
                                                  .start_profile() )
 
-  service.on('service:http:headers', (header, data) =>stats.end_profile() )
 }
 ```
 
-As you might notice in the return type of the methods is an instance of the class, this is handy so we can chain the calls and minimise the clutter.
+An other event for the response. 
+
+```js
+
+function handleConnection(server) {
+  /*...*/
+  server.on('server:http:headers',   
+                          (header, data) => stats
+                                            .readRequest(header)
+                                            .startProfile() )
+
+  service.on('service:http:headers', 
+                          (header, data) => stats
+                                            .readResponse(header)
+                                            .endProfile() )
+}
+/*....*/
+```
+
+> The reason we are able to chain calls in the form of ``stats.a().b()`` is because we are returning ``this`` an instance of the class, in all methods.
+
+### Tracking Resource Type
+
+Another interesting metric we can collect is if the URL we are trying to access belong to a file, this way we can create a filter to separate asset request from endpoints. 
+
+```js
+  isFile(endpoint) {
+    const file_regexp = /([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.doc|.pdf|.zip|.docx|.pdf|.gif|.png|.ico)$/ 
+
+    return endpoint.search(file_regexp) !== -1
+  }
+```
+
+The algorithm is very simple, just check if the URL have an file extension. 
+
+```xml
+/home -> false 
+
+/home.pdf -> true
+```
+ 
 
 
-### In-Memory DataBase and Calculations
+### Saving State
 
-To make our *Stat* class useful we are going to keep a registry of the service usage, to persist this data we are going to create a "sophisticated" in-memory database by using this Javascript object to collect the data.
+To make our *Stat* class useful we are going to persist its state by create a in-memory database using a JavaScript object.
 
 ```js
 class Stats {
@@ -303,8 +389,7 @@ class Stats {
 }
 ```
 
-Now let's take care of the calculations, for this we are going to expose a new method called ``new_entry``, when this method gets called we perform some calculations and save the state of the object. This calculations include time average, hit count, historic calls, etc.
-
+To save the object state in memory we are going to write the method ``save`` and to retrieve the data the method ``all``. 
 
 ```js
 class Stats  {
@@ -314,25 +399,16 @@ class Stats  {
   }
 
   new_entry(){
-    let key = this.endpoint
-    let entry = undefined
+    let URL = this.endpoint
+    this.db[URL] = this.db[URL] || {}
 
-    // if the entry doesn't exist, instantiate a new object
-    this.db[key]      =  this.db[key] || {}
-
-    entry = this.db[key] // we retrieve the object by reference.
-    entry.hit  = entry.hit || 0
-    entry.avg  = entry.avg || 0
-    entry.total = entry.total || 0
-    entry.history = entry.history || []
-
-    entry.hit += 1
-    entry.total += this.end
-    entry.history.push({time: this.end + 'ms', method:this.method, response: this.response })
-    entry.avg    =  Math.round((this.end / entry.hit) * 100) / 100 + 'ms' // truncating
+    this.db[URL] = {
+                    started: this.start,  
+                    time: this.end + 'ms', 
+                    response: this.response, 
+                    file: this.isFile(URL)
+    }
   }
-
-
 
   get all(){
     return this.db
@@ -342,24 +418,23 @@ class Stats  {
 }
 ```
 
-Next we are going to call this method just after the service has responded, this way we get information from all the circuit.
+We save the object state just after we receive the response to the TCP client.
 
 ```js
+
 function handleConnection(server) {
   /*...*/
-  server.on('server:http:headers',   
-                          (header, data) => stats.readrequest(header)
-                                                 .start_profile() )
 
-  service.on('service:http:headers', (header, data) =>
-                                                 .end_profile()
-                                                 .new_entry() )
-  /*...*/
+  service.on('service:http:headers', 
+                          (header, data) => stats
+                                            .readResponse(header)
+                                            .endProfile() 
+                                            .new() )
 }
-
+/*....*/
 ```
 
-To make this information available for us to read, let's create some kind of 5 seconds refresh to show the data collected through standard output. In the next post we are going to replace this with a dashboard.
+To make this information available, let's create a 5 seconds refresh to show the data collected through standard output. In the next post we are going to replace this with a HTTP call to a centralize server.
 
 ```js
 let stats = new Stats()
@@ -379,44 +454,47 @@ After we run our proxy we try to call some URL and after 5 seconds we start gett
 
 ```json
 {
-	"/": {
-		"hit": 3,
-		"avg": "0.33ms",
-		"total": 9,
-		"history": [{
-			"time": "5ms",
-			"method": "GET"
-		}, {
-			"time": "3ms",
-			"method": "GET"
-		}, {
-			"time": "1ms",
-			"method": "GET"
-		}]
-	},
-	"/home": {
-		"hit": 1,
-		"avg": "8ms",
-		"total": 8,
-		"history": [{
-			"time": "8ms",
-			"method": "GET"
-		}]
-	}
+    "/": {
+        "file": false,
+        "response": {
+            "state": "ok",
+            "status": "200"
+        },
+        "started": 1542964406354,
+        "time": "1ms"
+    },
+    "/as07-3-1531_21921290751_o.jpg": {
+        "file": true,
+        "response": {
+            "state": "ok",
+            "status": "200"
+        },
+        "started": 1542964403179,
+        "time": "1ms"
+    },
+    "/favicon.ico": {
+        "file": true,
+        "response": {
+            "state": "file not found",
+            "status": "404"
+        },
+        "started": 1542964406416,
+        "time": "2ms"
+    }
 }
 ```
 
-We are getting this information by proxy the information to a local Python server, the next step is to pack this process into a container and the perform the same functionalities 404 included with any other service running in our same logical host (IP address or pod).
+We are getting this information by being the middleware of a local Python server, the next step is to pack this process into its own container and share this functionalities with any application running in Kubernetes/OpenShift.
 
 ## Deploying
 
 ### Before We Start
 
-Here we are going to do some Kubernetes/OpenShift heavy stuff, if you get lost with some *buzz words* you can get up to speed by looking at this [getting started guide](https://github.com/cesarvr/Openshift) or if you want to understand how the pod allows containers to communicate you can check the [first part](https://cesarvr.io/post/istio/) of this series.
+Now we are going to take dive in some Kubernetes/OpenShift stuff, so if you get lost with some *buzz words* you can get up to speed by looking at this [getting started guide](https://github.com/cesarvr/Openshift) or if you have any doubt about some advanced pod deployment you can check the [first part](https://cesarvr.io/post/istio/) of this series.
 
 ### Running A Service
 
-Let's test deploy our creation in Kubernetes/OpenShift. If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using this simple template:
+If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using this simple template:
 
 ```xml
 apiversion: v1
@@ -455,7 +533,7 @@ spec:
   - name: web
     image: docker-registry.default.svc:5000/web-apps/web
     command: ['sh', '-c', 'cd static && python -m http.server 8087']
-    port: 8087  # here  
+    port: 8087  # <---- here  
  - name: proxy
     image: busybox
     command: ['sh', '-c', 'echo Hello World 2 && sleep 3600']
@@ -487,20 +565,20 @@ Next step is creating a route:
 oc expose svc my-pod
 ```
 
-Our service is now published.
+Our service is ready to receive external traffic.
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/pod-svc-routing.gif?raw=true)
 
 
-We should use a deployment configuration for this but our focus is in understanding of the pod entity, and doing it as simple as possible.
+> We should use a deployment configuration for this but our focus is the understanding of the Kubernetes pod.
 
-### Making Our Application "Cloud Native"
+### Making Our Application *Cloud Native*
 
-It's time for our application to be deployed in somebody else computer, there is many ways to do this but my expertise at the moment is doing it with OpenShift [binary build configuration](https://cesarvr.io/post/buildconfig/), this basically delegate the image creation to OpenShift using its Node.js builder image.
+It's time for our application to be deployed in somebody else computer, there is many ways to do this but at the moment I feel more confortable with OpenShift [build configuration](https://cesarvr.io/post/buildconfig/). This entity basically delegates the project setup and image creation to a remote machine managed by the platform.
 
 This builder configuration requires that our Node.js project includes a ``start`` entry, this way the image container can be executed with [npm start](https://docs.npmjs.com/cli/start).
 
-Open the ``package.json`` and add a **start** entry in the *scripts* section:
+Open the ``package.json`` and add a **start** entry inside the *scripts* section:
 
 ```json
 {
@@ -517,13 +595,13 @@ Open the ``package.json`` and add a **start** entry in the *scripts* section:
 }
 ```
 
-Now we can create our NodeJS build configuration:
+Now we can create our NodeJS binary build configuration:
 
 ```sh
   oc new-build nodejs --binary=true --name=decorator
 ```
 
-Now let's copy the content of our project to the build configuration.
+Build our project, this will create a immutable image.
 
 ```sh
 cd /jump-to-your-script-folder
@@ -533,10 +611,11 @@ oc start-build bc/decorator --from-dir=.
 #build "decorator-1" started
 ```
 
+
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/start-build.gif)
 
 
-Once our application is build, we just need to locate the image created for us:
+Locate the created image using the ``oc get is`` command:
 
 ```sh
 oc get is
@@ -545,7 +624,10 @@ oc get is
 #decorator   172.30.1.1:5000/home/decorator
 ```
 
-We comeback to our template and replace the busybox image we where using so far.
+
+At this moment we have to options, the first option is to apply ``oc edit pod <name-of-your-pod>`` and replace the ``buxybox`` value with the ``DOCKER REPO`` URL from above, but sometimes editing those templates can be scary task. 
+
+Your second option is to go to the template we used before and replace the ``busybox`` in the ``image`` section with ``172.30.1.1:5000/home/decorator``, then recreate the resources.  
 
 ```xml
   ...
@@ -558,8 +640,7 @@ We comeback to our template and replace the busybox image we where using so far.
     image: 172.30.1.1:5000/home/decorator # replace busybox, with the URL returned by oc get is.
 ```
 
-
-Also we need to change the port exposed by the pod to 8080, which is the port our "Proxy" container will use.
+Also we are interested in demonstrating that we can add our ambassador container without causing any problem to the main container. To keep its integrity we are going to leave the same port for the server and move the exposed port 8080. 
 
 ```xml
 apiversion: v1
