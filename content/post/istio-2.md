@@ -11,16 +11,62 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-Let's create a container capable of enhancing or adding new features to any service in our cluster, independently of the technology they are made of as long as they talk the same protocol (HTTP 1.xx).
-
+In this post we are going to create a container capable of *decorating* any service in a Kubernetes/OpenShift cluster.
 <!--more-->
 
+## But How ?
 
-# Proxy Server
+Imagine you have the following class:
 
-A good starting point for our container is that it should be able to sit in front of other processes and act as a proxy. To make things easier I wrote an API called [node-ambassador](https://www.npmjs.com/package/node-ambassador) in JavaScript.
+```js
+class Server {
+  get404 () {
+    return 'Boring 404 Page'
+  }
+}
+```
 
-Let's create a Node.JS project and fetch the library using [NPM](https://www.npmjs.com):
+Let's say we want to change the return message for the method ``get404`` but we don't want to touch that code, as we may need boring messages in the future, so you we can solve this by creating a decorator class:
+
+```js
+class ServerDecorator {
+  constructor(server) {
+    this.server = server
+  }
+  get404 () {
+    return this.server.get404().replace('Boring', 'Cool!')
+  }
+}
+```
+
+We can decorate now the *Server* object at runtime:
+
+```js
+console.log( new Server().get404() )
+console.log( new ServerDecorator(new Server()).get404() )
+
+# Boring 404 Page
+# Cool! 404 Page
+```
+
+The *Server* class is reusable in its original form and its new *mutation* is isolated in the form of a maintainable class, also as long as we have an object implementing the *protocol* ``get404()`` we can change its behaviour at runtime, which make this classes resilient to change and as we know requirement *never change*.
+
+## With Containers
+
+So all that good stuff works very well with classes, but can we make it work for containers? That's the purpose of this post, we are going to replace the words classes with images, objects with containers and methods with messages. To get back a modular and flexible approach to define functionality in a cluster.
+
+We are going to design a container that when deployed into a pod it *decorates* the running service (the main container) with new functionality at runtime, as long as this service implement our communication protocol (HTTP 1.x).
+
+
+# Writing Our Decorator
+
+![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/third.svg?sanitize=true)
+
+To make this container we need to write a process capable of handling the protocol (HTTP 1.x messages) of our target container. To make things easier (*at least for me*) we are going to write this in Node.JS.
+
+I wrote some boiler in the form of API called [node-ambassador](https://www.npmjs.com/package/node-ambassador), which takes care of the laborious details behind interprocess communication.
+
+We can start by creating a Node.JS project and install the [node-ambassador](https://www.npmjs.com/package/node-ambassador) library using [NPM](https://www.npmjs.com):
 
 ```sh
   mkdir /<project-folder>
@@ -30,7 +76,7 @@ Let's create a Node.JS project and fetch the library using [NPM](https://www.npm
   npm install node-ambassador --save #install library
 ```
 
-The boiler plate code to initialize the library:
+Here is the minimum to code to create our proxy like process:
 
 ```js
   let { Ambassador }  = require('../node-ambassador/')
@@ -43,43 +89,45 @@ The boiler plate code to initialize the library:
   console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
 ```
 
-To configure our proxy we need a ``PORT`` to listen for new request and a ``TARGET_PORT`` to send the request.
-
-We create a new *Ambassador* object and call the ``tunnel`` method which as the name implies tunnels the communication to the ``TARGET_PORT``.
+We read the TCP port information from ``PORT`` and ``TARGET_PORT`` from the environment variables, then we make a new *Ambassador* object and call the ``tunnel`` method which creates a tunnel between this two point.
 
 ### Testing
 
-To test our program we just need to run a process in the same IP address capable of understanding HTTP (version 1.+), Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html) is more that good for testing purposes.
+To test our *decorator* process we should execute a process in the same IP address capable of understanding HTTP (version 1.+). We are going to choose Python [simple server module](https://docs.python.org/2/library/simplehttpserver.html) to do this.
 
-Assuming you have Python installed, just execute this:
+Assuming you have Python installed, you just execute this:
 
 ```sh
   python -m SimpleHTTPServer 8087
 ```
 
-Also you can use [Docker](https://dzone.com/articles/docker-for-beginners):
+If you don't have Python, you can use [Docker](https://dzone.com/articles/docker-for-beginners):
 
 ```sh
 cd /<folder-you-want-serve>
 
 #copy & paste this line
 sudo docker run -it -v "$(pwd)":/app:z -p 8087:8087 --name py-server python python -m http.server 8087 --directory /app/
+```
 
+That would create for you an container serving the folder you are in, once this container is created you can save yourself of writing that long command by doing:
+
+```sh
 #stop
 docker stop py-server
 
 #start
 docker start py-server
 ```
+
 Live example:
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif)
 
-This server will use the *port 8087* to serve its contents.
 
 #### Testing Our Tunnel
 
-To execute our script we need to configure the environment variables, ``TARGET_PORT`` to target the Python server and ``PORT`` the TCP port we want to listen to.
+To execute our script we can configure the environment variables, ``TARGET_PORT`` to target the Python server and ``PORT`` the TCP port we want to listen to.
 
 ```sh
 export PORT=8080
@@ -89,17 +137,14 @@ node app.js
 ```
 
 ![proxy-v1](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v1.gif?raw=true)
+
 > In this example I just pick another image folder.
 
-## More Than Just Proxy
+## Decorating Responses
 
-Right now program is just a proxy server, let's write some features to make it more interesting.
+That Python server represents the main container, our purpose now is to change its behaviour, what we are going to do is to change that boring 404 page with something more enterprise ready and also make this change reusable with other containers.
 
-### Overriding Responses
-
-To keep things simple we are going to implement a reusable 404 web page. Any time we want to override the 404 of a particular service we just need to install and configure our container as we going to do later.
-
-To start we can define our 404 page using this [constant string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
+So go back to the code and let's define a 404 page using this [string template](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
 ```js
 const HTTP404 = `
@@ -115,57 +160,74 @@ Connection: close
 </body>`
 ```
 
-First of all we need to look at the traffic passing through our proxy, we can do that by adding a subscriber object to the ``tunnel`` method.
+All good, now the ``node-ambassador`` API provides a mechanism to detect when the target container sends an HTTP status code, this way we don't write to parse the HTTP response, so let's use it.
+
+We need to make a function first and pass this function to the ``tunnel`` method:
 
 ```js
-let subscriber = ({request, response}) => {}
+function override_404({service, server}) {}
 
 new Ambassador({port: PORT, target: TARGET})
-      .tunnel({ subscriber })
+      .tunnel({override_404})
 ```
 
-This subscriber methods provide two objects, the **request** object which controls the flow of data coming from the initiator of the request (i.e., browser) and the **response** object which allow us to manipulate the traffic generated by the service i.e., our Python web server.
-
-Let's focus in the ``subscriber`` function and monitor the service responses.
+Our ``override_404`` function will receive two object one handling the I/O of our target container called ``service``, other handling the request initiator ``server``, we can listen for events like this:  
 
 ```js
-let subscriber = ({request, response}) => {
-  response.listen((header) => {    // monitor responses
-    if(header.status === '404')  
-     console.log('do something...')
-  })
-}
+ service.on('http:${http_status}', (header, payload) => {} )
+
+ # examples
+ service.on('http:500', header => send_mail() )
+ service.on('http:500', header => log_cause({http_req}) )
 ```
-The header object returns the HTTP status header we lookup for the status field and check if its 404. If the condition is true we need need to call the ``override`` method, which suspend all the traffic and override the response.
+
+To detect a HTTP 404 we do this:
 
 ```js
-
-const HTTP404 = `...`
-
-let subscriber = ({request, response}) => {
-  response.listen((header) => {    // monitor responses
-    if(header.status === '404')  
-      response.override(HTTP404)
-  })
+function override_404({service, server}) {
+  service.on('http:404', () => console.log('404 Detected!'))
 }
 ```
 
-Now our web server is being decorated with a new  functionality:
+We respond with our replacement page:
+
+```js
+function override_404({service, server}) {
+  service.on('http:404',  () => server.respond(HTTP404))
+}
+```
+This method ``respond`` basically send the message and close the TCP Socket overriding any response. Here is the full script:
+
+```js
+let { Ambassador }  = require('../node-ambassador/')
+const TARGET = process.env['target_port'] || 8087
+const PORT   = process.env['port'] || 8080
+
+function override_404({service, server}) {
+  service.on('http:404', () => server.respond(HTTP404))
+}
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({override_404})
+
+console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
+```
 
 ![proxy-v2](https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v2.gif?raw=true)
 
+## Creating Our Container
 
-## Creating Our Ambassador Container
+We need to transform our script into a container image, OpenShift provides a mechanism called the [build configuration](https://cesarvr.io/post/buildconfig/), capable of doing this for us, but first we need to tune our project.
 
-Now we got some behaviour in the form of a 404 page, we are going to reuse this code with two services written in totally different technologies. If you get lost in some Kubernetes/OpenShift jargon just take a look at this [getting started guide](https://github.com/cesarvr/Openshift).
+> If you get lost in some Kubernetes/OpenShift jargon you can refresh your knowledge with this [getting started guide](https://github.com/cesarvr/Openshift).
 
-Our first step is to create a [build configuration](https://cesarvr.io/post/buildconfig/) capable of transforming our project into a container.
+<br>
 
 #### Project Configuration
 
-The Node.JS build configuration expects that our project to be able to run using [npm start](https://docs.npmjs.com/cli/start), so we need to enable this.
+Our project have to run using [npm start](https://docs.npmjs.com/cli/start), we can enable it by adding the proper configuration.
 
-Open the ``package.json`` and add this:
+Add this line to the ``package.json``:
 
 ```js
   "start" : "node app.js"      
@@ -196,10 +258,10 @@ This should work now:
 
 #### Build Configuration
 
-Next, we need create a new binary build:
+Next step is to create the [build configuration](https://cesarvr.io/post/buildconfig/):
 
 ```sh
-oc new-build nodejs --binary=true --name=decorator
+  oc new-build nodejs --binary=true --name=decorator
 ```
 
 Now we need to run the build and lookup for the generated image:
@@ -226,7 +288,7 @@ Our image is stored here: ``172.30.1.1:5000/hello/decorator``
 
 ### Pod
 
-If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using this simple template:
+If you remember the [first article](https://cesarvr.io/post/istio/) we build our *pod* using this template:
 
 ```xml
 apiversion: v1
@@ -296,9 +358,9 @@ By choosing the same name ``my-pod`` it will automatically look for pods with th
 
 ### Reusing our 404 Page with a Java Micro-services
 
-For this particular case, the Java application is not following the good practice of setting up the listening port using environment variables, but fortunately our container follow those rules.
+We are going to decorate a Java service, but there is a small problem, this service is not following the good practice of setting up the listening port using environment variables, but fortunately our container follow those rules.
 
-So what I did was to install the container and then configure the environment variable.
+So what I going to do is to install the container and then configure the environment variable to change the ports.
 
 ```sh
  oc set env -c decorator dc/slow-j TARGET_PORT=8080 PORT=8087
@@ -306,16 +368,18 @@ So what I did was to install the container and then configure the environment va
 
 Then modify the OpenShift Service to target the right port.
 
+```sh
+  oc create service loadbalancer java-service --tcp=8087:8087
+```
+
 ![](https://raw.githubusercontent.com/cesarvr/ambassador/master/assets/final.gif)
 
 > Here we are running a Java service, enhanced with our container.
 
-<br>
-![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/design.svg?sanitize=true)
-<br>
+#### Telemetry
 
-Those logs you see in the right section of the image is a *telemetry* mechanism I implemented as reusable feature for the whole main container, I didn't include how to do it in this post because I wanted to keep this post short, but I will include it in the next post.
+Those logs you see in the right section of the image is a networking profiler mechanism I implemented as reusable feature for the whole main container, I didn't include how to do it in this post because I wanted to keep this post short, but I will include it in the next post.
 
-By know you should be able to experiment yourself using this API (our creating your own API in any other language) and coming up with new usages like creating a robot that detect/report crashes in your services.
+By know you should be able to experiment yourself using this API (our creating your own API) and coming up with new usages like creating a robot that detect/report crashes in your services.
 
 Here is the code for the [ambassador container](https://github.com/cesarvr/ambassador) and also feel free to contribute to the [node-ambassador](https://github.com/cesarvr/node-ambassador) API in GitHub, with any missing features, improvement, etc.
