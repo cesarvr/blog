@@ -52,11 +52,11 @@ console.log( new ServerDecorator( new Server() ).get404() )
 
 #### Advantages
 
-From the point of view of the *Server* class the original functionality is untouched, the tests *presumably* should still pass and the *consumers* of this class don't require any update. Also logic of the *Decorator* belong to its own class making easy to maintain and it has the added bonus of being able to enhance any object which understand the method ``get404()``. This properties makes the code resilient to change, improve, etc.
+From the point of view of the *Server* class the original functionality is untouched, the tests *presumably* should still pass and the *consumers* of this class don't require any update. Also *decorators* logic belongs to its own class making it easy to maintain and it has the added bonus of being able to enhance any object that understand the message ``get404``. This properties give us the confidence we need to deal with a world where business requirements follows the *rules* of quantum mechanics.
 
-Can we take this flexibility to containers? That's what I wanted to talk about, we are going to design a container that when deployed into an existing pod *decorates* the running service (the main container) at runtime.
+Can we take this flexibility to containers? Of course, we are going to apply those rules and design a container that when deployed into an existing pod *decorates* a web service (or main container) at runtime.
 
-After reading this you should be able to do something equivalent to this:
+And after reading this you should be able to do something equivalent to this:
 
 ```sh
   KeycloakSupportDecorator(LegacyJavaService)
@@ -65,7 +65,7 @@ After reading this you should be able to do something equivalent to this:
 Or
 
 ```sh
-  NotifyOnCrashDecorator(MigratedJ2EE)
+  NotifyOnCrashDecorator(MigratedJ2EEService)
 ```
 
 # Writing Our Decorator Container
