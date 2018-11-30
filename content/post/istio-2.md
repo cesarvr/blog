@@ -4,7 +4,7 @@ date: 2018-11-07
 lastmod: 2018-11-07
 draft: false
 keywords: []
-description: "Creating our reusable container."
+description: "Decorating services at runtime."
 tags: [openshift, container, services, kubernetes ]
 categories: [openshift, container, services, kubernetes ]
 toc: true
