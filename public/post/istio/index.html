@@ -16,7 +16,11 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
 
-  <meta name="description" content="Let say we have a micro-service exposing some business API, and we want to gather some data about its usage pattern such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), testing and re-deploying.
+  <meta property="og:title" content="Creating Your Own Istio (Part 1)" />
+  <meta property="og:description" content="How we can add/remove features to existing micro-services just by adding/removing containers." />
+  <meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta name="description" content="Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.
 
 ">
   <meta name="author" content="">
@@ -69,33 +73,36 @@
     <h1 class="post-title">Creating Your Own Istio (Part 1)</h1>
     <p class="post-meta">2018.9.19</p>
   </header>
-  <div class="post-content"><p>Let say we have a micro-service exposing some business API, and we want to gather some data about its usage pattern such as how many time an endpoint is being called, what is latency, etc. One way to solve this require modifying the existing code base; adding the wanted behaviour in the form of a class or a set of functions (if functional is your thing), testing and re-deploying.</p>
+  <div class="post-content"><p>Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.</p>
 
 <p></p>
 
-<p>After successfully deploying this solution the question now is: <em>How can we reuse this functionality across all our micro-services ?</em> One way is to create a re-usable module, but that will require us to go through all the projects adding that specific module, which is hard work (testing, compatibility, etc.). <em>But what happen if I got services running in C++ and my solution is in Ruby?</em>  In that case, supporting multiple codebase sounds like a bad idea.</p>
+<p>One way to reuse this functionality is to create a module or library, but this bring the complexity of having to add the library manually by each service, plus the fact that this library only work for services using the same programming language.</p>
 
-<h1 id="separating-of-concerns">Separating Of Concerns</h1>
+<h2 id="service-mesh">Service Mesh</h2>
 
-<p>An elegant solution can be to separate the new functionality into it&rsquo;s own container. In a way that we can add the container to those services that need this &ldquo;Telemetry&rdquo; information. This has some advantages, one is, we don&rsquo;t care about the programming language behind the service as long as we use the same protocol, second, all further enhancements are local to that container, and third, each container is specialized in their own domain.</p>
+<p>What we are looking for is a non-intrusive way to add behaviour to a running services in Kubernetes/OpenShift. To achieve this goal we are going to take advantage of some advance deployment capabilities of this platforms, like running a service composed of multiple containers and creating containers that <a href="https://en.wikipedia.org/wiki/Decorator_pattern">decorates</a> or add some additional functionality to a running service.</p>
 
-<p><em>But how we can create such container?</em> That&rsquo;s the answer this posts will try to respond. Pretty much like <strong>Istio</strong> or <put-here-your-service-mesh>, we are going to enhance existing services. The objective is to learn how to achieve some of the functionalities provided by Istio, so in the future you can replace them with your own ideas.</p>
+<h2 id="real-world-examples">&ldquo;Real World&rdquo; Examples</h2>
 
-<h2 id="simple-use-case-scenario">Simple Use Case Scenario</h2>
+<p>This may sound like magic, but here are some examples of framework that use this techniques:</p>
 
-<p>If you need another example, imagine you want to enforce some <em>OAuth</em> across all your services, you can write a container that take care of that on behalf of your &ldquo;business&rdquo; container and you are done. <em>Do you want to change or upgrade the security protocol ?</em> Just change the code in one place and re-deploy.</p>
+<ul>
+<li><a href="https://istio.io/">Istio</a>.</li>
+<li><a href="https://linkerd.io/">Linkerd</a>.</li>
+</ul>
 
 <h1 id="before-we-start">Before We Start</h1>
 
-<p>This guide will be divide in three parts:</p>
+<p>In these post we are going to learn how to do this:</p>
 
 <ul>
-<li><strong>Part One</strong>: How to deploy applications that runs in multiple containers.<br /></li>
-<li><strong>Part Two</strong>: We are going to develop a reusable &ldquo;Telemetry&rdquo; container, to gather information about other services.<br /></li>
-<li><strong>Part Three</strong>: Write a simple dashboard. Once this &ldquo;Telemetry&rdquo; container is appended to other services, we are going to signal our dashboard with the usage information across our &ldquo;service mesh&rdquo;.<br /></li>
+<li><strong>Part One</strong>: We learn how to setup multiples containers in a single pod.<br /></li>
+<li><strong>Part Two</strong>: We are going to write a simple server to read the usage pattern of any micro-service.<br /></li>
+<li><strong>Part Three</strong>: Write a simple dashboard. Once this container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our &ldquo;service mesh&rdquo;.<br /></li>
 </ul>
 
-<p>I&rsquo;m going to use OpenShift because is the Kubernetes distro I&rsquo;m most familiar with, but this techniques should also work in Kubernetes as well.</p>
+<p>For the examples I&rsquo;m going to use OpenShift because is the Kubernetes distro I&rsquo;m most familiar with, but this techniques should also work in Kubernetes as well.</p>
 
 <p>If you want to follow this guide you can install <a href="https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md">oc-client</a> with oc-cluster-up or even better make a free account in <a href="https://manage.openshift.com">OpenShift.io</a>. If you have trouble understanding some of the concepts, you read this <a href="https://github.com/cesarvr/Openshift">OpenShift getting started guide</a>.</p>
 
@@ -103,9 +110,9 @@
 
 <p>Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a <a href="http://cesarvr.github.io/post/2018-05-22-create-containers/">isolation layer</a> similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.</p>
 
-<p>Like processes running in a &ldquo;single machine&rdquo;, contained processes can communicate between each other using some of the mechanism we can find in a Unix/Linux environment like System V semaphore, POSIX shared memory or Linux sockets. You can use this facts to achieve other type of collaboration between containers. In this article we are going to collaborate with other containers the local network through &ldquo;localhost&rdquo;.</p>
+<p>Like processes running in a &ldquo;single machine&rdquo;, contained processes running inside the pod can communicate between each other using System V semaphore, POSIX shared memory or Linux sockets through &ldquo;localhost&rdquo;.</p>
 
-<h2 id="how-it-looks">How It Looks</h2>
+<h2 id="pod-creation">Pod Creation</h2>
 
 <p>This is a quick example of what a <a href="https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444">pod</a> looks like:</p>
 
@@ -122,7 +129,7 @@ spec:
     command: ['sh', '-c', 'echo Hello World! &amp;&amp; sleep 3600']
 </code></pre>
 
-<p>This YAML template defines a pod named <em>my-pod</em>, inside we are going to deploy a container using busybox (a very small Linux distribution) base image. Then we are going display &ldquo;Hello World&rdquo; and sleep to keep the entire container alive for 3 thousand seconds.</p>
+<p>This YAML template defines a pod named <em>my-pod</em>, inside we are going to deploy a container using Busybox (a very small Linux distribution) base image. Then we are going display &ldquo;Hello World&rdquo; and sleep to keep the entire container alive for 3 thousand seconds.</p>
 
 <p>We save this in a file called pod.yml and we execute the following command:</p>
 
@@ -139,7 +146,7 @@ oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdf
 <pre><code class="language-sh">oc rsh my-pod
 </code></pre>
 
-<h1 id="how-to-add-more-containers">How To Add More Containers</h1>
+<h2 id="adding-more-containers">Adding More Containers</h2>
 
 <p>Adding a new container to existing pod is not difficult, we just need add a new entry in the template:</p>
 
@@ -182,13 +189,13 @@ oc create -f https://gist.githubusercontent.com/cesarvr/97a0139ca2dba9412254d991
 <pre><code class="language-sh">oc rsh -c second-container my-pod
 </code></pre>
 
-<h1 id="communication-between-pods">Communication Between Pods</h1>
+<h2 id="communication-between-pods">Communication Between Pods</h2>
 
-<h2 id="simple-server">Simple Server</h2>
+<h3 id="simple-server">Simple Server</h3>
 
 <p>By now we should understand all the theory behind how the pod works, so let&rsquo;s put some of it into practice and deploy a simple web server using python, first we need to build our image:</p>
 
-<pre><code class="language-sh">  oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
+<pre><code class="language-sh">oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
 </code></pre>
 
 <p>Here we are using <a href="https://cesarvr.io/post/buildconfig/">new-build</a> to create an image. We are going to provide this <a href="https://github.com/cesarvr/demos-webgl">repository</a>, where we got some simple HTTP pages.</p>
@@ -253,7 +260,7 @@ oc create -f https://gist.githubusercontent.com/cesarvr/cecaf693a17b6f09b9eb3f5d
 
 <p>The syntax goes as follows:</p>
 
-<pre><code class="language-sh">  oc exec -c &lt;container-name&gt; &lt;pod-name&gt; -- &lt;shell-command&gt;
+<pre><code class="language-sh">oc exec -c &lt;container-name&gt; &lt;pod-name&gt; -- &lt;shell-command&gt;
 </code></pre>
 
 <p>Let&rsquo;s run <a href="https://www.computerhope.com/unix/wget.htm">wget</a> Linux command to fetch the webpage in our <strong>web</strong> container:</p>
@@ -276,7 +283,7 @@ oc create -f https://gist.githubusercontent.com/cesarvr/cecaf693a17b6f09b9eb3f5d
 
 <h2 id="container-patterns">Container Patterns</h2>
 
-<p>By now we achieved our first goal, we should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod share the same network. This is very important as we are going to use this in the next article to create our “Proxy” container to collect information about the usage of the website we deployed earlier.</p>
+<p>We should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod operate similar as it they where in a single machine, this is very important as we are going to use this in the next article to create our “Telemetry” container.</p>
 
 <p>If you want to know more about the container patterns you can take a look a this <a href="https://ai.google/research/pubs/pub45406">paper</a>.</p></div>
   <footer class="post-footer">

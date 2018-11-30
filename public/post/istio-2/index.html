@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Creating Your Own Istio (Part 2) - Nube</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Decorating services at runtime." />
+  <meta name="twitter:title" content="Creating Your Own Istio (Part 2)" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta property="og:title" content="Creating Your Own Istio (Part 2)" />
+  <meta property="og:description" content="Decorating services at runtime." />
+  <meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta name="description" content="Let&rsquo;s talk about container oriented programming&hellip;
+
+">
+  <meta name="author" content="">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/atom-one-dark.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="icon" href="/img/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.48" />
+  
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="Nube">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="/">Nube</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="categories/">Categories</a>
+        </li>
+        
+        <li class="">
+          <a href="/about/">About</a>
+        </li>
+        
+        <li class="">
+          <a href="https://github.com/cesarvr">Code</a>
+        </li>
+        
+        <li class="">
+          <a href="/post/">Writing</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Creating Your Own Istio (Part 2)</h1>
+    <p class="post-meta">2018.11.7</p>
+  </header>
+  <div class="post-content"><p>Let&rsquo;s talk about container oriented programming&hellip;</p>
+
+<p></p>
+
+<h3 id="decorator-pattern-101">Decorator Pattern 101</h3>
+
+<p>Take a look at this class:</p>
+
+<pre><code class="language-js">class Server {
+  get404 () {
+    return 'Boring 404 Page'
+  }
+}
+</code></pre>
+
+<p>Let&rsquo;s say we want to change the return message for the method <code>get404</code> but we don&rsquo;t want to touch that code, because maybe we need the original boring message in the future, to solve this we decide to create a decorator class:</p>
+
+<pre><code class="language-js">class ServerDecorator {
+  constructor(server) {
+    this.server = server
+  }
+  get404 () {
+    return this.server.get404().replace('Boring', 'Cool!')
+  }
+}
+</code></pre>
+
+<p>We can decorate now the <em>Server</em> object at runtime:</p>
+
+<pre><code class="language-js">console.log( new Server().get404() )
+console.log( new ServerDecorator( new Server() ).get404() )
+
+# Boring 404 Page
+# Cool! 404 Page
+</code></pre>
+
+<h4 id="advantages">Advantages</h4>
+
+<p>From the point of view of the <em>Server</em> class the original functionality is untouched, the tests <em>presumably</em> should still pass and the <em>consumers</em> of this class don&rsquo;t require any update. Also <em>decorators</em> logic belongs to its own class making it easy to maintain and it has the added bonus of being able to enhance any object that understand the message <code>get404</code>. This properties give us the confidence we need to deal with a world where business requirements follows the <em>rules</em> of quantum mechanics.</p>
+
+<p>Can we take this flexibility to containers? Of course, we are going to apply those rules and design a container that when deployed into an existing pod <em>decorates</em> a web service (or main container) at runtime.</p>
+
+<p>And after reading this you should be able to do something equivalent to this:</p>
+
+<pre><code class="language-sh">  KeycloakSupportDecorator(LegacyJavaService)
+</code></pre>
+
+<p>Or</p>
+
+<pre><code class="language-sh">  NotifyOnCrashDecorator(MigratedJ2EEService)
+</code></pre>
+
+<h1 id="writing-our-decorator-container">Writing Our Decorator Container</h1>
+
+<p>To make this container we need to write a process capable of handling the protocol (HTTP 1.x messages) of our target container. To make things easier (<em>at least for me</em>) we are going to write this in Node.JS.</p>
+
+<p>I wrote some boiler in the form of API called <a href="https://www.npmjs.com/package/node-ambassador">node-ambassador</a>, which takes care of the laborious details behind interprocess communication.</p>
+
+<p>We can start by creating a Node.JS project and install the <a href="https://www.npmjs.com/package/node-ambassador">node-ambassador</a> library using <a href="https://www.npmjs.com">NPM</a>:</p>
+
+<pre><code class="language-sh">  mkdir /&lt;project-folder&gt;
+  cd /&lt;folder-project&gt;
+
+  npm init # creates the package.json
+  npm install node-ambassador --save #install library
+</code></pre>
+
+<p>Here is the minimum to code to create our proxy like process:</p>
+
+<pre><code class="language-js">let { Ambassador }  = require('../node-ambassador/')
+const TARGET = process.env['target_port'] || 8087
+const PORT   = process.env['port'] || 8080
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({})
+
+console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
+</code></pre>
+
+<p>We read the TCP port information from <code>PORT</code> and <code>TARGET_PORT</code> from the environment variables, then we make a new <em>Ambassador</em> object and call the <code>tunnel</code> method which creates a tunnel between this two point.</p>
+
+<h3 id="testing">Testing</h3>
+
+<p>To test our <em>decorator</em> process we should execute a process in the same IP address capable of understanding HTTP (version 1.+). We are going to choose Python <a href="https://docs.python.org/2/library/simplehttpserver.html">simple server module</a> to do this.</p>
+
+<p>Assuming you have Python installed, you just execute this:</p>
+
+<pre><code class="language-sh">  python -m SimpleHTTPServer 8087
+</code></pre>
+
+<p>If you don&rsquo;t have Python, you can use <a href="https://dzone.com/articles/docker-for-beginners">Docker</a>:</p>
+
+<pre><code class="language-sh">cd /&lt;folder-you-want-serve&gt;
+
+#copy &amp; paste this line
+sudo docker run -it -v &quot;$(pwd)&quot;:/app:z -p 8087:8087 --name py-server python python -m http.server 8087 --directory /app/
+</code></pre>
+
+<p>That would create for you an container serving the folder you are in, once this container is created you can save yourself of writing that long command by doing:</p>
+
+<pre><code class="language-sh">#stop
+docker stop py-server
+
+#start
+docker start py-server
+</code></pre>
+
+<p>Live example:</p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/python-server.gif" alt="" /></p>
+
+<h4 id="testing-our-tunnel">Testing Our Tunnel</h4>
+
+<p>To execute our script we can configure the environment variables, <code>TARGET_PORT</code> to target the Python server and <code>PORT</code> the TCP port we want to listen to.</p>
+
+<pre><code class="language-sh">export PORT=8080
+export TARGET_PORT=8087
+
+node app.js
+</code></pre>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v1.gif?raw=true" alt="proxy-v1" /></p>
+
+<blockquote>
+<p>In this example I just pick another image folder.</p>
+</blockquote>
+
+<h2 id="decorating-responses">Decorating Responses</h2>
+
+<p>That Python server represents the main container, our purpose now is to change its behaviour, what we are going to do is to change that boring 404 page with something more enterprise ready and also make this change reusable with other containers.</p>
+
+<p>So go back to the code and let&rsquo;s define a 404 page using this <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">string template</a>.</p>
+
+<pre><code class="language-js">const HTTP404 = `
+HTTP/1.0 404 File not found
+Server: Sitio 💥
+Date: ${Date()}
+Content-Type: text/html
+Connection: close
+
+&lt;body&gt;
+  &lt;H1&gt;Look Somewhere Else /  Not Found&lt;/H1&gt;
+  &lt;img src=&quot;https://www.wykop.pl/cdn/c3201142/comment_E6icBQJrg2RCWMVsTm4mA3XdC9yQKIjM.gif&quot;&gt;
+&lt;/body&gt;`
+</code></pre>
+
+<p>All good, now the <code>node-ambassador</code> API provides a mechanism to detect when the target container sends an HTTP status code, this way we don&rsquo;t write to parse the HTTP response, so let&rsquo;s use it.</p>
+
+<p>We need to make a function first and pass this function to the <code>tunnel</code> method:</p>
+
+<pre><code class="language-js">function override_404({service, server}) {}
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({override_404})
+</code></pre>
+
+<p>Our <code>override_404</code> function will receive two object one handling the I/O of our target container called <code>service</code>, other handling the request initiator <code>server</code>, we can listen for events like this:</p>
+
+<pre><code class="language-js"> service.on('http:${http_status}', (header, payload) =&gt; {} )
+
+ # examples
+ service.on('http:500', header =&gt; send_mail() )
+ service.on('http:500', header =&gt; log_cause({http_req}) )
+</code></pre>
+
+<p>To detect a HTTP 404 we do this:</p>
+
+<pre><code class="language-js">function override_404({service, server}) {
+  service.on('http:404', () =&gt; console.log('404 Detected!'))
+}
+</code></pre>
+
+<p>We respond with our replacement page:</p>
+
+<pre><code class="language-js">function override_404({service, server}) {
+  service.on('http:404',  () =&gt; server.respond(HTTP404))
+}
+</code></pre>
+
+<p>This method <code>respond</code> basically send the message and close the TCP Socket overriding any response. Here is the full script:</p>
+
+<pre><code class="language-js">let { Ambassador }  = require('../node-ambassador/')
+const TARGET = process.env['target_port'] || 8087
+const PORT   = process.env['port'] || 8080
+
+function override_404({service, server}) {
+  service.on('http:404', () =&gt; server.respond(HTTP404))
+}
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({override_404})
+
+console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
+</code></pre>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/istio-2/proxy-v2.gif?raw=true" alt="proxy-v2" /></p>
+
+<h2 id="creating-our-container">Creating Our Container</h2>
+
+<p>We need to transform our script into a container image, OpenShift provides a mechanism called the <a href="https://cesarvr.io/post/buildconfig/">build configuration</a>, capable of doing this for us, but first we need to tune our project.</p>
+
+<blockquote>
+<p>If you get lost in some Kubernetes/OpenShift jargon you can refresh your knowledge with this <a href="https://github.com/cesarvr/Openshift">getting started guide</a>.</p>
+</blockquote>
+
+<p><br></p>
+
+<h4 id="project-configuration">Project Configuration</h4>
+
+<p>Our project have to run using <a href="https://docs.npmjs.com/cli/start">npm start</a>, we can enable it by adding the proper configuration.</p>
+
+<p>Add this line to the <code>package.json</code>:</p>
+
+<pre><code class="language-js">  &quot;start&quot; : &quot;node app.js&quot;      
+</code></pre>
+
+<p>Inside the <em>scripts</em> section:</p>
+
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;sitio&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;main&quot;: &quot;app.js&quot;,
+  &quot;scripts&quot;: {
+    &quot;test&quot;: &quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot;,
+    &quot;start&quot; : &quot;node app.js&quot;      
+  },
+  &quot;author&quot;: &quot;&quot;,
+  &quot;license&quot;: &quot;ISC&quot;
+}
+</code></pre>
+
+<p>This should work now:</p>
+
+<pre><code class="language-js">  npm start
+</code></pre>
+
+<h4 id="build-configuration">Build Configuration</h4>
+
+<p>Next step is to create the <a href="https://cesarvr.io/post/buildconfig/">build configuration</a>:</p>
+
+<pre><code class="language-sh">  oc new-build nodejs --binary=true --name=decorator
+</code></pre>
+
+<p>Now we need to run the build and lookup for the generated image:</p>
+
+<pre><code class="language-sh">#cd /jump-to-your-script-folder
+
+oc start-build bc/decorator --from-dir=.
+
+#Uploading directory &quot;.&quot; as binary input for the build ...
+#build &quot;decorator-1&quot; started
+#....
+#....
+
+
+oc get is
+#NAME        DOCKER REPO                       ...
+#decorator   172.30.1.1:5000/hello/decorator   ...
+</code></pre>
+
+<p>Our image is stored here: <code>172.30.1.1:5000/hello/decorator</code></p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/start-build.gif" alt="" /></p>
+
+<h3 id="pod">Pod</h3>
+
+<p>If you remember the <a href="https://cesarvr.io/post/istio/">first article</a> we build our <em>pod</em> using this template:</p>
+
+<pre><code class="language-xml">apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+  containers:
+  - name: web
+    image: docker-registry.default.svc:5000/web-apps/web
+    command: ['sh', '-c', 'cd static &amp;&amp; python -m http.server 8087']
+  - name: proxy
+    image: busybox
+    command: ['sh', '-c', 'echo Hello World 2 &amp;&amp; sleep 3600']
+</code></pre>
+
+<p>This template deploys two containers:</p>
+
+<ul>
+<li><strong>web</strong> running a python web server</li>
+<li><strong>proxy</strong> running a dummy sleep process.</li>
+</ul>
+
+<p>We need to replace the image for the <strong>proxy</strong> (<code>busybox</code>) with the one generated by our build:</p>
+
+<pre><code class="language-xml">apiversion: v1
+kind: Pod
+metadata:
+  name: my-pod
+  labels:
+    app: my-pod
+spec:
+ containers:
+ - name: web
+   image: docker-registry.default.svc:5000/web-apps/web
+   command: ['sh', '-c', 'cd static &amp;&amp; python -m http.server 8087']
+ - name: proxy
+   port: 8080
+   image: 172.30.1.1:5000/hello/decorator
+</code></pre>
+
+<p>We removed the <code>command</code> section as its no longer necessary and added a TCP port 8080 to be expose.</p>
+
+<h3 id="exposing-our-pod">Exposing Our Pod</h3>
+
+<p>Let&rsquo;s send some traffic to our pod.</p>
+
+<pre><code class="language-sh">  oc create service loadbalancer my-pod --tcp=8080:8080
+</code></pre>
+
+<p>The <a href="https://github.com/cesarvr/Openshift#service">OpenShift Service</a> represents a load balancer that we can configure to send traffic to our application.</p>
+
+<p>By choosing the same name <code>my-pod</code> it will automatically look for pods with that name and direct traffic to them using port 8080. Last step is to create a route for this Service.</p>
+
+<pre><code class="language-sh">  oc expose svc my-pod
+</code></pre>
+
+<p><br></p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/decorating%20a%20service.gif" alt="" /></p>
+
+<blockquote>
+<p>Here we are running a Python service, enhanced with our container.</p>
+</blockquote>
+
+<h3 id="reusing-our-404-page-with-a-java-micro-services">Reusing our 404 Page with a Java Micro-services</h3>
+
+<p>We are going to decorate a Java service, but there is a small problem, this service is not following the good practice of setting up the listening port using environment variables, but fortunately our container follow those rules.</p>
+
+<p>So what I going to do is to install the container and then configure the environment variable to change the ports.</p>
+
+<pre><code class="language-sh"> oc set env -c decorator dc/slow-j TARGET_PORT=8080 PORT=8087
+</code></pre>
+
+<p>Then modify the OpenShift Service to target the right port.</p>
+
+<pre><code class="language-sh">  oc create service loadbalancer java-service --tcp=8087:8087
+</code></pre>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/ambassador/master/assets/final.gif" alt="" /></p>
+
+<blockquote>
+<p>Those logs you see in the right section of the image is a networking profiler that didn&rsquo;t make it here, because this post was getting to big, but I will include it in another post.</p>
+</blockquote>
+
+<p>This the equivalent of doing:</p>
+
+<pre><code> DecoratorJS(JavaMicroService)
+</code></pre>
+
+<h4 id="wrapping-up">Wrapping Up</h4>
+
+<p>I think for now we achieve our goal of making a minimal version of a decorator container, now we can enhance it and build more sophisticated features. Also I think this type of deployment make a good use case for A/B testing as a way to detect implementation failures and detect any performance problems in our container.</p>
+
+<p>By know you should be able to experiment yourself using the API (our creating your own API) and coming up with new usages, if short of ideas, you can start with a simple robot that detect/report crashes in your services, if you want here is the <a href="https://github.com/cesarvr/ambassador">source code</a>, also feel free to contribute to the <a href="https://github.com/cesarvr/node-ambassador">node-ambassador</a> API in GitHub, with any missing features, improvement, etc.</p></div>
+  <footer class="post-footer">
+    
+    <ul class="post-tags">
+      
+      <li><a href="/tags/openshift/">openshift</a></li>
+      
+      <li><a href="/tags/container/">container</a></li>
+      
+      <li><a href="/tags/services/">services</a></li>
+      
+      <li><a href="/tags/kubernetes/">kubernetes</a></li>
+      
+    </ul>
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2018 Nube</span>
+</footer>
+<script src="https://cdn.bootcss.com/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js" data-no-instant></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+

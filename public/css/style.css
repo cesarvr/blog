@@ -490,3 +490,5 @@ pre, code {
     display: none;
   }
 }
+
+img[alt=small] { width: 200px; }
