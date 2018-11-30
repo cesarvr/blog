@@ -11,12 +11,13 @@ toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
 
-In this post we are going to create a container capable of *decorating* any service in a Kubernetes/OpenShift cluster.
+Let's talk about container oriented programming...
+
 <!--more-->
 
-## But How ?
+### Decorator Pattern 101
 
-Imagine you have the following class:
+Take a look at this class:
 
 ```js
 class Server {
@@ -26,7 +27,7 @@ class Server {
 }
 ```
 
-Let's say we want to change the return message for the method ``get404`` but we don't want to touch that code, as we may need boring messages in the future, so you we can solve this by creating a decorator class:
+Let's say we want to change the return message for the method ``get404`` but we don't want to touch that code, because maybe we need the original boring message in the future, to solve this we decide to create a decorator class:
 
 ```js
 class ServerDecorator {
@@ -43,24 +44,32 @@ We can decorate now the *Server* object at runtime:
 
 ```js
 console.log( new Server().get404() )
-console.log( new ServerDecorator(new Server()).get404() )
+console.log( new ServerDecorator( new Server() ).get404() )
 
 # Boring 404 Page
 # Cool! 404 Page
 ```
 
-The *Server* class is reusable in its original form and its new *mutation* is isolated in the form of a maintainable class, also as long as we have an object implementing the *protocol* ``get404()`` we can change its behaviour at runtime, which make this classes resilient to change and as we know requirement *never change*.
+#### Advantages
 
-## With Containers
+From the point of view of the *Server* class the original functionality is untouched, the tests *presumably* should still pass and the *consumers* of this class don't require any update. Also logic of the *Decorator* belong to its own class making easy to maintain and it has the added bonus of being able to enhance any object which understand the method ``get404()``. This properties makes the code resilient to change, improve, etc.
 
-So all that good stuff works very well with classes, but can we make it work for containers? That's the purpose of this post, we are going to replace the words classes with images, objects with containers and methods with messages. To get back a modular and flexible approach to define functionality in a cluster.
+Can we take this flexibility to containers? That's what I wanted to talk about, we are going to design a container that when deployed into an existing pod *decorates* the running service (the main container) at runtime.
 
-We are going to design a container that when deployed into a pod it *decorates* the running service (the main container) with new functionality at runtime, as long as this service implement our communication protocol (HTTP 1.x).
+After reading this you should be able to do something equivalent to this:
 
+```sh
+  KeycloakSupportDecorator(LegacyJavaService)
+```
 
-# Writing Our Decorator
+Or
 
-![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2/third.svg?sanitize=true)
+```sh
+  NotifyOnCrashDecorator(MigratedJ2EE)
+```
+
+# Writing Our Decorator Container
+
 
 To make this container we need to write a process capable of handling the protocol (HTTP 1.x messages) of our target container. To make things easier (*at least for me*) we are going to write this in Node.JS.
 
@@ -79,14 +88,14 @@ We can start by creating a Node.JS project and install the [node-ambassador](htt
 Here is the minimum to code to create our proxy like process:
 
 ```js
-  let { Ambassador }  = require('../node-ambassador/')
-  const TARGET = process.env['target_port'] || 8087
-  const PORT   = process.env['port'] || 8080
+let { Ambassador }  = require('../node-ambassador/')
+const TARGET = process.env['target_port'] || 8087
+const PORT   = process.env['port'] || 8080
 
-  new Ambassador({port: PORT, target: TARGET})
-        .tunnel({})
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({})
 
-  console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
+console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
 ```
 
 We read the TCP port information from ``PORT`` and ``TARGET_PORT`` from the environment variables, then we make a new *Ambassador* object and call the ``tunnel`` method which creates a tunnel between this two point.
@@ -267,19 +276,19 @@ Next step is to create the [build configuration](https://cesarvr.io/post/buildco
 Now we need to run the build and lookup for the generated image:
 
 ```sh
-  #cd /jump-to-your-script-folder
+#cd /jump-to-your-script-folder
 
-  oc start-build bc/decorator --from-dir=.
+oc start-build bc/decorator --from-dir=.
 
-  #Uploading directory "." as binary input for the build ...
-  #build "decorator-1" started
-  #....
-  #....
+#Uploading directory "." as binary input for the build ...
+#build "decorator-1" started
+#....
+#....
 
 
-  oc get is
-  #NAME        DOCKER REPO                       ...
-  #decorator   172.30.1.1:5000/hello/decorator   ...
+oc get is
+#NAME        DOCKER REPO                       ...
+#decorator   172.30.1.1:5000/hello/decorator   ...
 ```
 
 Our image is stored here: ``172.30.1.1:5000/hello/decorator``
@@ -374,12 +383,16 @@ Then modify the OpenShift Service to target the right port.
 
 ![](https://raw.githubusercontent.com/cesarvr/ambassador/master/assets/final.gif)
 
-> Here we are running a Java service, enhanced with our container.
+> Those logs you see in the right section of the image is a networking profiler that didn't make it here, because this post was getting to big, but I will include it in another post.
 
-#### Telemetry
+This the equivalent of doing:
 
-Those logs you see in the right section of the image is a networking profiler mechanism I implemented as reusable feature for the whole main container, I didn't include how to do it in this post because I wanted to keep this post short, but I will include it in the next post.
+```
+ DecoratorJS(JavaMicroService)
+```
 
-By know you should be able to experiment yourself using this API (our creating your own API) and coming up with new usages like creating a robot that detect/report crashes in your services.
+#### Wrapping Up
 
-Here is the code for the [ambassador container](https://github.com/cesarvr/ambassador) and also feel free to contribute to the [node-ambassador](https://github.com/cesarvr/node-ambassador) API in GitHub, with any missing features, improvement, etc.
+I think for now we achieve our goal of making a minimal version of a decorator container, now we can enhance it and build more sophisticated features. Also I think this type of deployment make a good use case for A/B testing as a way to detect implementation failures and detect any performance problems in our container.
+
+By know you should be able to experiment yourself using the API (our creating your own API) and coming up with new usages, if short of ideas, you can start with a simple robot that detect/report crashes in your services, if you want here is the [source code](https://github.com/cesarvr/ambassador), also feel free to contribute to the [node-ambassador](https://github.com/cesarvr/node-ambassador) API in GitHub, with any missing features, improvement, etc.
