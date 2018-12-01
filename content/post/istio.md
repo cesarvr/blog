@@ -233,6 +233,6 @@ Here is the whole process:
 
 ## Container Patterns
 
-We should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod operate similar as it they where in a single machine, this is very important as we are going to use this in the next article to create our “Telemetry” container.  
+We should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod operate similar as it they where in a single machine, this is very important as we are going to use this in the [next article](https://cesarvr.io/post/istio-2/) to create our “Telemetry” container.  
 
 If you want to know more about the container patterns you can take a look a this [paper](https://ai.google/research/pubs/pub45406). 
