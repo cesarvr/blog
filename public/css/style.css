@@ -50,7 +50,7 @@ article, aside, figcaption, figure, footer, header, main, nav, section {
 }
 body {
   margin: 0;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: 'Roboto', sans-serif;
   color: rgba(0, 0, 0, .8);
   font-size: 20px;
   line-height: 1.6;
@@ -265,7 +265,7 @@ pre, code {
   line-height: 1;
 }
 .first-entry .post-title {
-  font-size: 50px;
+  font-size: 47px;
   transform: translateX(-3px);
 }
 .first-entry .post-summary {
