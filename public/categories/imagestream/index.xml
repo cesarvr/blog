@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Imagestream on Nube</title>
+    <title>Imagestream on Shipwreck</title>
     <link>/categories/imagestream/</link>
-    <description>Recent content in Imagestream on Nube</description>
+    <description>Recent content in Imagestream on Shipwreck</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <copyright>Cesar Valdez</copyright>
     <lastBuildDate>Sat, 28 Jul 2018 19:24:19 +0100</lastBuildDate>
     
 	<atom:link href="/categories/imagestream/index.xml" rel="self" type="application/rss+xml" />

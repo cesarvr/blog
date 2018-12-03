@@ -7,11 +7,30 @@
 
 /* Reset
 ============================================================= */
+
+
+
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
+
+
+.phrase {
+  margin: 0px !important;
+  font-size: 14px !important;
+  color: gray !important;
+  font-style: italic;
+  color: #b8b8b8 !important;
+  font-family: 'Roboto', sans-serif;
+  font-weight: lighter !important;
+}
+
+
+
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -85,7 +104,7 @@ pre, code {
 .header {
   display: flex;
   justify-content: space-between;
-  height: 65px;
+  height: 85px;
   padding-left: 30px;
   padding-right: 30px;
   line-height: 65px;
@@ -99,6 +118,7 @@ pre, code {
   font-size: 24px;
   font-weight: 700;
   line-height: 35px;
+  margin-bottom: -13px !important;
 }
 .noscroll {
   overflow: hidden;

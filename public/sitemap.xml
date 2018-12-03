@@ -213,12 +213,6 @@
   </url>
   
   <url>
-    <loc>/</loc>
-    <lastmod>2018-11-07T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>/tags/openshift/</loc>
     <lastmod>2018-11-07T00:00:00+00:00</lastmod>
     <priority>0</priority>
@@ -256,6 +250,12 @@
   
   <url>
     <loc>/categories/services/</loc>
+    <lastmod>2018-11-07T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>/</loc>
     <lastmod>2018-11-07T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>

@@ -38,6 +38,8 @@
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
   <link href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/atom-one-dark.min.css" rel="stylesheet">
   <link href="{{.Site.BaseURL}}css/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web|Great+Vibes|Roboto" rel="stylesheet">
+
   <!-- Favicons -->
   <link rel="apple-touch-icon" href="{{.Site.BaseURL}}img/apple-touch-icon.png">
   <link rel="icon" href="{{.Site.BaseURL}}img/favicon.ico">
@@ -52,7 +54,9 @@
 <body class="{{if eq .Kind `page` }}single{{else}}list{{ if .IsHome }} home{{ end }}{{end}}">
   <header class="header">
     {{ if .IsHome }}
-    <h1 class="title"><a href="{{.Site.BaseURL}}">{{ .Site.Title }}</a></h1>
+    <h1 class="title"><a href="{{.Site.BaseURL}}">{{ .Site.Title }}</a>
+    <a class="phrase"></a>
+    </h1>
     {{ else }}
     <p class="title"><a href="{{.Site.BaseURL}}">{{ .Site.Title }}</a></p>
     {{ end }}
@@ -69,3 +73,9 @@
     </nav>
   </header>
   <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+  <script src="{{.Site.BaseURL}}js/db.js"></script>
