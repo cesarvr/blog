@@ -432,8 +432,8 @@ pre, code {
   border-left: 3px solid rgba(0, 0, 0, .8);
 }
 .post-content hr {
-  margin-top: 70px;
-  margin-bottom: 70px;
+  margin-top: 20px;
+  margin-bottom: 40px;
   border: solid rgba(0, 0, 0, .1);
   border-width: 1px 0 0;
 }
