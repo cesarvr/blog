@@ -11,7 +11,7 @@ toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
 ---
 
-In the last post we create our first [container decorator](), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.
+In the last post we create our first [container decorator](https://cesarvr.io/post/istio-2/), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.
 
 <!--more-->
 

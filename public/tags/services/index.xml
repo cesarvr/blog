@@ -17,7 +17,7 @@
       <pubDate>Sat, 01 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-2.5/</guid>
-      <description>&lt;p&gt;In the last post we create our first [container decorator](), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;
+      <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
