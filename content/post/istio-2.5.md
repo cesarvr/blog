@@ -2,24 +2,22 @@
 title: "Creating Your Own Istio (Part 2.5)"
 date: 2018-12-01
 lastmod: 2018-12-01
-draft: true
+draft: false
 keywords: []
 description: "Reusable Telemetry"
-tags: [openshift, container, services, kubernetes ]
-categories: [openshift, container, services, kubernetes ]
+tags: [openshift, container, services, kubernetes]
+categories: [openshift, container, services, kubernetes]
 toc: true
-image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
+image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
 ---
 
-We just created our [first decorator container](https://cesarvr.io/post/istio-2/), The next step is to create a simple network profiler, taking this as an example we are going to learn how we can take advantage of the *man in the middle situation* of our container to gather some network information.
+In the last post we create our first [container decorator](), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.
 
 <!--more-->
 
+### Revisiting The Code
 
-### Reviewing The Code
-
-
-Here is some code from the last post:
+This is the code from the last post:
 
 ```js
 let { Ambassador }  = require('../node-ambassador/')
@@ -39,7 +37,7 @@ new Ambassador({port: PORT, target: TARGET})
 console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
 ```
 
-[This code](https://gist.github.com/cesarvr/d9fe6b6fdf8b8f3bba196654141507ef) just connects to any server running in ``TARGET_PORT`` and override their HTTP 404 responses with the content of the ``HTTP404`` string.
+[This code](https://gist.github.com/cesarvr/d9fe6b6fdf8b8f3bba196654141507ef) just connects to any server running in ``TARGET_PORT`` and override their HTTP 404 responses with the content from the ``HTTP404`` string. We are going to use this as our starting point.
 
 ### Network Profiler
 ----------
@@ -55,7 +53,7 @@ new Ambassador({port: PORT, target: TARGET})
       .tunnel({override_404, telemetry})
 ```
 
-This function ``telemetry`` will get called each time a new HTTP request is being transmitted to the main container.
+The function ``telemetry`` will get called each time a new HTTP request is made by a HTTP client.
 
 #### Request
 
@@ -73,7 +71,7 @@ We setup a listener for the event ``http:data`` in the *server* object and we re
 
 - **endpoint** The resource URL ``/Resource/1``.
 
-Let's create a class and register this object.
+Now we save the state into a class.
 
 ```js
 class Stats {
@@ -86,9 +84,9 @@ class Stats {
 }
 ```
 
-The ``return this`` above is just to facilitate the chaining of calls, something like in the way of ``stats.a().b()``.
+We create a new class *Stats* and create the ``readRequest`` method taking saving the fields and returning ``this`` object. By returning ``this`` just make it easy for us to chain calls in the form of ``stats.a().b()``.
 
-We instantiate the class and we provide the method, to the event listener:
+We instantiate the *Stats* class and bind the ``readRequest`` method to the event ``http:data``:
 
 ```js
 class Stats {
@@ -104,15 +102,15 @@ function telemetry({service, server}) {
 
 #### Tracking Responses
 
-Now let's register the responses from our target container.
+To capture responses, we need to listen for the ``http:data`` event but this time from the *service* object.
 
 ```js
 service.on('http:data', (header) => {})
 ```
-We listen the ``service`` object for responses which generates a small HTTP response object:
+We listen the ``service`` object for responses which generates a HTTP response object with the following shape:
 
 ```js
-  {"status":"404","state":"File not found"}
+  {"status":"404","message":"File not found"}
 ```
 
 What we do now is save this data:
@@ -144,11 +142,11 @@ function telemetry({service, server}) {
 
 We have information about the request and responses. Next step is to calculate the time it takes for the target container to resolve a request.
 
-#### Timing Responses
+#### Latency
 
-We are going to write two methods to handle the timing, one method will time the beginning of the service transaction (``startProfile``) and a second method time the response (``endProfile``).
+We are going to write two methods to calculate how much it takes for our a service to respond, one method will time the beginning of the service request (``startProfile``) and a second method will time the response (``endProfile``).
 
-Then we are going to calculate distance and we got our total time:
+Then we are going to calculate difference and we got our total time:
 
 ```xml
   latency = end_time - start_time
@@ -173,7 +171,7 @@ class Stats  {
 }
 ```
 
-We need to call this two methods at the start of the request ``server`` and when the response is being delivered ``service``.
+We plug this two methods one at the start of the request ``server->startProfile`` the other when the response is being delivered ``service->endProfile``.
 
 ```js
 class Stats {
@@ -193,9 +191,12 @@ function telemetry({service, server}) {
 }
 ```
 
+We used the method chaining discussed before, this way we just subscribe once.
+
+
 ### Saving State
 
-To make our *Stat* class useful we are going to persist its state by creating a *sophisticated* in-memory database.
+To make our *Stat* class useful we are going to persist its state by creating a nice *in-memory* database.
 
 ```js
 class Stats {
@@ -229,11 +230,11 @@ class Stats  {
 }
 ```
 
-This would be enough for now, we can focus now it gathering some more information and saving it in our in-memory database.
+This would be enough for now for the db, let's focus now on gathering more information.
 
 #### Resource Type
 
-As you may notice our network profiler doesn't make distinction between URL resources, it doesn't distinguish between a file or a URL. A quick and dirty solution for this is to implement is a function to detect file extensions.
+As you may notice our network profiler doesn't make distinction between a file or a URL. We can solve that by writing a function to detect file extensions.
 
 ```js
 
@@ -249,7 +250,7 @@ isFile(endpoint) {
 }
 ```
 
-Then we add this to our in-memory database.
+This is good enough for our purposes, let's persist this information.
 
 ```js
 class Stats  {
@@ -267,9 +268,9 @@ class Stats  {
 
 #### Pod Name
 
-In case of problems we would like to know where this problem is originated, it can be important to cross this information with other factors, so let's register the pod name.
+In case of problems we would like to know where is happening, so it can be interesting to save the pod name.
 
-If you remember in first post we said that the pod simulates a machine, so we can know the pod name by just looking at the ``hostname`` which is simulated by the Linux [UTS Namespace](https://cesarvr.io/post/2018-05-22-create-containers/).
+> If you remember in first post we said that the pod simulates a machine, knowing this we can know the pod name by just looking at the ``hostname`` which is simulated by the Linux [UTS Namespace](https://cesarvr.io/post/2018-05-22-create-containers/).
 
 ```js
 class Stats  {
@@ -284,7 +285,7 @@ class Stats  {
 }
 ```
 
-For this we are going to use Node.js ``os`` [hostname](https://millermedeiros.github.io/mdoc/examples/node_api/doc/os.html) API, we save this object in a field to avoid clutter the global namespace.
+We use Node.js [os::hostname](https://millermedeiros.github.io/mdoc/examples/node_api/doc/os.html) API to get the hostname.
 
 ```js
 class Stats  {
@@ -304,7 +305,7 @@ class Stats  {
 
 #### Registry
 
-We know if it's a file, where is the *computation* is happening, the speed and the transaction type. But, now let's keep a record of this information, so if something goes wrong we can track its behavior through time.
+To simplify the diagnose of problems is smart to keep a track record, so we can correlate information and research for obscure runtime errors.
 
 Let's start by writing a new method called history:
 
@@ -316,7 +317,7 @@ history(obj) {
 }
 ```
 
-Basically it will read an arbitrary object will check for a field called ``history`` if not there create a new field with an **array**.
+This will read an arbitrary object and will check for a field called ``history`` if its not there, it create a new field with an **array**.
 
 ##### Timing
 
@@ -337,7 +338,7 @@ history(obj) {
 }
 ```
 
-This will give us the following data structure:
+This generates the following data structure:
 
 ```js
 {
@@ -356,7 +357,9 @@ This will give us the following data structure:
 
 ##### Container Resource
 
-We got the destination, the response and the time. But let's add a bonus by sampling container memory and CPU quota. You know, Linux can kill our container if we exceed memory constraint, with this feature we can keep track of the whole container memory state.
+Another useful information we can extract from the pod is the memory and CPU usage. You know, Linux can kill our container if we exceed the memory constraints, this feature we can keep track of resources in the container.
+
+We are going to create a new method called ``resources``:
 
 ```js
 class Stats  {
@@ -375,7 +378,7 @@ class Stats  {
 }
 ```
 
-This new method give us this interesting information.
+Again here we just use some [os](https://nodejs.org/api/os.html) functions to get the job done, I think this can be improve by studying the ``/proc`` directory.
 
 ```js
 {
@@ -398,13 +401,15 @@ This new method give us this interesting information.
 	}
 ```
 
-> Remember CPU usage time and memory is local to the container, meaning that it's constrained by [Linux control groups](http://cesarvr.io/post/2018-05-22-create-containers/#limiting-process-creation) to that particular pod.
+> CPU usage time and memory is local to the pod and shared between containers.
 
-Let add our time graph to our main object report.
+Let add our graph to our main report object.
 
 ```js
 class Stats  {
   /*...*/
+  resources(){ /*...*/}
+
   history(obj) {
     let history = obj.history || []
 
@@ -433,7 +438,7 @@ class Stats  {
 
 #### Reporting
 
-Now it's time to plug our new feature into the tunnel event bus, and we got ourselves a process capable of profiling any web service.
+Now it's time to plug our new feature into the ``tunnel`` event bus.
 
 ```js
 class Stats {
@@ -459,8 +464,6 @@ function telemetry({service, server}) {
 }
 ```
 
-
-
 To make this information available, let's create a 5 seconds refresh to show the data collected through standard output. In the next post we are going to replace this for HTTP calls.
 
 ```js
@@ -478,8 +481,7 @@ function handleConnection(server) {
 ```  
 #### Deploy
 
-In the [last post](https://cesarvr.io/post/istio-2/#build-configuration) we created the build configuration to create our image, this time we just need to go back project folder and rebuild our image by using ``oc start-build`` command:
-
+To deploy our changes we can reuse the [build configuration](https://cesarvr.io/post/istio-2/#build-configuration) we have created before.
 
 ```sh
 cd /project
@@ -491,6 +493,6 @@ And we should see our project running.
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2.5/profiler.gif)
 
-This looks nice and all but is very difficult to make sense of that huge block, for that reason in the next post we are going to write a dashboard so we can make sense of our telemetry at real time.
+This looks nice and all, but is very difficult to make sense of that huge block, for that reason in the next post we are going to write a dashboard so we can make sense of our telemetry at real time.
 
-Here is the code for this [telemetry probe](https://github.com/cesarvr/ambassador), if you find any optimization or improvement feel free to send a PR.
+Here is the code for the [decorator container](https://github.com/cesarvr/ambassador), if you find any optimisation or improvement feel free to send a PR.

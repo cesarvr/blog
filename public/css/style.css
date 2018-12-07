@@ -17,6 +17,29 @@
   box-sizing: border-box;
 }
 
+h3:hover > .anchor {
+  visibility: visible;
+}
+
+h4:hover .anchor {
+  visibility: visible;
+  margin-top: 0px;
+}
+
+.anchor {
+  text-decoration: none;
+  border-style: unset !important;
+  margin-left: -25px;
+  float: left;
+  width: 24px;
+  visibility: hidden;
+}
+
+.octicon-link  {
+  color: #1b1f23;
+  vertical-align: middle;
+  /* visibility: hidden; */
+}
 
 .phrase {
   margin: 0px !important;

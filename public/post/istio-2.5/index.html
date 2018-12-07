@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Creating Your Own Istio (Part 2.5) - Shipwreck</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Reusable Telemetry" />
+  <meta name="twitter:title" content="Creating Your Own Istio (Part 2.5)" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png" />
+
+  <meta property="og:title" content="Creating Your Own Istio (Part 2.5)" />
+  <meta property="og:description" content="Reusable Telemetry" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png" />
+
+  <meta name="description" content="In the last post we create our first [container decorator](), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.
+
+">
+  <meta name="author" content="Cesar Valdez">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/atom-one-dark.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web|Great+Vibes|Roboto" rel="stylesheet">
+
+  
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="icon" href="/img/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.48" />
+  
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="Shipwreck">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="/">Shipwreck</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="categories/">Categories</a>
+        </li>
+        
+        <li class="">
+          <a href="/about/">About</a>
+        </li>
+        
+        <li class="">
+          <a href="https://github.com/cesarvr">Code</a>
+        </li>
+        
+        <li class="">
+          <a href="/post/">Writing</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+  <script src="/js/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Creating Your Own Istio (Part 2.5)</h1>
+    <p class="post-meta">Cesar Valdez · 2018.12.1</p>
+  </header>
+  <div class="post-content"><p>In the last post we create our first [container decorator](), a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.</p>
+
+<p></p>
+
+<h3 id="revisiting-the-code">Revisiting The Code</h3>
+
+<p>This is the code from the last post:</p>
+
+<pre><code class="language-js">let { Ambassador }  = require('../node-ambassador/')
+
+const TARGET = process.env['target_port'] || 8087
+const PORT   = process.env['port'] || 8080
+
+const HTTP404 = `...`
+
+function override_404({service, server}) {
+  service.on('http:404', () =&gt; server.respond(HTTP404))
+}
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({override_404})
+
+console.log(`listening for request in ${PORT} and targeting ${TARGET}`)
+</code></pre>
+
+<p><a href="https://gist.github.com/cesarvr/d9fe6b6fdf8b8f3bba196654141507ef">This code</a> just connects to any server running in <code>TARGET_PORT</code> and override their HTTP 404 responses with the content from the <code>HTTP404</code> string. We are going to use this as our starting point.</p>
+
+<h3 id="network-profiler">Network Profiler</h3>
+
+<hr />
+
+<h4 id="configuration">Configuration</h4>
+
+<p>We can start by writing a new function to subscribe to the <code>Ambassador::tunnel</code> method.</p>
+
+<pre><code class="language-js">function telemetry({service, server}) {}
+
+new Ambassador({port: PORT, target: TARGET})
+      .tunnel({override_404, telemetry})
+</code></pre>
+
+<p>The function <code>telemetry</code> will get called each time a new HTTP request is made by a HTTP client.</p>
+
+<h4 id="request">Request</h4>
+
+<p>The first functionality we want to write is the ability to register the HTTP request details, this will tell us what resources people or other services are looking in our web service.</p>
+
+<pre><code class="language-js">function telemetry({service, server}) {
+    server.on('http:data',  (header) =&gt; {} )
+}
+</code></pre>
+
+<p>We setup a listener for the event <code>http:data</code> in the <em>server</em> object and we receive a <code>header</code> object with two fields:</p>
+
+<ul>
+<li><p><strong>method</strong> The HTTP Method <code>GET, POST, DELETE, PUT,...</code>.</p></li>
+
+<li><p><strong>endpoint</strong> The resource URL <code>/Resource/1</code>.</p></li>
+</ul>
+
+<p>Now we save the state into a class.</p>
+
+<pre><code class="language-js">class Stats {
+  readRequest(header) {
+    this.method   = header.HTTPMethod
+    this.endpoint = header.HTTPResource
+
+    return this
+  }
+}
+</code></pre>
+
+<p>We create a new class <em>Stats</em> and create the <code>readRequest</code> method taking saving the fields and returning <code>this</code> object. By returning <code>this</code> just make it easy for us to chain calls in the form of <code>stats.a().b()</code>.</p>
+
+<p>We instantiate the <em>Stats</em> class and bind the <code>readRequest</code> method to the event <code>http:data</code>:</p>
+
+<pre><code class="language-js">class Stats {
+  readRequest(header) {  /*...*/  }
+}
+
+let stats = new Stats()
+
+function telemetry({service, server}) {
+    server.on('http:data',  (header) =&gt; stats.readRequest(header) )
+}
+</code></pre>
+
+<h4 id="tracking-responses">Tracking Responses</h4>
+
+<p>To capture responses, we need to listen for the <code>http:data</code> event but this time from the <em>service</em> object.</p>
+
+<pre><code class="language-js">service.on('http:data', (header) =&gt; {})
+</code></pre>
+
+<p>We listen the <code>service</code> object for responses which generates a HTTP response object with the following shape:</p>
+
+<pre><code class="language-js">  {&quot;status&quot;:&quot;404&quot;,&quot;message&quot;:&quot;File not found&quot;}
+</code></pre>
+
+<p>What we do now is save this data:</p>
+
+<pre><code class="language-js">class Stats  {
+  readResponse(response) {
+    this.response = response
+    return this
+  }
+}  
+</code></pre>
+
+<p>We just need to <em>again</em> plug this method:</p>
+
+<pre><code class="language-js">class Stats {
+  readRequest(header)    { /*...*/ }
+  readResponse(response) { /*...*/ }
+}
+
+let stats = new Stats()
+
+function telemetry({service, server}) {
+  server.on('http:data',  (header) =&gt; stats.readRequest(header) )
+  service.on('http:data', (header) =&gt; stats.readResponse(header) )
+}
+</code></pre>
+
+<p>We have information about the request and responses. Next step is to calculate the time it takes for the target container to resolve a request.</p>
+
+<h4 id="latency">Latency</h4>
+
+<p>We are going to write two methods to calculate how much it takes for our a service to respond, one method will time the beginning of the service request (<code>startProfile</code>) and a second method will time the response (<code>endProfile</code>).</p>
+
+<p>Then we are going to calculate difference and we got our total time:</p>
+
+<pre><code class="language-xml">  latency = end_time - start_time
+</code></pre>
+
+<p>Let&rsquo;s implement this idea.</p>
+
+<pre><code class="language-js">class Stats  {
+
+  //...
+  startProfile(){
+    this.start = new Date().getTime()
+    return this
+  }
+
+  endProfile() {
+    this.end =  new Date().getTime() - this.start
+    return this
+  }
+  // ...
+}
+</code></pre>
+
+<p>We plug this two methods one at the start of the request <code>server-&gt;startProfile</code> the other when the response is being delivered <code>service-&gt;endProfile</code>.</p>
+
+<pre><code class="language-js">class Stats {
+  readRequest(header) {    /*...*/ }
+  readResponse(response) { /*...*/ }
+  startProfile(){ /*...*/ }
+  endProfile()  { /*...*/ }
+}
+
+let stats = new Stats()
+
+function telemetry({service, server}) {
+  server.on('http:data',  (header) =&gt; stats.readRequest(header)
+                                           .startProfile())
+  service.on('http:data', (header) =&gt; stats.readResponse(header)
+                                           .endProfile())
+}
+</code></pre>
+
+<p>We used the method chaining discussed before, this way we just subscribe once.</p>
+
+<h3 id="saving-state">Saving State</h3>
+
+<p>To make our <em>Stat</em> class useful we are going to persist its state by creating a nice <em>in-memory</em> database.</p>
+
+<pre><code class="language-js">class Stats {
+  constructor(){
+    this.db = {}
+  }
+}
+</code></pre>
+
+<p>To save the object state in memory we are going to write the method <code>save</code> and to retrieve the data the method <code>all</code>.</p>
+
+<pre><code class="language-js">class Stats  {
+
+  constructor(){
+    this.db = {}
+  }
+
+  new(){
+    let URL = this.endpoint
+    this.db[URL] = this.db[URL] || {}
+
+    this.db[URL] = { /* state */ }
+  }
+
+  get all(){
+    return this.db
+  }
+
+  /*..*/
+}
+</code></pre>
+
+<p>This would be enough for now for the db, let&rsquo;s focus now on gathering more information.</p>
+
+<h4 id="resource-type">Resource Type</h4>
+
+<p>As you may notice our network profiler doesn&rsquo;t make distinction between a file or a URL. We can solve that by writing a function to detect file extensions.</p>
+
+<pre><code class="language-js">
+class Stats  {
+/*...*/
+
+isFile(endpoint) {
+  const file_regexp = /\.[0-9a-z]+$/i
+  return endpoint.search(file_regexp) !== -1
+}
+
+/*...*/
+}
+</code></pre>
+
+<p>This is good enough for our purposes, let&rsquo;s persist this information.</p>
+
+<pre><code class="language-js">class Stats  {
+/*...*/
+  save(){
+    let URL = this.endpoint
+    this.db[URL] = this.db[URL] || {}
+
+    this.db[URL] = { file: this.isFile(URL)  }
+  }
+/*...*/
+}
+</code></pre>
+
+<h4 id="pod-name">Pod Name</h4>
+
+<p>In case of problems we would like to know where is happening, so it can be interesting to save the pod name.</p>
+
+<blockquote>
+<p>If you remember in first post we said that the pod simulates a machine, knowing this we can know the pod name by just looking at the <code>hostname</code> which is simulated by the Linux <a href="https://cesarvr.io/post/2018-05-22-create-containers/">UTS Namespace</a>.</p>
+</blockquote>
+
+<pre><code class="language-js">class Stats  {
+  constructor(){
+    this.os = require('os')
+  }
+  /*...*/
+  host() {
+    return this.os.hostname()
+  }
+  /*...*/
+}
+</code></pre>
+
+<p>We use Node.js <a href="https://millermedeiros.github.io/mdoc/examples/node_api/doc/os.html">os::hostname</a> API to get the hostname.</p>
+
+<pre><code class="language-js">class Stats  {
+/*...*/
+  save(){
+    let URL = this.endpoint
+    this.db[URL] = this.db[URL] || {}
+
+    this.db[URL] = {
+      file: this.isFile(URL),
+      pod: this.host()
+    }
+  }
+/*...*/
+}
+</code></pre>
+
+<h4 id="registry">Registry</h4>
+
+<p>To simplify the diagnose of problems is smart to keep a track record, so we can correlate information and research for obscure runtime errors.</p>
+
+<p>Let&rsquo;s start by writing a new method called history:</p>
+
+<pre><code class="language-js">history(obj) {
+  let history = obj.history || []
+
+  return history
+}
+</code></pre>
+
+<p>This will read an arbitrary object and will check for a field called <code>history</code> if its not there, it create a new field with an <strong>array</strong>.</p>
+
+<h5 id="timing">Timing</h5>
+
+<p>We save here the response latency, request and response. This will give us a picture of the transaction.</p>
+
+<pre><code class="language-js">history(obj) {
+  let history = obj.history || []
+
+  history.push({
+    request: {endpoint: this.endpoint, method: this.method},
+    response: this.response,
+    time: this.end + 'ms',
+    started: this.start
+  })
+
+  return history
+}
+</code></pre>
+
+<p>This generates the following data structure:</p>
+
+<pre><code class="language-js">{
+	&quot;request&quot;: {
+		&quot;endpoint&quot;: &quot;/&quot;,
+		&quot;method&quot;: &quot;GET&quot;
+	},
+	&quot;response&quot;: {
+		&quot;status&quot;: &quot;200&quot;,
+		&quot;state&quot;: &quot;OK&quot;
+	},
+	&quot;time&quot;: &quot;9ms&quot;,
+	&quot;started&quot;: 1544042305989
+}
+</code></pre>
+
+<h5 id="container-resource">Container Resource</h5>
+
+<p>Another useful information we can extract from the pod is the memory and CPU usage. You know, Linux can kill our container if we exceed the memory constraints, this feature we can keep track of resources in the container.</p>
+
+<p>We are going to create a new method called <code>resources</code>:</p>
+
+<pre><code class="language-js">class Stats  {
+  constructor(){
+    this.os = require('os')
+    /*...*/
+  }
+  /*...*/
+  resources(){
+    return {
+      free_memory: this.os.freemem(),
+      total_memory: this.os.totalmem(),
+      cpus: this.os.cpus()
+    }
+  }
+}
+</code></pre>
+
+<p>Again here we just use some <a href="https://nodejs.org/api/os.html">os</a> functions to get the job done, I think this can be improve by studying the <code>/proc</code> directory.</p>
+
+<pre><code class="language-js">{
+	/*...*/
+	&quot;resource&quot;: {
+		&quot;free_memory&quot;: 31891456,
+		&quot;total_memory&quot;: 8589934592,
+		&quot;cpu&quot;: &quot;cpus&quot;: [{
+				&quot;model&quot;: &quot;Intel Xeon...&quot;,
+				&quot;speed&quot;: 5300,
+				&quot;times&quot;: {
+					&quot;user&quot;: 153938390,
+					&quot;nice&quot;: 0,
+					&quot;sys&quot;: 73413290,
+					&quot;idle&quot;: 808839530
+				}
+			},
+      /* More Cores... */
+		}
+	}
+</code></pre>
+
+<blockquote>
+<p>CPU usage time and memory is local to the pod and shared between containers.</p>
+</blockquote>
+
+<p>Let add our graph to our main report object.</p>
+
+<pre><code class="language-js">class Stats  {
+  /*...*/
+  resources(){ /*...*/}
+
+  history(obj) {
+    let history = obj.history || []
+
+    history.push({
+      request: {endpoint: this.endpoint, method: this.method},
+      response: this.response,
+      time: this.end + 'ms',
+      started: this.start,
+      resource: this.resources()
+    })
+
+    return history
+  }
+
+  new(){
+    /*..*/
+    this.db[URL] = {
+      history: this.history(this.db[URL]),
+      file: this.isFile(URL),
+      pod: this.host()
+    }
+  }
+  /*..*/
+}
+</code></pre>
+
+<h4 id="reporting">Reporting</h4>
+
+<p>Now it&rsquo;s time to plug our new feature into the <code>tunnel</code> event bus.</p>
+
+<pre><code class="language-js">class Stats {
+  readRequest(header) {    /*...*/ }
+  readResponse(response) { /*...*/ }
+  startProfile(){ /*...*/ }
+  endProfile()  { /*...*/ }
+  save()        { /*...*/ }
+  isFile(endpoint) { /*...*/}
+  resources()  { /*...*/ }
+  history(obj) { /*...*/ }
+}
+
+let stats = new Stats()
+
+function telemetry({service, server}) {
+  server.on('http:data',  (header) =&gt; stats.readRequest(header)
+                                           .startProfile())
+
+  service.on('http:data', (header) =&gt; stats.readResponse(header)
+                                           .endProfile()
+                                           .save())
+}
+</code></pre>
+
+<p>To make this information available, let&rsquo;s create a 5 seconds refresh to show the data collected through standard output. In the next post we are going to replace this for HTTP calls.</p>
+
+<pre><code class="language-js">let stats = new Stats()
+
+ setInterval(()=&gt; {
+   console.log('logs -&gt; \n ', JSON.stringify(stats.all))
+ }, 5000)
+
+function handleConnection(server) {
+/*
+
+*/
+}
+</code></pre>
+
+<h4 id="deploy">Deploy</h4>
+
+<p>To deploy our changes we can reuse the <a href="https://cesarvr.io/post/istio-2/#build-configuration">build configuration</a> we have created before.</p>
+
+<pre><code class="language-sh">cd /project
+
+oc start-build bc/decorator --from-dir=. --follow
+</code></pre>
+
+<p>And we should see our project running.</p>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/istio-2.5/profiler.gif" alt="" /></p>
+
+<p>This looks nice and all, but is very difficult to make sense of that huge block, for that reason in the next post we are going to write a dashboard so we can make sense of our telemetry at real time.</p>
+
+<p>Here is the code for the <a href="https://github.com/cesarvr/ambassador">decorator container</a>, if you find any optimisation or improvement feel free to send a PR.</p></div>
+  <footer class="post-footer">
+    
+    <ul class="post-tags">
+      
+      <li><a href="/tags/openshift/">openshift</a></li>
+      
+      <li><a href="/tags/container/">container</a></li>
+      
+      <li><a href="/tags/services/">services</a></li>
+      
+      <li><a href="/tags/kubernetes/">kubernetes</a></li>
+      
+    </ul>
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2018 Cesar Valdez</span>
+</footer>
+<script src="https://cdn.bootcss.com/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js" data-no-instant></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+
