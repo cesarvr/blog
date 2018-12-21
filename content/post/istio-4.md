@@ -1,14 +1,14 @@
 ---
-title: "Creating Your Own Istio (Part 3)"
+title: "Creating Your Own Istio (Part 3) - Dashboard"
 date: 2018-12-11
 lastmod: 2018-12-11
-draft: true
+draft: false
 keywords: []
 description: "Reusable Telemetry"
 tags: [openshift, container, services, kubernetes]
 categories: [openshift, container, services, kubernetes]
 toc: false
-image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
+image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true 
 ---
 
 In this post we are going to take our decorator container a step further and make it report the collected data to a centralize service, then we are going to make sense of this data by showing it with nice graphics.
