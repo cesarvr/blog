@@ -505,3 +505,19 @@ oc set env -c decorator dc/j-slow \
 
 Here we use ``oc set env`` command which set environment variables to the running pod, in our particular case our pod is running two containers (default, decorator). We need to setup the variables for the second container ``-c decorator``. The rest is just environment variable definition.
 
+* Here is an example of head-less dashboard: 
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dash-vanilla.gif?raw=true)
+
+
+* The dashboard with a nice UI: 
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true)
+
+
+
+
+
+
+
+
