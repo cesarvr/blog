@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Creating Your Own Istio (Part 3) - Dashboard - Shipwreck</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Reusable Telemetry" />
+  <meta name="twitter:title" content="Creating Your Own Istio (Part 3) - Dashboard" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true" />
+
+  <meta property="og:title" content="Creating Your Own Istio (Part 3) - Dashboard" />
+  <meta property="og:description" content="Reusable Telemetry" />
+  <meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true" />
+
+  <meta name="description" content="In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our Ambassador container, but having this information is of little value if we don&rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.
+
+">
+  <meta name="author" content="Cesar Valdez">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link href="https://cdn.bootcss.com/highlight.js/9.12.0/styles/atom-one-dark.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web|Great+Vibes|Roboto" rel="stylesheet">
+
+  
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="icon" href="/img/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.48" />
+  
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="Shipwreck">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="/">Shipwreck</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="categories/">Categories</a>
+        </li>
+        
+        <li class="">
+          <a href="/about/">About</a>
+        </li>
+        
+        <li class="">
+          <a href="https://github.com/cesarvr">Code</a>
+        </li>
+        
+        <li class="">
+          <a href="/post/">Writing</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+  <script src="/js/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Creating Your Own Istio (Part 3) - Dashboard</h1>
+    <p class="post-meta">Cesar Valdez · 2018.12.11</p>
+  </header>
+  <div class="post-content"><p>In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our <a href="https://github.com/cesarvr/ambassador">Ambassador container</a>, but having this information is of little value if we don&rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.</p>
+
+<p></p>
+
+<p>This way we can take this data and create an dashboard for example:</p>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true" alt="" /></p>
+
+<h2 id="refactoring">Refactoring</h2>
+
+<p>Before we go any further first we need to do some modifications to our last version. We can start by decomposing the <em>Stats</em> class into three components.</p>
+
+<p>The first component will take care of reading the hardware telemetry:</p>
+
+<pre><code class="language-js">class Pod {
+  constructor() {
+    this.os = require('os')
+  }
+
+  host() {
+    return this.os.hostname()
+  }
+
+  get resources() {
+    return {
+      free_memory: this.os.freemem(),
+      total_memory: this.os.totalmem(),
+      cpus: this.os.cpus()
+    }
+  }
+}
+</code></pre>
+
+<p>Here we just copy/paste code form the <em>Stats</em> class into a new class.</p>
+
+<p>Next step we are going to create a new class and move the in-memory store logic there.</p>
+
+<pre><code class="language-js">class DB {
+  constructor(){
+    this.db = []
+  }
+
+  save(obj){
+    this.db.push( obj )
+  }
+
+  size(){
+    return this.db.length
+  }
+
+  get all() {
+    return this.db.map(obj =&gt; obj.sample)
+  }
+}
+
+module.exports = { DB }
+</code></pre>
+
+<p>Again we just copy/paste from our previous example, but this time we use an array instead of an JavaScript object, also we modify the returning value in the <code>all</code> method, instead of returning a simple object, this class now assumes that we have objects that respond to the <code>sample</code> method/message call.</p>
+
+<p>For the last component we are going to reuse the <em>Stats</em> class and just simplify the remaining functionality which takes care of sampling the network.</p>
+
+<pre><code class="language-js">class Stats {
+  constructor() {
+    this.close = false
+  }
+   isFile(endpoint){/*..*/}
+   readResponse(response) {/*..*/}
+   readRequest(header) {/*..*/}
+   startProfile() {/*..*/}
+   endProfile() {/*..*/}
+   get sample() {
+       return {
+         endpoint: this.endpoint,
+         method: this.method,
+         response: this.response,
+         time: this.end,
+         started: this.start,
+         file: this.isFile(this.endpoint),
+       }
+   }
+ }
+</code></pre>
+
+<p>Here we just remove the history method and return a plain JavaScript object.</p>
+
+<h3 id="implementation">Implementation</h3>
+
+<p>Doing this modification will also change the way we implement our network sampling, by simplifying the <em>Stats</em> class we are now able to create an object per HTTP transaction.</p>
+
+<pre><code class="language-js">const { Stats } = require('./monitor')
+
+function telemetry({service, server}) {
+  let stats = new Stats()
+
+  server.on('http:data',  (header)       =&gt; stats.readRequest(header)
+                                                 .startProfile())
+
+  service.on('http:data', (header, data) =&gt; stats.readResponse(header, data)
+                                                 .endProfile()
+                                                 .finish())
+}
+</code></pre>
+
+<p>Here we create one sampling object per transaction instead of having one global object. To save each transaction we are going to create <em>DB</em> object.</p>
+
+<pre><code class="language-js">const { Stats, Pod } = require('./monitor')
+const { DB } = require('./db')
+
+let db = new DB()
+
+function telemetry({service, server}) {
+  let stats = new Stats()
+
+  server.on('http:data',  (header)       =&gt; stats.readRequest(header)
+                                                 .startProfile())
+
+  service.on('http:data', (header, data) =&gt; stats.readResponse(header, data)
+                                                 .endProfile()
+                                                 .finish())
+  db.save(stats)
+}
+</code></pre>
+
+<p>Now we are in the same place as our last post, but we are in better position to post this information.</p>
+
+<h3 id="making-sense-of-data">Making Sense Of Data</h3>
+
+<p>Collecting data from our pod is great, but our <em>&ldquo;service mesh&rdquo;</em> need to provide a way to make sense of the collected metrics. We can start by designing a <em>micro-service</em> that collect this metrics and show it in a human friendly way.</p>
+
+<p>Our service will implement two endpoints and will receive the data in the following format:</p>
+
+<pre><code class="language-js">  {pod: '&lt;name-of-the-pod&gt;', data: 'body-of-statistics' }
+</code></pre>
+
+<p>Every decorator should identify the pod and send some metrics and we are going provide two endpoints one for service performance <code>/stats</code> another for the hardware telemetry <code>/resources</code>.</p>
+
+<h4 id="setup">Setup</h4>
+
+<p>Let&rsquo;s setup a new Node.JS project:</p>
+
+<pre><code class="language-sh">mkdir dashboard-project-folder &amp;&amp; cd dashboard-project-folder
+npm init
+npm install -S express  #Install the express framework
+</code></pre>
+
+<h5 id="hello-world">Hello World</h5>
+
+<p>Here is the minimal amount of code required to create a Node.JS web service.</p>
+
+<pre><code class="language-js">const express = require('express')
+const app = express()
+const port = 8080
+
+app.get('/',  (req, res) =&gt; {
+  res.status(200).send({message: &quot;Hello World&quot;})
+} )
+
+app.listen(port, () =&gt; console.log(`Listening: ${port}!`))
+</code></pre>
+
+<p>We instantiate the <a href="https://expressjs.com/">express framework</a> choose the port <code>8080</code>, create a function to handle the HTTP GET request to the <code>/</code> endpoint and start a web server.</p>
+
+<pre><code class="language-sh">curl 0.0.0.0:8080
+{&quot;message&quot;:&quot;Hello World&quot;}%
+</code></pre>
+
+<h5 id="request">Request</h5>
+
+<p>Your typical POST request has the following shape:</p>
+
+<pre><code class="language-xml">POST / HTTP/1.1
+Host: foo.com
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 13
+
+pod=Hi&amp;to=&lt;a-lot-of-data&gt;
+</code></pre>
+
+<p>It would be nice if we can transform the content (<code>pod=Hi&amp;to=&lt;a-lot-of-data&gt;</code>) into a JSON object so is easier to work with, for that reason we are going to use <code>body-parser</code> library.</p>
+
+<p>To install <code>body-parser</code>:</p>
+
+<pre><code class="language-sh"> npm install -S body-parser
+</code></pre>
+
+<p>Implementation:</p>
+
+<pre><code class="language-js">const express = require('express')
+const bodyParser = require('body-parser')
+/*...*/
+app.use(bodyParser.json())
+
+app.get('/',  (req, res) =&gt; {
+  res.status(200).send({message: &quot;Hello World&quot;})
+} )
+
+/*..*/
+</code></pre>
+
+<h5 id="persisting">Persisting</h5>
+
+<p>To keep things simple we are going to persist the data using a dictionary.</p>
+
+<pre><code class="language-js">let stats = {}
+
+app.post('/stats', (req, res)  =&gt; {
+  let data = req.body
+
+  stats[data.pod] = data
+
+  console.log('data -&gt;', data)
+  res.status(200).send({ response: 'saved' })
+} )
+</code></pre>
+
+<p>The request is transformed into JSON and placed into the <code>req.body</code> field, we extract the data and store it into our dictionary. For the hardware metrics we are going to do the same.</p>
+
+<pre><code class="language-js">let resources = {}
+
+
+app.post('/resources', (req, res)  =&gt; {
+  let data = req.body
+
+  resources[data.pod] = data
+
+  console.log('data -&gt;', data)
+  res.status(200).send({ response: 'saved' })
+} )
+</code></pre>
+
+<p>Our service is ready to receive POST requests, but we need to add some way to retrieve the unified vision of all our pods.</p>
+
+<pre><code class="language-js">app.get('/resources', (req, res) =&gt; res.status(200).send(Object.values(resources)) )
+app.get('/stats',     (req, res) =&gt; res.status(200).send(Object.values(stats)) )
+</code></pre>
+
+<p>This call is very similar to the one we used in our <code>hello world</code> we just return the values of our dictionary.</p>
+
+<p>We do that because we are using the dictionary keys to quickly classify each pod, when somebody ask for a report we basically return an array with the values.</p>
+
+<p>This is how we store it:</p>
+
+<pre><code class="language-js">{
+  'x-1' : {
+    {pod: 'x-1', value:'...'}
+  },
+  'x-2':{
+    {pod: 'x-2', value:'...'}
+  }
+}
+</code></pre>
+
+<p>This what how we return it:</p>
+
+<pre><code class="language-js">[
+  {pod: 'x-1', value:'...'},
+  {pod: 'x-2', value:'...'}
+]
+</code></pre>
+
+<h3 id="running-our-service-in-openshift">Running Our Service In OpenShift</h3>
+
+<p>First step, we need to configure our project to run using <code>npm start</code>. We do this by adding a <code>start</code> entry to the <code>package.json</code>:</p>
+
+<pre><code class="language-js">{
+  &quot;name&quot;: &quot;mothership&quot;,
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;description&quot;: &quot;&quot;,
+  &quot;main&quot;: &quot;index.js&quot;,
+  &quot;scripts&quot;: {
+    &quot;test&quot;: &quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot;,
+    &quot;start&quot;: &quot;node app.js&quot;
+  },
+  &quot;author&quot;: &quot;&quot;,
+  &quot;license&quot;: &quot;ISC&quot;,
+  &quot;dependencies&quot;: {
+    &quot;body-parser&quot;: &quot;^1.18.3&quot;,
+    &quot;express&quot;: &quot;^4.16.4&quot;
+  }
+}
+</code></pre>
+
+<p>To run this service we just need to do:</p>
+
+<pre><code class="language-sh">npm start
+
+&gt; mothership@1.0.0 start /Users/cesar/Workspace/js/mothership
+&gt; node app.js
+
+Listening: 8080!
+</code></pre>
+
+<h4 id="packaging">Packaging</h4>
+
+<p>Preparing and packaging our service into a container can be done by creating a <a href="https://cesarvr.io/post/buildconfig/">build configuration</a>:</p>
+
+<pre><code class="language-sh">  oc new-build nodejs --binary=true --name=dashboard
+</code></pre>
+
+<p>Then we just run our build:</p>
+
+<pre><code class="language-sh">  oc start-build bc/dashboard --from-dir=. --follow
+
+</code></pre>
+
+<p>And get an image back:</p>
+
+<pre><code class="language-sh">  oc get imagestream
+
+  #NAME        DOCKER REPO                       TAGS      UPDATED
+  #dashboard   172.30.1.1:5000/hello/dashboard   latest    21 hours ago
+</code></pre>
+
+<h4 id="deploy">Deploy</h4>
+
+<p>We can deploy this image creating a new deployment configuration:</p>
+
+<pre><code class="language-sh">oc create deploymentconfig dashboard --image=is/dashboard
+
+#deploymentconfig &quot;dashboard&quot; created
+</code></pre>
+
+<h4 id="and-expose">&hellip;And Expose</h4>
+
+<p>The last thing remaining then is to expose this service to external traffic:</p>
+
+<pre><code class="language-sh">oc expose dc/dashboard --port 8080
+oc expose svc dashboard
+
+oc get route
+
+#NAME        HOST/PORT                             PATH      SERVICES    PORT
+#dashboard   dashboard-hello.192.168.64.2.nip.io             dashboard   8080
+</code></pre>
+
+<p>Once we got the URL (<code>dashboard-hello.192.168.64.2.nip.io</code>) for our dashboard let&rsquo;s write some code in our decorator to post some statistics.</p>
+
+<h3 id="notifications">Notifications</h3>
+
+<p>Our dashboard is deployed and waiting for our decorators container to start posting the state of applications running all over the cluster, but first we need to go back and add that capability in our <em>Decorator</em>.</p>
+
+<p>To post HTTP request we are going to install <code>node-fetch</code> using npm:</p>
+
+<pre><code class="language-sh">  npm install -S node-fetch
+</code></pre>
+
+<p>Let&rsquo;s create new class called <em>Notify</em>:</p>
+
+<pre><code class="language-js">class Notify {
+  constructor ({ endpoint }) {
+    this.URL = `${process.env['DASHBOARD']}/${endpoint}`
+  }
+
+  send({payload}) {
+    if(this.URL !== '')
+        return fetch(this.URL, {
+          method: 'post',
+          body:    JSON.stringify(payload),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res =&gt; res.json())
+  }
+}
+</code></pre>
+
+<p>This class reads the <code>DASHBOARD</code> URL from the environment variables which define the location of the dashboard and send a HTTP post request using the method <code>send</code> with a specify payload which can be any arbitrary object.</p>
+
+<p>Usage example:</p>
+
+<pre><code class="language-js">  // https://dashboard.com/resource
+  let notify = new Notify({ endpoint: 'resources' })
+
+  notify.send({ pod:'hello-rwq3', data:'...' })
+        .catch( err =&gt; console.log('endpoint not available') )
+</code></pre>
+
+<p>The method <code>send</code> returns a <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a> which is just an JavaScript object to encapsulate future actions i.e., server responses. If the <em>Dashboard</em> is not available our will fail gracefully and just show a message.</p>
+
+<h3 id="sending-os-resources">Sending OS Resources</h3>
+
+<p>To post hardware resources to our dashboard we are going to write this simple timer:</p>
+
+<pre><code class="language-js">const TARGET = process.env['TARGET_PORT'] || 8087
+/*...*/
+
+let pod = new Pod()
+
+setInterval(() =&gt; {
+  let payload = {
+    pod: pod.host(),
+    resource: pod.resources
+  }
+
+  let notify = new Notify({ endpoint: 'resources' })
+
+  notify.send({ payload })
+        .catch( err =&gt; console.log('dashboard: resources endpoint not available') )
+}, 1000)
+
+function telemetry({service, server}) {/*...*/}
+/*..*/
+</code></pre>
+
+<p>We just added a timer that each second executes a HTTP post request to the dashboard, with information about the CPU and memory usage.</p>
+
+<h3 id="service-metrics">Service Metrics</h3>
+
+<p>For the service we are going to choose a lower frequency rate and we only post if there is new information is available.</p>
+
+<pre><code class="language-js">setInterval(() =&gt; {
+  let payload = {
+    pod: pod.host(),
+    stats: db.all
+  }
+
+  console.log(`queue: ${db.size()}`)
+  if(db.size() &gt; 0) {
+    let notify = new Notify({ endpoint: 'stats' })
+
+    notify.send({ payload })
+      .then(()   =&gt; db.clear() )
+      .catch(err =&gt; console.log('dashboard: stats endpoint not available'))
+  }
+}, 5000)
+</code></pre>
+
+<p>Every five seconds we check the size of our <em>DB</em> object and see if there is something, if its true we report to the dashboard. If we get back a HTTP 200 from the dashboard, then we clear our array and start again.</p>
+
+<h4 id="deploy-1">Deploy</h4>
+
+<p>To deploy this changes we just reuse build upon the progress from last post, and reuse the build configuration we created before.</p>
+
+<pre><code class="language-sh">  oc start-build bc/decorator --from-dir=. --follow
+</code></pre>
+
+<p>If you remember in the last post we installed our decorated a Java service, so this service will get this update as a consequence of rebuilding this image. But it won&rsquo;t be able to target the dashboard because we need to provide the environment variable, so let&rsquo;s do that:</p>
+
+<pre><code class="language-sh">oc set env -c decorator dc/j-slow \
+        TARGET_PORT=8080  \
+        PORT=8087 \
+        DASHBOARD=http://dashboard-hello.192.168.64.2.nip.io
+</code></pre>
+
+<p>Here we use <code>oc set env</code> command which set environment variables to the running pod, in our particular case our pod is running two containers (default, decorator). We need to setup the variables for the second container <code>-c decorator</code>. The rest is just environment variable definition.</p>
+
+<ul>
+<li>Here is an example of a head-less dashboard:</li>
+</ul>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dash-vanilla.gif?raw=true" alt="" /></p>
+
+<ul>
+<li>The last example use a slightly modified version of the <em>dashboard</em> service and an nice UI:</li>
+</ul>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true" alt="" /></p>
+
+<p>Here is the source code: <a href="https://github.com/cesarvr/your-own-service-mesh-dashboard">dashboard</a> and <a href="https://github.com/cesarvr/ambassador">decorator</a>.</p></div>
+  <footer class="post-footer">
+    
+    <ul class="post-tags">
+      
+      <li><a href="/tags/openshift/">openshift</a></li>
+      
+      <li><a href="/tags/container/">container</a></li>
+      
+      <li><a href="/tags/services/">services</a></li>
+      
+      <li><a href="/tags/kubernetes/">kubernetes</a></li>
+      
+    </ul>
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2018 Cesar Valdez</span>
+</footer>
+<script src="https://cdn.bootcss.com/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js" data-no-instant></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+

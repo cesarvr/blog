@@ -11,17 +11,18 @@ toc: false
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true 
 ---
 
-In this post we are going to take our decorator container a step further and make it report the collected data to a centralize service, then we are going to make sense of this data by showing it with nice graphics.
+In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our [Ambassador container](https://github.com/cesarvr/ambassador), but having this information is of little value if we don't have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.
+
 
 <!--more-->
 
-## Design
+This way we can take this data and create an dashboard for example: 
 
-What we are going to do is actually very simple we are going to take the data we are collecting from the services running in the pod and we are going to send it to a central place for consumption.
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true)
 
-### Refactoring
+## Refactoring
 
-The previous post we wrote a class (*Stats*) that take care of persisting the data in memory, sample networking traffic and read hardware resources of our pod. Having this much functionality in a single class reduce the ways in which we can use the functionality, so let's do a quick refactoring to separate this into three components.
+Before we go any further first we need to do some modifications to our last version. We can start by decomposing the *Stats* class into three components.
 
 The first component will take care of reading the hardware telemetry:
 
@@ -74,7 +75,7 @@ module.exports = { DB }
 Again we just copy/paste from our previous example, but this time we use an array instead of an JavaScript object, also we modify the returning value in the ``all`` method, instead of returning a simple object, this class now assumes that we have objects that respond to the ``sample`` method/message call.
 
 
-Last component we are going to reuse the *Stats* class, and simplify the way it collect and presents the data.
+For the last component we are going to reuse the *Stats* class and just simplify the remaining functionality which takes care of sampling the network.
 
 ```js
 class Stats {
@@ -99,26 +100,11 @@ class Stats {
  }
 ```
 
-Here we just remove the history method and just used a mere plain JavaScript object. We are going to organize this three components as follows:
-
-We put the classes `Pod` and `Stats` inside ``./monitor.js`` module:
-
-```js
-  class Pod   { /*...*/ }
-  class Stats { /*...*/ }
-
-  module.exports = {Stats, Pod}
-```
-
-And *DB* inside the ``./db.js`` module:
-
-```js
-  class DB   { /*...*/ }
-
-  module.exports = {DB}
-```
+Here we just remove the history method and return a plain JavaScript object. 
 
 ### Implementation
+
+Doing this modification will also change the way we implement our network sampling, by simplifying the *Stats* class we are now able to create an object per HTTP transaction. 
 
 ```js
 const { Stats } = require('./monitor')
@@ -135,7 +121,7 @@ function telemetry({service, server}) {
 }
 ```
 
-To save each transaction we are going to create *DB* object.
+Here we create one sampling object per transaction instead of having one global object. To save each transaction we are going to create *DB* object.
 
 ```js
 const { Stats, Pod } = require('./monitor')
@@ -156,7 +142,7 @@ function telemetry({service, server}) {
 }
 ```
 
-Now we are in the same place as our last post, the difference now is that our system has more flexibility as you will see later.
+Now we are in the same place as our last post, but we are in better position to post this information.
 
 
 ### Making Sense Of Data
@@ -169,7 +155,7 @@ Our service will implement two endpoints and will receive the data in the follow
   {pod: '<name-of-the-pod>', data: 'body-of-statistics' }
 ```
 
-Every decorator should identify the pod and the metric that is collecting. To identify what type of data we are collecting we are going to provide two endpoints one for service performance ``/stats`` another for the hardware telemetry ``/resources``.
+Every decorator should identify the pod and send some metrics and we are going provide two endpoints one for service performance ``/stats`` another for the hardware telemetry ``/resources``.
 
 #### Setup
 
@@ -505,19 +491,14 @@ oc set env -c decorator dc/j-slow \
 
 Here we use ``oc set env`` command which set environment variables to the running pod, in our particular case our pod is running two containers (default, decorator). We need to setup the variables for the second container ``-c decorator``. The rest is just environment variable definition.
 
-* Here is an example of head-less dashboard: 
+* Here is an example of a head-less dashboard: 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dash-vanilla.gif?raw=true)
 
 
-* The dashboard with a nice UI: 
+* The last example use a slightly modified version of the *dashboard* service and an nice UI: 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true)
 
-
-
-
-
-
-
+Here is the source code: [dashboard](https://github.com/cesarvr/your-own-service-mesh-dashboard) and [decorator](https://github.com/cesarvr/ambassador). 
 
