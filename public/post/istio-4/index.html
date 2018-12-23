@@ -85,7 +85,7 @@
     <h1 class="post-title">Creating Your Own Istio (Part 3) - Dashboard</h1>
     <p class="post-meta">Cesar Valdez · 2018.12.11</p>
   </header>
-  <div class="post-content"><p>In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our <a href="https://github.com/cesarvr/ambassador">Ambassador container</a>, but having this information is of little value if we don&rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.</p>
+  <div class="post-content"><p>In <a href="https://cesarvr.io/post/istio-2.5/">the previous post</a> we where able to collect information about pods running in our cluster thanks to the deployment of our <a href="https://github.com/cesarvr/ambassador">Ambassador container</a>, but having this information is of little value if we don&rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.</p>
 
 <p></p>
 
@@ -493,7 +493,7 @@ function telemetry({service, server}) {/*...*/}
 
 <h3 id="service-metrics">Service Metrics</h3>
 
-<p>For the service we are going to choose a lower frequency rate and we only post if there is new information is available.</p>
+<p>To report information about the service we are going to choose a lower frequency rate and we only post if there is new information is available.</p>
 
 <pre><code class="language-js">setInterval(() =&gt; {
   let payload = {

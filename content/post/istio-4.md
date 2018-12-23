@@ -8,15 +8,15 @@ description: "Reusable Telemetry"
 tags: [openshift, container, services, kubernetes]
 categories: [openshift, container, services, kubernetes]
 toc: false
-image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true 
+image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true
 ---
 
-In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our [Ambassador container](https://github.com/cesarvr/ambassador), but having this information is of little value if we don't have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.
+In [the previous post](https://cesarvr.io/post/istio-2.5/) we where able to collect information about pods running in our cluster thanks to the deployment of our [Ambassador container](https://github.com/cesarvr/ambassador), but having this information is of little value if we don't have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.
 
 
 <!--more-->
 
-This way we can take this data and create an dashboard for example: 
+This way we can take this data and create an dashboard for example:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true)
 
@@ -100,11 +100,11 @@ class Stats {
  }
 ```
 
-Here we just remove the history method and return a plain JavaScript object. 
+Here we just remove the history method and return a plain JavaScript object.
 
 ### Implementation
 
-Doing this modification will also change the way we implement our network sampling, by simplifying the *Stats* class we are now able to create an object per HTTP transaction. 
+Doing this modification will also change the way we implement our network sampling, by simplifying the *Stats* class we are now able to create an object per HTTP transaction.
 
 ```js
 const { Stats } = require('./monitor')
@@ -450,7 +450,7 @@ We just added a timer that each second executes a HTTP post request to the dashb
 
 ### Service Metrics
 
-For the service we are going to choose a lower frequency rate and we only post if there is new information is available.
+To report information about the service we are going to choose a lower frequency rate and we only post if there is new information is available.
 
 ```js
 setInterval(() => {
@@ -491,14 +491,13 @@ oc set env -c decorator dc/j-slow \
 
 Here we use ``oc set env`` command which set environment variables to the running pod, in our particular case our pod is running two containers (default, decorator). We need to setup the variables for the second container ``-c decorator``. The rest is just environment variable definition.
 
-* Here is an example of a head-less dashboard: 
+* Here is an example of a head-less dashboard:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dash-vanilla.gif?raw=true)
 
 
-* The last example use a slightly modified version of the *dashboard* service and an nice UI: 
+* The last example use a slightly modified version of the *dashboard* service and an nice UI:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/istion-3/dashboard.gif?raw=true)
 
 Here is the source code: [dashboard](https://github.com/cesarvr/your-own-service-mesh-dashboard) and [decorator](https://github.com/cesarvr/ambassador). 
-

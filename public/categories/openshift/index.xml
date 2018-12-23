@@ -17,7 +17,7 @@
       <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-4/</guid>
-      <description>&lt;p&gt;In the previous post we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;
+      <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;
 
 &lt;p&gt;&lt;/p&gt;</description>
     </item>
