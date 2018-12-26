@@ -18,9 +18,9 @@
     let n = rnd(result.length)
     let msg = result[n]
 
-    setTimeout(()=>
+/*    setTimeout(()=>
       toastr.info(`<a href=${msg.url} target="_blank"> ${msg.phrase} </a>`, 'Quote',{  "positionClass": "toast-bottom-left", timeout: 5000 })
-    , 2000)
+    , 2000)*/
   })
 
 })()
