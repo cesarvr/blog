@@ -3,7 +3,7 @@ date: "2017-12-22T00:00:00Z"
 title: Containers For Beginners
 tags: [Containers, Docker]
 categories: ["Linux", "Containers"]
-image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/container.png 
+image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/twitter-logos/container_are_linux.png
 ---
 
 
