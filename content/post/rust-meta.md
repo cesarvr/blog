@@ -1,4 +1,4 @@
-+++
+---
 title: "Meta-Programming in Rust"
 date: 2019-01-15
 draft: true
@@ -9,7 +9,7 @@ categories: [rust, meta-programming]
 toc: false
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true
 
-+++
+---
 
 The first thing was to read the puzzle input, a plain text where the  
 
