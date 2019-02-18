@@ -11,75 +11,75 @@ toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
 ---
 
-A couple of months ago I was [watching Kelsey Hightower](https://www.youtube.com/watch?v=XPC-hFL-4lU) giving a talk where he was showing a typical [Golang](https://golang.org) server program, not big deal, then he close the program open the source code with vim and add a new library to the code just a simple line, now when he runs the program again it magically gets deployed into Kubernetes that simple.
+A year ago by now, I was [watching Kelsey Hightower](https://www.youtube.com/watch?v=XPC-hFL-4lU) giving a tech talk, in this talk he was showcasing a typical [Golang](https://golang.org) server program, at first it seems like a typical *hello world*, but then he close the program and edits the source code and add a library to the code, just a simple line, then he runs the program again the program gets magically deployed into Kubernetes cluster.
 
-No need to know the underlaying complexity of the container orchestration platform, this simplicity was my inspiration to write my own Node.js self-deployment library which I call [okd-runner](), the **okd** part is because at the moment only works with OpenShift (Red Hat Kubernetes distribution) because I'm more familiar with it, but I have plans to port it to Kubernetes.
+The cool thing about this is how simple it is from the point of view of the developer, basically all the technology behind that magic trick is completely abstracted behind a simple interface (adding a library) and freeing the developer of all the complexity and tools needed to achieve this. This motivate me to write my own self-deployment module, but it have to be for OpenShift (I more familiar with this flavor of Kubernetes) and I have to use JavaScript/Node.js. So let's see this library in action.
 
 ## Hello World...
 
 To show you how it works let's write a simple Node.js HTTP server:
 
 ``js
-const http = require('http')
-const port = '8080'
-const app = new http.Server()
-
-app.on('request', (req, res) => {
-  console.log('request: ', Date.now())
-  res.writeHead(200, { 'Content-Type': 'text/plain' })
-  res.end('Hello World \n')
-})
-
-app.listen(port, () =>  console.log(`Listening on port ${port}`) )
+let count = 0
+require('http')
+    .createServer((req, res) => {
+        res.end(`<HTML>
+                    <h1>Hello From -> ${process.platform}</h1>
+                    <h2>Visitor: ${count++} </h2>
+                </HTML>`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
 ``
 
-This is a typical Node.js server, we open an TCP/HTTP port in 8080, subscribe to ``request`` events and we respond with a simple HTTP *200* header and a ``hello world`` message in the body.
+This is a typical Node.js server, we open an TCP/HTTP port in 8080 and wait for clients, if a clients connect we increment the visitors count and send a greetings page with an identifier of the server operative system and the visitors count.
 
-
-## Testing Locally
-
-We save this file let's called ``app.js`` and we execute it this way.
+Now we save this file as ``app.js`` and lets test this local:
 
 ```sh
-  node app.js
-
-  Listening on port 8080
-  receiving a request:  1550488478558
-  receiving a request:  1550488478578
+  node app
 ```
 
-## Cloud Deployment
-
-Assuming you have free OpenShift or an instance like [OpenShift Online](https://manage.openshift.com/), you can install a some local alternatives like [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/before.gif?raw=true)
 
 
-Once you get OpenShift up and running you can proceed to deploy your application by doing:
+Nice, I think we are ready to make a container with JS/Node.js interpreter and the content of our working folder, and we want to deploy this container in machine that belong to somebody else aka the cloud.
+
+## Cloud Runtime
+
+Now this guide assume you got an OpenShift cluster up and running, if you don't you can get [OpenShift Online](https://manage.openshift.com/) for free or setup  [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
+
+Once you get OpenShift by any of those options, you need to create a project manually, you can do this by login into the console and clicking into new project, after that you just need to install ``okd-runner`` [module from npm](https://www.npmjs.com/package/okd-runner).
 
 ```sh
 npm install install okd-runner --save
 ```
 
-Now just add this library to the source code:
+Add this library to the source code:
 
 ```js
-const http  = require('http')
-const runner = require('okd-runner')
-const port  = '8080'
-const app   = new http.Server()
-
-app.on('request', (req, res) => {
-  console.log('request: ', Date.now())
-  /*...*/
-})
-  /*...*/
+let count = 0
+const run = require('okd-runner') // <- self-deploy module
+require('http')
+    .createServer((req, res) => {
+        res.end(`<HTML>
+                    <h1>Hello From -> ${process.platform}</h1>
+                    <h2>Visitor: ${count++} </h2>
+                </HTML>`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
 ```
 
-And run your application like this:
+And run your application with the ``--cloud`` flag:
 
 
 ```sh
-  node app.js -c
+  node app.js --cloud   # or -c for short
 ```
+
+The first time you will see a prompt asking for your cluster credentials and namespace:
+
+![]()
+
 
 
 After you execute this command you will be prompted with your OpenShift login cluster URL and login credentials and you should choose a namespace (*the namespace is just a project name, you need to create one manually using the web console*) then you are ready to go.  
