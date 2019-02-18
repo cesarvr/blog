@@ -45,7 +45,7 @@ Now we save this file as ``app.js`` and run it locally to see how it goes:
   node app
 ```
 
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/before.gif?raw=true)
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deploy-before.gif?raw=true)
 
 
 Our application is running well, I think it's time to make a deploy this application in somebody else computer AKA *the cloud*.
