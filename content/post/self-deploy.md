@@ -8,7 +8,7 @@ description: "Let's write an application that runs itself into OpenShift."
 tags: [openshift, container, services, kubernetes]
 categories: [openshift, container, nodejs, kubernetes]
 toc: true
-image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
+image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
 ---
 
 A few days ago I was watching [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) with the title "Self Deploying Kubernetes Applications", the talk has over a year now but it was very interesting.
@@ -96,7 +96,7 @@ The first time it will ask you for your cluster credentials:
 
 #### Namespace, Container Creation & Deployment
 
-Then it will show you the namespaces available for your user, you chose one:
+Then it will show you the namespaces available for your user to chose :
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
 
@@ -141,5 +141,7 @@ node app -rm
 ```
 
 This command will remove the project and all the generated components from OpenShift.
+
+> You don't need to delete your project before starting a new one, you can just continuing using --cloud options to override existing images.
 
 Hope this module simplify a bit your life when developing micro-services using Node.js, also you can contribute to [this module](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or sending PR.  
