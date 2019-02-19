@@ -56,15 +56,15 @@ Next you'll need an OpenShift cluster up and running, you can one by getting acc
 
 Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project, thats the only limitation of the module at the moment at the moment is that it require a user with projects assigned to him.
 
-#### OKD-Runner
+#### Deploying
 
-After all that, we get back to our working directory and install ``okd-runner`` [module from npm](https://www.npmjs.com/package/okd-runner):
+Now should get back to our working directory and install ``okd-runner`` [module from npm](https://www.npmjs.com/package/okd-runner):
 
 ```sh
 npm install install okd-runner --save
 ```
 
-We require the module:
+We add the module:
 
 ```js
 let count = 0
@@ -95,29 +95,21 @@ The first time it will ask you for your cluster credentials:
 
 #### Namespace, Container Creation & Deployment
 
-Then it will show you the namespaces available for your user to chose :
+You chose a namespaces:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
 
 The next stage will create and deploy you image, once the image is deployed a route is created, as you might observe now the OS is Linux.
 
+#### Getting Access
 
-#### Routing
-
-The route basically will allow traffic to your pod from the outside, when this components is created you will get the URL back:
+Once you application is deployed you will see logs of your container and the URL to access your application.
 
 ```sh
 ...
 building  ok
 URL:  http://my-app-dev-01.7e14.starter-us-west-2.openshiftapps.com
 ...
-```
-
-#### Container Logs
-
-Another convenient feature is to receive the logs of your container in your stdout, this makes your life easier to see what happening inside the container.
-
-```sh
 ...
 npm info using node@v10.14.0
 npm info lifecycle my-app@1.0.0~prestart: my-app@1.0.0
@@ -129,6 +121,11 @@ npm info lifecycle my-app@1.0.0~start: my-app@1.0.0
 response: 1550511176623
 ...
 ```
+
+
+#### Making A Change
+
+ 
 
 
 ### Clean up
