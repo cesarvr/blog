@@ -11,19 +11,18 @@ toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
 ---
 
-A few days ago I was watching [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) with the title "Self Deploying Kubernetes Applications", the talk has over a year now but it was very interesting.
-
-In this talk he was showcasing a typical [Golang](https://golang.org) server program, which at first seems like a typical *hello world* echo server, but then for my surprise he edit the source code, added a library and runs the program again which runs but this time it gets *magically deployed* into a Kubernetes cluster.
+Few days ago I was watching a [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) with the title “Self Deploying Kubernetes Applications”, the talk is a bit old now (over a year), but I though is still interesting, so in this talk he was showcasing a [Golang](https://golang.org) HTTP server program, which at first seems like a typical hello world echo server, nothing special, but then he adds a new library and executes the program again, this time the program is magically running in the cloud as if Kubernetes was just an extension of his laptop OS.
 
 <!--more-->
 
+I think this is how developing cloud applications should be, instead of copy/pasting/modifying configuration files or entering complex commands, things should be as simple as to write a program, pass a flag as arguments indicating we want our snowflake running in the cloud.
 
-The cool thing is that all the complexity behind that magic trick is hidden behind a simple interface (a simple module) freeing the developer from understanding Kubernetes idiosyncrasies. When I finish the video, I was convince that I have to write my own self-deployment mechanism, but it have to be for OpenShift because I'm not familiar *yet* with Google Cloud Kubernetes and this self-deploy mechanism will work with *one of my favorite* language *JavaScript*.
+Inspired by this I decided to write module that magically handle this, and to make it in a reasonable amount of time I used technology I'm familiar with like *JavaScript/Node.JS* and *OpenShift* (Red Hat Kubernetes) to handle the compute nodes. The objective, is that by including this module in your Node.JS your program can execute in your laptop OS or *OpenShift OS*.
 
 
 ### Simple HTTP Server
 
-So let's write and deploy a simple Node.JS HTTP server:
+The best way to explain this is be seeing it working, so let's start by writing a simple web server:
 
 ```js
 let count = 0
@@ -36,26 +35,26 @@ require('http')
         console.log(`response: ${Date.now()}`)
     }).listen(8080)
 ```
+In this 9 lines we got define a HTTP/Server listening in Port 8080, we serve a webpage showing an update registry of visitors and the OS platform where our application is running.
 
-Here we create and setup an HTTP server that will listen in the TCP/Port **8080**, when a new client arrive we are going to serve a rudimentary webpage showing the operative system and the visitors count, all this awesomeness in 9 lines.
-
-Now we save this file as ``app.js`` and run it locally to see how it goes:
+We save this file as ``app.js`` and run it locally:
 
 ```sh
-  node app
+  node app   # app.js
 ```
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deploy-before.gif?raw=true)
 
 
-Our application is running well, I think it's time to make a deploy this application in somebody else computer AKA *the cloud*.
+Our application is running well, I think it's time to make a deploy this application in a remote computer.
 
 ### Self Deploying
 <BR>
-#### Setup
-Now this guide assume you got an OpenShift cluster up and running, if you don't, you still can get access to [OpenShift Online](https://manage.openshift.com/) for free or setup one in your computer via [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
 
-Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project, thats the only limitation of the module at the moment of not being able to create it for you.
+#### Setup
+Next you'll need an OpenShift cluster up and running, you can one by getting access to [OpenShift Online](https://manage.openshift.com/) for free or setup one in your computer via [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
+
+Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project, thats the only limitation of the module at the moment at the moment is that it require a user with projects assigned to him.
 
 #### OKD-Runner
 
@@ -144,4 +143,4 @@ This command will remove the project and all the generated components from OpenS
 
 > You don't need to delete your project before starting a new one, you can just continuing using --cloud options to override existing images.
 
-Hope this module simplify a bit your life when developing micro-services using Node.js, also you can contribute to [this module](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or sending PR.  
+Hope this module simplify a bit your life when developing micro-services using Node.JS, also you can contribute to [this module](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or sending PR.  
