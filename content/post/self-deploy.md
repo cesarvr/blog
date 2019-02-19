@@ -54,7 +54,10 @@ Our application is running well, I think it's time to make a deploy this applica
 #### Setup
 Next you'll need an OpenShift cluster up and running, you can one by getting access to [OpenShift Online](https://manage.openshift.com/) for free or setup one in your computer via [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
 
-Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project, thats the only limitation of the module at the moment at the moment is that it require a user with projects assigned to him.
+Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project.
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/making-project.gif?raw=true)
+
 
 #### Deploying
 
@@ -123,9 +126,39 @@ response: 1550511176623
 ```
 
 
-#### Making A Change
+### Making A Change
 
- 
+Let's modify our application so we can observe what pod is handling the request:
+
+```js
+let count = 0
+const run = require('okd-runner')
+console.log('listening in 8080')
+require('http')
+    .createServer((req, res) => {
+        res.end(`<HTML>
+                    <h1>Hello From -> ${process.platform}</h1>
+                    <h2>Visitor: ${count++} </h2>
+                    <!-- this line -->
+                    <p>${require('os').hostname()}<p>
+                </HTML>`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
+
+```
+
+To deploy this change in the cloud we just need execute the command again:
+
+
+```sh
+  node app --cloud
+```
+
+After the module cache your credentials, everything is more fluid now. 
+
+![]()
+
+
 
 
 ### Clean up
