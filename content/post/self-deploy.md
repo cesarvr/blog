@@ -1,7 +1,7 @@
 ---
-title: "Writing Self Deploying Node.JS Applications"
-date: 2019-02-11
-lastmod: 2019-02-18
+title: "Self Deploying Node.JS Applications"
+date: 2019-02-20
+lastmod: 2019-02-20
 draft: false
 keywords: []
 description: "Let's write an application that runs itself into OpenShift."
@@ -19,7 +19,7 @@ This is how deploying applications into the cloud should be instead of copy/past
 
 So after a few days of hacking with Kubernetes/OpenShift REST API, I wrote a small module that when imported ( or required) in a Node.JS application it extends its runtime capabilities allowing it to run in OpenShift (at the moment) by just adding a flag ``--cloud``. From the point of view of a non-expert it will looks like OpenShift is just another global JavaScript interpreter.
 
-### Hello World
+## Hello World
 
 Let's see how this works by writing a simple web server:
 
@@ -46,8 +46,9 @@ We save this file with the name ``app.js`` and run test it locally:
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deploy-before.gif?raw=true)
 
 
+<BR>
 
-### Self Deploying
+### Getting Started
 
 Before continue you'll need an OpenShift cluster up and running, the easiest way is to subscribe here [OpenShift Online](https://manage.openshift.com/) for free or if you *feel strong* you can setup one in your computer via [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
 
@@ -55,8 +56,8 @@ Once you have OpenShift sorted out, you'll need to create a project/namespace ma
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/making-project.gif?raw=true)
 
-
-#### Deploying
+<BR>
+### Self Deploying
 
 Now we should get back to our working directory and install ``okd-runner`` [module from npm](https://www.npmjs.com/package/okd-runner), this is the module that does the *magic*:
 
@@ -97,7 +98,7 @@ Also the first run it will ask you to chose your namespace to operate:
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
 
 
-#### Getting Access
+### Runtime
 
 After those questions your application will get deploy into OpenShift and you can start watching the logs very similar to when you run the application locally and also you will get an URL to access your application.
 
@@ -118,8 +119,7 @@ response: 1550511176623
 ...
 ```
 
-
-### Making A Change
+### Updating
 
 From now everything is similar as to run your application locally, let's add a line of code to get the pods name and this way showcase how we can make an update:
 
@@ -130,10 +130,10 @@ console.log('listening in 8080')
 require('http')
     .createServer((req, res) => {
         res.end(`<HTML>
-                    <h1>Hello From -> ${process.platform}</h1>
-                    <h2>Visitor: ${count++} </h2>
+                    <h1>Hello From ${process.platform}</h1>
+                    <h2>Visitors ${count++} </h2>
                     <!-- this line -->
-                    <p>${require('os').hostname()}<p>
+                    <p>Pod ${require('os').hostname()}<p>
                 </HTML>`)
         console.log(`response: ${Date.now()}`)
     }).listen(8080)
