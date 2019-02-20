@@ -93,14 +93,14 @@ We your application deploys the first time it will ask you for your cluster cred
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/creds.gif?raw=true)
 
 
-Also it will let you choose your namespace/project where you want to install your application:
+And choose your namespace/project where you want to install your application:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
 
 
 ### Runtime
 
-After those questions your application will get deploy into OpenShift and you can start watching the logs very similar to when you run the application locally and also you will get an URL to access your application.
+After that your application will deploy itself:
 
 ```sh
 ...
@@ -118,6 +118,8 @@ npm info lifecycle my-app@1.0.0~start: my-app@1.0.0
 response: 1550511176623
 ...
 ```
+
+Here you can see the logs of you container plus the URL, to exit you just need to press ``Ctrl-C`` and you will get back to your console.
 
 ### Updating
 
