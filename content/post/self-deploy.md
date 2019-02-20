@@ -100,7 +100,11 @@ Adding the module won't affect directly at the code, meaning that you can contin
 
 ##### Runtime
 
-After that your application will deploy itself:
+After that you can watch your application deploying itself:
+
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deployment.gif?raw=true)
+
 
 ```sh
 ...
@@ -123,7 +127,7 @@ Here you can see the logs of you container plus the URL, to exit you just need t
 
 ##### Updating
 
-From now everything is similar as to run your application locally, let's add a line of code to get the pods name and this way showcase how we can make an update:
+From now everything is similar as to run your application locally, let's add a line of code to get the pods name, this way showcase how we can make an update:
 
 ```js
 let count = 0
@@ -153,7 +157,7 @@ This time it goes straight to deployment.
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/oc-update.gif?raw=true)
 
 
-##### Clean up
+##### Cleaning up
 
 To remove your application you just need to pass the ``-rm`` flag:
 
