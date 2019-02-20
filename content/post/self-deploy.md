@@ -82,18 +82,18 @@ require('http')
     }).listen(8080)
 ```
 
-Now we can continue running our application normally as before, but if we want to run our application in OpenShift we need to pass the ``--cloud`` flag like this:
+Adding the module won't affect directly at the code, meaning that you can continue running your application locally, the only difference is that you can choose a different execution runtime by passing the ``--cloud`` flag like this:
 
 ```sh
   node app --cloud   # or node app -c for short
 ```
 
-The first time it will ask you for your cluster URL, user and password:
+We your application deploys the first time it will ask you for your cluster credentials:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/creds.gif?raw=true)
 
 
-Also the first run it will ask you to chose your namespace to operate:
+Also it will let you choose your namespace/project where you want to install your application:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
 
