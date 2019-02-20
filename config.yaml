@@ -1,9 +1,8 @@
 baseURL: "/"
 disablePathToLower: true
 languageCode: en-us
-title: Shipwreck
+title: code_scripter
 theme: hugo-paper
-googleAnalytics: UA-110580110-1
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true
