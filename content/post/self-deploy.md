@@ -21,7 +21,7 @@ So after a few days of hacking with Kubernetes/OpenShift REST API, I wrote a sma
 
 ## Hello World
 
-Let's see how this works by writing a simple web server:
+Let's see how this works by writing a simple web server.
 
 ```js
 let count = 0
@@ -88,17 +88,17 @@ Adding the module won't affect directly at the code, meaning that you can contin
   node app --cloud   # or node app -c for short
 ```
 
-We your application deploys the first time it will ask you for your cluster credentials:
+* We your application deploys the first time it will ask you for your cluster credentials:
 
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/creds.gif?raw=true)
-
-
-And choose your namespace/project where you want to install your application:
-
-![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/deploy.gif?raw=true)
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/credentials.png?raw=true)
 
 
-### Runtime
+* And choose your namespace/project where you want to install your application:
+
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/namespace.png?raw=true)
+
+
+##### Runtime
 
 After that your application will deploy itself:
 
@@ -121,7 +121,7 @@ response: 1550511176623
 
 Here you can see the logs of you container plus the URL, to exit you just need to press ``Ctrl-C`` and you will get back to your console.
 
-### Updating
+##### Updating
 
 From now everything is similar as to run your application locally, let's add a line of code to get the pods name and this way showcase how we can make an update:
 
@@ -153,7 +153,7 @@ This time it goes straight to deployment.
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/oc-update.gif?raw=true)
 
 
-### Clean up
+##### Clean up
 
 To remove your application you just need to pass the ``-rm`` flag:
 
