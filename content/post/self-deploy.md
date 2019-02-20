@@ -11,18 +11,18 @@ toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
 ---
 
-Few days ago I was watching a [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) with the title “Self Deploying Kubernetes Applications”, the talk is a bit old now (over a year), but I though is still interesting, so in this talk he was showcasing a [Golang](https://golang.org) HTTP server program, which at first seems like a typical hello world echo server, nothing special, but then he adds a new library and executes the program again, this time the program is magically running in the cloud as if Kubernetes was just an extension of his laptop OS.
+Few days ago I was watching in Youtube a [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) titled "Self Deploying Kubernetes Applications". In this talk which is a bit old now (over a year) he was demoing a [Golang](https://golang.org) server program which was capable of magically deploy itself into a Kubernetes cluster. 
 
 <!--more-->
 
-I think this is how developing cloud applications should be, instead of copy/pasting/modifying configuration files or entering complex commands, things should be as simple as to write a program, pass a flag as arguments indicating we want our snowflake running in the cloud.
+In my opinion this is how developing cloud applications should be, or aim to be, instead of copy/pasting/modifying configuration files, things should be as simple as to write a program capable of run itself in multiple runtime local or remote machines. 
 
-Inspired by this I decided to write module that magically handle this, and to make it in a reasonable amount of time I used technology I'm familiar with like *JavaScript/Node.JS* and *OpenShift* (Red Hat Kubernetes) to handle the compute nodes. The objective, is that by including this module in your Node.JS your program can execute in your laptop OS or *OpenShift OS*.
+Inspired by this I decided to write a JavaScript/Node.JS module to make this idea possible using OpenShift (Kubernetes Red Hat).
 
 
 ### Simple HTTP Server
 
-The best way to explain this is be seeing it working, so let's start by writing a simple web server:
+The best way to explain this is to see this module in action, so let's start by writing a simple web server:
 
 ```js
 let count = 0
@@ -49,9 +49,7 @@ We save this file as ``app.js`` and run it locally:
 Our application is running well, I think it's time to make a deploy this application in a remote computer.
 
 ### Self Deploying
-<BR>
 
-#### Setup
 Next you'll need an OpenShift cluster up and running, you can one by getting access to [OpenShift Online](https://manage.openshift.com/) for free or setup one in your computer via [Minishift](https://github.com/minishift/minishift) or [oc cluster-up](https://github.com/cesarvr/Openshift#ocup).
 
 Once you have OpenShift sorted out, you'll need to create a project/namespace manually, you can do this by login into the console and clicking into new project.
@@ -154,10 +152,9 @@ To deploy this change in the cloud we just need execute the command again:
   node app --cloud
 ```
 
-After the module cache your credentials, everything is more fluid now. 
+After the module cache your credentials, everything is more fluid now.
 
-![]()
-
+![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/oc-update.gif?raw=true)
 
 
 
@@ -173,4 +170,4 @@ This command will remove the project and all the generated components from OpenS
 
 > You don't need to delete your project before starting a new one, you can just continuing using --cloud options to override existing images.
 
-Hope this module simplify a bit your life when developing micro-services using Node.JS, also you can contribute to [this module](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or sending PR.  
+Well that's all for now, hope this module helps you simplify your workflow when developing Node.JS micro-services, you can [contribute](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or doing some hacking yourself and sending a pull request.  

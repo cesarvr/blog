@@ -47,7 +47,7 @@ h4:hover .anchor {
   color: gray !important;
   font-style: italic;
   color: #b8b8b8 !important;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   font-weight: lighter !important;
 }
 
@@ -70,9 +70,9 @@ article, aside, figcaption, figure, footer, header, main, nav, section {
 }
 body {
   margin: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   color: rgba(0, 0, 0, .7);
-  font-size: 19px;
+  font-size: 17px;
   line-height: 1.6;
 }
 h1, h2, h3, h4, h5, h6 {
