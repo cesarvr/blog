@@ -138,8 +138,12 @@ require('http')
         res.end(`<HTML>
                     <h1>Hello From ${process.platform}</h1>
                     <h2>Visitors ${count++} </h2>
-                    <!-- this line -->
+
+                    <!-- changes -->
                     <p>Pod ${require('os').hostname()}<p>
+                    <img src="https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif">
+                    <!--         -->
+
                 </HTML>`)
         console.log(`response: ${Date.now()}`)
     }).listen(8080)
