@@ -11,18 +11,14 @@ toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
 ---
 
-Few days ago I was watching in Youtube a [tech talk](https://www.youtube.com/watch?v=XPC-hFL-4lU) given by [Kelsey Hightower](https://twitter.com/kelseyhightower) titled "Self Deploying Kubernetes Applications". In this talk which is a bit old now (over a year) he was demoing a [Golang](https://golang.org) server program which was capable of magically deploy itself into a Kubernetes cluster. 
+Have you notice how complex is sometimes to deploy an application in the cloud ? 
 
 <!--more-->
 
-In my opinion this is how developing cloud applications should be, or aim to be, instead of copy/pasting/modifying configuration files, things should be as simple as to write a program capable of run itself in multiple runtime local or remote machines. 
 
-Inspired by this I decided to write a JavaScript/Node.JS module to make this idea possible using OpenShift (Kubernetes Red Hat).
+### Hello World
 
-
-### Simple HTTP Server
-
-The best way to explain this is to see this module in action, so let's start by writing a simple web server:
+To watch how this module works let's write a simple web server:
 
 ```js
 let count = 0
@@ -152,7 +148,7 @@ To deploy this change in the cloud we just need execute the command again:
   node app --cloud
 ```
 
-After the module cache your credentials, everything is more fluid now.
+After the module cache your credentials, everything is more faster now.
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/oc-update.gif?raw=true)
 
@@ -168,6 +164,5 @@ node app -rm
 
 This command will remove the project and all the generated components from OpenShift.
 
-> You don't need to delete your project before starting a new one, you can just continuing using --cloud options to override existing images.
 
-Well that's all for now, hope this module helps you simplify your workflow when developing Node.JS micro-services, you can [contribute](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or doing some hacking yourself and sending a pull request.  
+You see not a single YML file, hope this module helps you simplify your workflow while developing Node.JS micro-services, you can [contribute](https://github.com/cesarvr/okd-runner) by suggesting improvement or by opening an [issue](https://github.com/cesarvr/okd-runner/issues) or by sending a pull request.  
