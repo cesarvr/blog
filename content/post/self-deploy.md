@@ -15,9 +15,9 @@ Few days ago I was watching in [Youtube a talk](https://www.youtube.com/watch?v=
 
 <!--more-->
 
-This is how deploying applications into the cloud should be instead of copy/pasting/modifying configuration files or issuing cryptic commands, it should be as simple as it is running a process in our laptop. So after watching the talk I started to think on how to achieve this with one of my favorite programming language Javascript/Node.JS.
+This is how deploying applications into the cloud should be instead of copy/pasting configuration files or issuing cryptic commands, we should aim to be as simple as running a process in our local computer. So after watching the talk I started to think on how I can achieve this, how I can make a process deploy itself and how to do it using my favorite programming language Javascript/Node.JS.
 
-So after a few days of hacking with Kubernetes/OpenShift REST API, I wrote a small module that when imported ( or required) in a Node.JS application it extends its runtime capabilities allowing it to run in OpenShift (at the moment) by just adding a flag ``--cloud``. From the point of view of a non-expert it will looks like OpenShift is just another global JavaScript interpreter.
+After a few days of hacking with Kubernetes/OpenShift REST API, I finally end up writing a small module that when imported ( or required) in a Node.JS application it extends its runtime capabilities allowing it to run in a OpenShift cluster (at the moment) by just adding a flag ``--cloud``. From the point of view of a non-expert it will looks like OpenShift is just another global JavaScript interpreter.
 
 ## Hello World
 
@@ -168,6 +168,5 @@ To remove your application you just need to pass the ``-rm`` flag:
 ```js
 node app -rm
 ```
-
 
 You see not a single YML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to [contribute](https://github.com/cesarvr/okd-runner) by sending suggestions, pull request, improvements or by opening an [issue](https://github.com/cesarvr/okd-runner/issues).  
