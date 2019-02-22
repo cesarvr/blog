@@ -15,9 +15,9 @@ Few days ago I was watching in [Youtube a talk](https://www.youtube.com/watch?v=
 
 <!--more-->
 
-This is how deploying applications into the cloud should be instead of copy/pasting configuration files or issuing cryptic commands, we should aim to be as simple as running a process in our local computer. So after watching the talk I started to think on how I can achieve this, how I can make a process deploy itself and how to do it using my favorite programming language Javascript/Node.JS.
+This is how think deploying applications to the cloud should be, instead of copy/pasting configuration files or issuing cryptic commands we should  aim to make this task simple, after all the tools we use are just a mean to an end. So after watching the talk I started to think on how I can achieve this, how I can make a process deploy itself and how to do it using my favorite programming language Javascript/Node.JS.
 
-After a few days of hacking with Kubernetes/OpenShift REST API, I finally end up writing a small module that when imported ( or required) in a Node.JS application it extends its runtime capabilities allowing it to run in a OpenShift cluster (at the moment) by just adding a flag ``--cloud``. From the point of view of a non-expert it will looks like OpenShift is just another global JavaScript interpreter.
+After a few days of hacking with Kubernetes/OpenShift REST API, I finally end up writing a small module that when imported ( or required) in a Node.JS application it extends its runtime options allowing it to run in a OpenShift cluster (at the moment) by just adding a simple flag ``--cloud``. From the point of view of a non-expert it will looks like OpenShift is just a JavaScript interpreter.
 
 ## Hello World
 

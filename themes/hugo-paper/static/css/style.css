@@ -9,8 +9,6 @@
 ============================================================= */
 
 
-
-
 *,
 *::before,
 *::after {
@@ -71,7 +69,7 @@ article, aside, figcaption, figure, footer, header, main, nav, section {
 body {
   margin: 0;
   font-family: 'Open Sans', sans-serif;
-  color: rgba(0, 0, 0, .7);
+  color: rgba(0, 0, 0, .8);
   font-size: 17px;
   line-height: 1.6;
 }
@@ -338,8 +336,6 @@ pre, code {
 .post-content {
   padding-top: 30px;
   word-wrap: break-word;
-  text-align: justify;
-  text-justify: inter-word;
 }
 .post-content h1,
 .post-content h2 {
