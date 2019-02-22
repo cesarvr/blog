@@ -82,26 +82,25 @@ require('http')
     }).listen(8080)
 ```
 
-Adding the module won't affect directly at the code, meaning that you can continue running your application locally, the only difference is that you can choose a different execution runtime by passing the ``--cloud`` flag like this:
+By adding this module you still can run your application locally, the only difference is that now you can choose a different execution runtime by passing the ``--cloud`` flag, this flag will tell your JS program to run in OpenShift:
 
 ```sh
   node app --cloud   # or node app -c for short
 ```
 
-* We your application deploys the first time it will ask you for your cluster credentials:
+* The first time it will ask you for your cluster credentials:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/credentials.png?raw=true)
 
 
-* And choose your namespace/project where you want to install your application:
+* And also to choose the namespace/project:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/namespace.png?raw=true)
 
 
 ##### Runtime
 
-After that you can watch your application deploying itself:
-
+After that your application will start the deployment:
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deployment.gif?raw=true)
 
@@ -169,4 +168,4 @@ To remove your application you just need to pass the ``-rm`` flag:
 node app -rm
 ```
 
-You see not a single YML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to [contribute](https://github.com/cesarvr/okd-runner) by sending suggestions, pull request, improvements or by opening an [issue](https://github.com/cesarvr/okd-runner/issues).  
+You see not a single YML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to [contribute](https://github.com/cesarvr/okd-runner) by sending suggestions, pull request, improvements or by opening an [issue](https://github.com/cesarvr/okd-runner/issues).
