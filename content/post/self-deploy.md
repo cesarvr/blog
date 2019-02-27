@@ -168,4 +168,4 @@ To remove your application you just need to pass the ``-rm`` flag:
 node app -rm
 ```
 
-You see not a single YML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to [contribute](https://github.com/cesarvr/okd-runner) by sending suggestions, pull request, improvements or by opening an [issue](https://github.com/cesarvr/okd-runner/issues).
+You see not a single YAML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to [contribute](https://github.com/cesarvr/okd-runner) by sending suggestions, pull request, improvements or by opening an [issue](https://github.com/cesarvr/okd-runner/issues).
