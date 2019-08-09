@@ -430,19 +430,19 @@ user	0m0.171s
 sys	0m0.010s
 ```
 
-> Now the algorithm is 3x faster, I can call me self Rust newbie.
+> Now the algorithm is 3x faster!.
 
 ### Lessons Learned
 
-Well here are some take aways from this experience, if you want to choose a language assuming that is faster, you should take in account the time you are willing to spend optimizing your **naive algorithm** implementation, assuming you are not an expert.
+Well here are some take aways from this experience, if you want to choose a language assuming that is faster, you should take in account the time you are willing to spend optimising your first **naive algorithm** implementation. Of course as soon as you get more experience you will be able to hit the performance sweet spot.
 
 Languages JS or Go seems to have a lower barrier in this regard and is something you should consider when choosing a language for a new project that may require good performance but not exceptional.
 
-In the other hand if you need exceptional performance and you are willing to profile your program with discipline, then Rust cannot only give you take you there at almost the same level of C/C++, but it also provide you with the safety net of having a compiler helping (or annoying) you about your mistakes.
+In the other hand if you need exceptional performance and you are willing to profile your program with discipline, then Rust the right choice in my opinion, not only give you speed but also provides you with a safety net of having a compiler helping (or annoying) you about common memory mistakes and vulnerabilities. No wonder [Dropbox use Rust](https://www.wired.com/2016/03/epic-story-dropboxs-exodus-amazon-cloud-empire/) for their distributed filesystem.
 
 ### Wrapping Up
 
-Me personally I like low-level system and Rust brings a high level syntax to write really expressive algorithms. I'll continue learning it on my free time.
+Me personally I like to learn about low-level stuff in Linux and Rust helps to write programs that are close to the metal while keeping the illusion of high level.
 
 Also I want to write another article because, if you run this algorithm on **MacOSX** I discover that my Rust implementation is again **slower** or on par with the runtimes languages **again**, take a look at this:
 
@@ -454,6 +454,6 @@ Node.js   0.17s user 0.08s system 61% cpu 0.409 total
 Go        0.20s user 0.01s system 111% cpu 0.191 total
 ```
 
-In my next post I'm going to talk about why the **slowness** of this particular case, how to use instruments to get to the core of this and explore if we can do something about it.
+In my next post I'm going to talk about the causes for this **performance degradation**, how to use [Xcode Instruments](https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html) to profile Rust on MacOSX and explore if we can do something about it.
 
 If you have any improvements on the algorithms above or any suggestion on how to make them faster [let me know](https://twitter.com/cvaldezr).
