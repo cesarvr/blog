@@ -66,7 +66,11 @@ Now we got our backbone ready to deploy any image created by our ``java-microser
 
 ## Step Two
 
-This part assumes that you already have Jenkins deployed and running in your Openshift cluster, if you don't I wrote [this small guide](https://github.com/cesarvr/Spring-Boot#configuring-continuous-integration) to help you get the basics, you can comeback to this point when you finnish the installation. 
+This part assumes that you already have Jenkins deployed and running in your Openshift cluster, if you haven't do this before, I've wrote [this small guide](https://github.com/cesarvr/Spring-Boot#configuring-continuous-integration) to help you get the basics, you can comeback to this point when you finnish the installation. 
+
+One advantage of doing our build configuration using the binary strategy is that it give us a "common interface", meaning that it doesn't matter if we build our binary with Gradle, Maven or Ant; this build just require that we provide a JAR file. 
+
+Spring Boot offers a way to create light weight microservices using an embeded Tomcat, so [let's containerize a Spring Boot ](https://github.com/cesarvr/GradleOpenShift) microservice using Gradle.  
 
 Now let's create a simple Pipeline: 
 
@@ -84,7 +88,7 @@ pipeline {
   agent any
  
   tools { 
-     maven 'Maven_3_9_9' // You can setup this using Jenkins Global Tools. 
+    gradle 'Gradle562' // You can setup this using Jenkins Global Tools. 
   }
 }
 ```
@@ -103,31 +107,48 @@ We instruct Jenkins to clone, test and package our Java binary:
              git GIT_URL
         }
     }
-  
-        
-  
+    
     /*=============================================*/
-    /* Testing & Packaging                         */
+    /* We keep Maven related stuff here            */
     /*=============================================*/
         
-    stage('Testing And Packaging') {
+   stage('Testing And Packaging') {
         steps {
-                sh 'mvn package'
+            sh   'gradle build'
         }
-        
-        /*
-            This thing enables reporting...
-        */
-        post {
-            always {
-              junit 'target/surefire-reports/*.xml'
+    }
+    /*=============================================*/
+``` 
+
+And finally we need to deploy our JAR binary into our BuildConfig: 
+
+
+```groovy
+   stage('Build') {
+          
+        steps {
+            echo "Pushing The JAR Into OpenShift OpenJDK-Container"
+            script {
+                openshift.withCluster( clusterName ) {
+                    openshift.withProject( project ) {
+                        openshift
+                        .selector("bc", imageBuildConfig)
+                        .startBuild("--from-file=build/libs/gs-spring-boot-0.1.0.jar", "--wait")
+                    }
+               }
+              }
+          }
+    	  
+          post {
+            success {
+              archiveArtifacts artifacts: 'build/libs/**.jar', fingerprint: true
             }
+          }
         }
     }
 ``` 
 
-
-
+> Here we are using [Openshift DSL Plugin](https://github.com/openshift/jenkins-client-plugin) to select the BuildConfig (``java-microservice``) and provide the binary and block the task until the container is created.  
 
 
 
