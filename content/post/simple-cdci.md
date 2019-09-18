@@ -61,6 +61,7 @@ oc expose svc/microservice --port 8080
 ```
 
 ![](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/backbone.PNG)
+
 Now we got our backbone ready to deploy any image created by our ``java-microservice`` **BuildConfig**, now the next step is trigger this by sending a binary tested and packaged by **Jenkins**.   
 
 ## Step Two
