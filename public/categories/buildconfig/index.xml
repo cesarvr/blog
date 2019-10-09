@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Buildconfig on Shipwreck</title>
-    <link>/categories/buildconfig/</link>
-    <description>Recent content in Buildconfig on Shipwreck</description>
+    <title>BuildConfig on code_scripter</title>
+    <link>/categories/BuildConfig/</link>
+    <description>Recent content in BuildConfig on code_scripter</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 28 Jul 2018 19:24:19 +0100</lastBuildDate>
     
-	<atom:link href="/categories/buildconfig/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="/categories/BuildConfig/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -17,8 +17,7 @@
       <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
       
       <guid>/post/buildconfig/</guid>
-      <description>&lt;p&gt;We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:
-&lt;/p&gt;</description>
+      <description>&lt;p&gt;We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:&lt;/p&gt;</description>
     </item>
     
   </channel>

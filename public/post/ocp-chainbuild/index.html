@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
-  <title>Chaining Builds In Openshift - Shipwreck</title>
+  <title>Chaining Builds In Openshift - code_scripter</title>
   
 
 
@@ -28,22 +28,22 @@ The size problem But this nice abstraction come with a cost, to explain what I m
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
   <link href="/css/style.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Titillium+Web|Great+Vibes|Roboto" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
   
   <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
   <link rel="icon" href="/img/favicon.ico">
   
-  <meta name="generator" content="Hugo 0.48" />
+  <meta name="generator" content="Hugo 0.56.3" />
   
-  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="Shipwreck">
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="code_scripter">
   
 </head>
 <body class="single">
   <header class="header">
     
-    <p class="title"><a href="/">Shipwreck</a></p>
+    <p class="title"><a href="/">code_scripter</a></p>
     
     <button class="menu-toggle" type="button"></button>
     <nav class="menu">
@@ -148,147 +148,196 @@ du -sh
 </code></pre>
 
 <ul>
-<li><p><code>nodejs</code> New build using nodejs (Node.js 8) as our base image which include the tools we need to build our software.</p></li>
+<li><pre><code class="language-nodejs```">
+- The [repository for our code repository](https://github.com/cesarvr/hello-world-nodejs).
 
-<li><p>The <a href="https://github.com/cesarvr/hello-world-nodejs">repository for our code repository</a>.</p></li>
+- ```context-dir``` This parameters tells where is the code.
 
-<li><p><code>context-dir</code> This parameters tells where is the code.</p></li>
+This command will create two Openshift objects:
+
+
+* **BuilderConfig** This object handle the image creation using [s2i](https://github.com/openshift/source-to-image).
+
+</code></pre>
+
+<p>sh</p></li>
 </ul>
 
-<p>This command will create two Openshift objects:</p>
-
-<ul>
-<li><strong>BuilderConfig</strong> This object handle the image creation using <a href="https://github.com/openshift/source-to-image">s2i</a>.</li>
-</ul>
-
-<pre><code class="language-sh">#builder configuration
-oc get bc   
+<p>#builder configuration
+oc get bc<br />
 NAME      TYPE       FROM      LATEST
-builder   Source     Git         1
+builder   Source     Git         1</p>
+
+<pre><code>
+* **ImageStream** It's like the middleman between our image and everything else. After a successful build the resulting image is streamed here.
+
 </code></pre>
 
-<ul>
-<li><strong>ImageStream</strong> It&rsquo;s like the middleman between our image and everything else. After a successful build the resulting image is streamed here.</li>
-</ul>
-
-<pre><code class="language-sh">oc get is
+<p>sh
+oc get is
 NAME          DOCKER REPO                         TAGS      UPDATED
-builder       172.30.1.1:5000/hello/builder       latest    6 hours ago
+builder       172.30.1.1:5000/hello/builder       latest    6 hours ago</p>
+
+<pre><code>
+Great!, we have our image with the tools we need. Next step is to trigger a build to prepare our application.  
+
+![builder](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/build-tools.gif.gif?raw=true)
+
+If everything is fine we should have all our Node.js artifacts inside a new image for us to consume, the nodejs base image we are using store the artifacts and our code in ```/opt/app-root/src/```.
+
+
+## Runtime image
+
+Now we need to create the image that will take care of the runtime. Let's start by explaining this version of the ``` oc new-build``` command:  
+
 </code></pre>
 
-<p>Great!, we have our image with the tools we need. Next step is to trigger a build to prepare our application.</p>
+<p>sh
+oc new-build  &ndash;source-image=builder <br />
+&ndash;source-image-path=[source-dir]:[destination-dir] <br />
+&ndash;dockerfile=&lsquo;-&rsquo; &ndash;name=runtime</p>
 
-<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/build-tools.gif.gif?raw=true" alt="builder" /></p>
+<pre><code>
+- ```source-image``` We want the [nodejs image we created above](#builder-image).
+- ```--source-image-path``` We want to copy some files from [that image](#builder-image).
+- ```dockerfile``` We want to create a new image using those files. Note: writing ```'dockerfile='-'``` will allow us to feed the Dockerfile via [standard input](https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)).
 
-<p>If everything is fine we should have all our Node.js artifacts inside a new image for us to consume, the nodejs base image we are using store the artifacts and our code in <code>/opt/app-root/src/</code>.</p>
+Now that we know how to do it, we should create a file called [runtime.Dockerfile](https://gist.github.com/cesarvr/fac37fa7825f5ad7a576801fed07d0c8) to store the definition of our runtime container.
 
-<h2 id="runtime-image">Runtime image</h2>
-
-<p>Now we need to create the image that will take care of the runtime. Let&rsquo;s start by explaining this version of the <code>oc new-build</code> command:</p>
-
-<pre><code class="language-sh">oc new-build  --source-image=builder \
---source-image-path=[source-dir]:[destination-dir] \
---dockerfile='-' --name=runtime
 </code></pre>
 
-<ul>
-<li><code>source-image</code> We want the <a href="#builder-image">nodejs image we created above</a>.</li>
-<li><code>--source-image-path</code> We want to copy some files from <a href="#builder-image">that image</a>.</li>
-<li><code>dockerfile</code> We want to create a new image using those files. Note: writing <code>'dockerfile='-'</code> will allow us to feed the Dockerfile via <a href="https://en.wikipedia.org/wiki/Standard_streams#Standard_input_(stdin)">standard input</a>.</li>
-</ul>
-
-<p>Now that we know how to do it, we should create a file called <a href="https://gist.github.com/cesarvr/fac37fa7825f5ad7a576801fed07d0c8">runtime.Dockerfile</a> to store the definition of our runtime container.</p>
-
-<pre><code class="language-Dockerfile">FROM mhart/alpine-node:base-8
+<p>Dockerfile
+FROM mhart/alpine-node:base-8
 COPY * /run/
 EXPOSE 8080
-CMD [&quot;node&quot;, &quot;/run/app.js&quot;]
+CMD [&ldquo;node&rdquo;, &ldquo;/run/app.js&rdquo;]</p>
+
+<pre><code>
+This file define a container using [mhart/alpine-node](https://hub.docker.com/r/mhart/alpine-node/) which is only 42 MB, next line copy the content from the *builder* image. The third and fourth line expose a port and run execute our script. This container image of course need more work to be production ready but is just fine for our purposes.
+
+
+We execute the command:
+
 </code></pre>
 
-<p>This file define a container using <a href="https://hub.docker.com/r/mhart/alpine-node/">mhart/alpine-node</a> which is only 42 MB, next line copy the content from the <em>builder</em> image. The third and fourth line expose a port and run execute our script. This container image of course need more work to be production ready but is just fine for our purposes.</p>
+<p>sh
+cat runtime.Dockerfile | oc new-build &ndash;name=runtime <br />
+&ndash;source-image=builder <br />
+&ndash;source-image-path=/opt/app-root/src:. <br />
+&ndash;dockerfile=&lsquo;-&rsquo;</p>
 
-<p>We execute the command:</p>
+<pre><code>
+The content of [builder](#builder-image)*/opt/app-root/src/* is copy by the ```oc new-build``` into a temporary folder, then our Dockerfile use this folder as it's context folder. When we apply ```COPY * /run/``` we basically are copying the content of this folder into our new runtime container.
 
-<pre><code class="language-sh">cat runtime.Dockerfile | oc new-build --name=runtime \
---source-image=builder \
---source-image-path=/opt/app-root/src:. \
---dockerfile='-'
+
+![runtime](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/runtime.gif?raw=true)
+
+
+In the next animation you'll see how *builder* build configuration is now connected with *runtime* build. Every time *builder* push a new build of our software to the registry, it will be automatically packaged by *runtime*.
+
+To trigger the *builder* build we just need to run:
+
 </code></pre>
 
-<p>The content of <a href="#builder-image">builder</a><em>/opt/app-root/src/</em> is copy by the <code>oc new-build</code> into a temporary folder, then our Dockerfile use this folder as it&rsquo;s context folder. When we apply <code>COPY * /run/</code> we basically are copying the content of this folder into our new runtime container.</p>
+<p>oc start-build bc/builder</p>
 
-<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/runtime.gif?raw=true" alt="runtime" /></p>
+<pre><code>
+![chain](https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/chain.gif?raw=true)
 
-<p>In the next animation you&rsquo;ll see how <em>builder</em> build configuration is now connected with <em>runtime</em> build. Every time <em>builder</em> push a new build of our software to the registry, it will be automatically packaged by <em>runtime</em>.</p>
 
-<p>To trigger the <em>builder</em> build we just need to run:</p>
 
-<pre><code>oc start-build bc/builder
+# Deploying our image
+
+Is time to test if our hard work pays off. Deploying our image is very easy we just need to locate the URL of our *runtime* image in the registry:
+
 </code></pre>
 
-<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/static/chaining-build/chain.gif?raw=true" alt="chain" /></p>
-
-<h1 id="deploying-our-image">Deploying our image</h1>
-
-<p>Is time to test if our hard work pays off. Deploying our image is very easy we just need to locate the URL of our <em>runtime</em> image in the registry:</p>
-
-<pre><code class="language-sh">oc get is
+<p>sh
+oc get is
 #NAME          DOCKER REPO                         TAGS      UPDATED
-#runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago
+#runtime       172.30.1.1:5000/hello/runtime       latest    15 hours ago</p>
+
+<pre><code>
+Having the address of our image, now we just simply call:
+
 </code></pre>
 
-<p>Having the address of our image, now we just simply call:</p>
+<p>sh
+oc create dc hello-ms &ndash;image=172.30.1.1:5000/hello/runtime</p>
 
-<pre><code class="language-sh">oc create dc hello-ms --image=172.30.1.1:5000/hello/runtime
+<pre><code>
+Now that we create our deployment object, we now need to send some traffic to our application. Before start sending traffic we need to identify by looking up is label.
+
 </code></pre>
 
-<p>Now that we create our deployment object, we now need to send some traffic to our application. Before start sending traffic we need to identify by looking up is label.</p>
+<p>sh
+oc get dc hello-ms -o json | grep labels -A 3</p>
 
-<pre><code class="language-sh">oc get dc hello-ms -o json | grep labels -A 3
-# returns
-&quot;labels&quot;: {
-            &quot;deployment-config.name&quot;: &quot;hello-ms&quot;
-          }
+<h1 id="returns">returns</h1>
+
+<p>&ldquo;labels&rdquo;: {
+            &ldquo;deployment-config.name&rdquo;: &ldquo;hello-ms&rdquo;
+          }</p>
+
+<pre><code>
+Now let create a service and send some traffic directed to this label:
+
+
 </code></pre>
 
-<p>Now let create a service and send some traffic directed to this label:</p>
+<p>sh
+oc create service loadbalancer  hello-ms &ndash;tcp=80:8080</p>
 
-<pre><code class="language-sh">oc create service loadbalancer  hello-ms --tcp=80:8080
-# service &quot;hello-ms&quot; created
+<h1 id="service-hello-ms-created">service &ldquo;hello-ms&rdquo; created</h1>
 
-# edit the service object
-oc edit svc hello-ms -o yaml
+<h1 id="edit-the-service-object">edit the service object</h1>
+
+<p>oc edit svc hello-ms -o yaml</p>
+
+<pre><code>
+This will open the service object in yaml format in edit mode, we need to locate the *selector* and replace with the label of our deployment object.
+
+From this:
+
 </code></pre>
 
-<p>This will open the service object in yaml format in edit mode, we need to locate the <em>selector</em> and replace with the label of our deployment object.</p>
+<p>yml
+selector:
+  app: hello-ms</p>
 
-<p>From this:</p>
+<pre><code>
+To this:
 
-<pre><code class="language-yml">selector:
-  app: hello-ms
 </code></pre>
 
-<p>To this:</p>
+<p>yml
+selector:
+ deployment-config.name: hello-ms</p>
 
-<pre><code class="language-yml">selector:
- deployment-config.name: hello-ms
+<pre><code>
+We can do this the other way around, at the end is just a matter of taste. Next we need to expose our service:
+
 </code></pre>
 
-<p>We can do this the other way around, at the end is just a matter of taste. Next we need to expose our service:</p>
+<p>oc expose svc hello-ms</p>
 
-<pre><code>oc expose svc hello-ms
-# route &quot;hello-ms&quot; exposed
+<h1 id="route-hello-ms-exposed">route &ldquo;hello-ms&rdquo; exposed</h1>
 
-oc get route
-# NAME       HOST/PORT                         PATH      SERVICES   PORT      TERMINATION   WILDCARD
-# hello-ms   hello-ms-hello.127.0.0.1.nip.io             hello-ms   80-8080                 None
+<p>oc get route</p>
+
+<h1 id="name-host-port-path-services-port-termination-wildcard">NAME       HOST/PORT                         PATH      SERVICES   PORT      TERMINATION   WILDCARD</h1>
+
+<h1 id="hello-ms-hello-ms-hello-127-0-0-1-nip-io-hello-ms-80-8080-none">hello-ms   hello-ms-hello.127.0.0.1.nip.io             hello-ms   80-8080                 None</h1>
+
+<pre><code>
+Now know the URL we can confidently make a ```curl``` to that address:  
+
+
 </code></pre>
 
-<p>Now know the URL we can confidently make a <code>curl</code> to that address:</p>
-
-<pre><code>curl hello-ms-hello.127.0.0.1.nip.io
+<p>curl hello-ms-hello.127.0.0.1.nip.io
 Hello World%
-</code></pre>
+```</p>
 
 <p>Take a look at the complete process here:</p>
 
@@ -314,7 +363,7 @@ Hello World%
 </article>
 </main>
 <footer class="footer">
-  <span>&copy; 2018 Cesar Valdez</span>
+  <span>&copy; 2019 Cesar Valdez</span>
 </footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
 <script data-no-instant>InstantClick.init();</script>

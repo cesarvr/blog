@@ -1,18 +1,99 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on Shipwreck</title>
+    <title>Tags on code_scripter</title>
     <link>/tags/</link>
-    <description>Recent content in Tags on Shipwreck</description>
+    <description>Recent content in Tags on code_scripter</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 21 Jul 2018 11:18:43 +0200</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Build</title>
+      <title>performance</title>
+      <link>/tags/performance/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/performance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>programming</title>
+      <link>/tags/programming/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>container</title>
+      <link>/tags/container/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/container/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubernetes</title>
+      <link>/tags/kubernetes/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>openshift</title>
+      <link>/tags/openshift/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/openshift/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>services</title>
+      <link>/tags/services/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/services/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Chrome</title>
+      <link>/tags/Chrome/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/tags/Chrome/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>JavaScript</title>
+      <link>/tags/JavaScript/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/tags/JavaScript/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Performance</title>
+      <link>/tags/Performance/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/tags/Performance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>build</title>
       <link>/tags/build/</link>
       <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
       
@@ -22,109 +103,46 @@
     
     <item>
       <title>C</title>
-      <link>/tags/c/</link>
+      <link>/tags/C/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/c/</guid>
+      <guid>/tags/C/</guid>
       <description></description>
     </item>
     
     <item>
       <title>C&#43;&#43;</title>
-      <link>/tags/c&#43;&#43;/</link>
+      <link>/tags/C&#43;&#43;/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/c&#43;&#43;/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Chrome</title>
-      <link>/tags/chrome/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/tags/chrome/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Container</title>
-      <link>/tags/container/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/container/</guid>
+      <guid>/tags/C&#43;&#43;/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Containers</title>
-      <link>/tags/containers/</link>
+      <link>/tags/Containers/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/containers/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Docker</title>
-      <link>/tags/docker/</link>
-      <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/docker/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Javascript</title>
-      <link>/tags/javascript/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/tags/javascript/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Kubernetes</title>
-      <link>/tags/kubernetes/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/kubernetes/</guid>
+      <guid>/tags/Containers/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Linux</title>
-      <link>/tags/linux/</link>
+      <link>/tags/Linux/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/linux/</guid>
+      <guid>/tags/Linux/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Openshift</title>
-      <link>/tags/openshift/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
+      <title>Docker</title>
+      <link>/tags/Docker/</link>
+      <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/tags/openshift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Performance</title>
-      <link>/tags/performance/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/tags/performance/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Services</title>
-      <link>/tags/services/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/services/</guid>
+      <guid>/tags/Docker/</guid>
       <description></description>
     </item>
     

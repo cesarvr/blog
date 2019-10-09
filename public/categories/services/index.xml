@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Services on Shipwreck</title>
+    <title>services on code_scripter</title>
     <link>/categories/services/</link>
-    <description>Recent content in Services on Shipwreck</description>
+    <description>Recent content in services on code_scripter</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 11 Dec 2018 00:00:00 +0000</lastBuildDate>
@@ -17,9 +17,7 @@
       <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-4/</guid>
-      <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -28,9 +26,7 @@
       <pubDate>Sat, 01 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-2.5/</guid>
-      <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -39,9 +35,7 @@
       <pubDate>Wed, 07 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-2/</guid>
-      <description>&lt;p&gt;Let&amp;rsquo;s talk about container oriented programming&amp;hellip;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;Let&amp;rsquo;s talk about container oriented programming&amp;hellip;&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -50,9 +44,7 @@
       <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
       
       <guid>/post/istio/</guid>
-      <description>&lt;p&gt;Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.&lt;/p&gt;</description>
     </item>
     
   </channel>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Performance Profiling in Rust - code_scripter</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Writing performant Rust code." />
+  <meta name="twitter:title" content="Performance Profiling in Rust" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta property="og:title" content="Performance Profiling in Rust" />
+  <meta property="og:description" content="Writing performant Rust code." />
+  <meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta name="description" content="Puzzle 1 I was working on a puzzle from the Advent Of Code Day-5, the puzzle is as follows:
+You got a simple string like this one:
+ xdaADf 
+You need to scan this string any pair of letters that are equal but with different capitalization.
+ In the case above we eliminate aA and we got this xdDf Then we apply the algorithm again over xdDf to reduce the word to xf by removing the dD and so on.">
+  <meta name="author" content="Cesar Valdez">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
+  <link href="/css/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+  
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="icon" href="/img/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.56.3" />
+  
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="code_scripter">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="/">code_scripter</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="categories/">Categories</a>
+        </li>
+        
+        <li class="">
+          <a href="/about/">About</a>
+        </li>
+        
+        <li class="">
+          <a href="https://github.com/cesarvr">Code</a>
+        </li>
+        
+        <li class="">
+          <a href="/post/">Writing</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
+  <script src="/js/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Performance Profiling in Rust</h1>
+    <p class="post-meta">Cesar Valdez · 2019.8.7</p>
+  </header>
+  <div class="post-content">
+
+<h2 id="puzzle-1">Puzzle 1</h2>
+
+<p>I was working on a puzzle from the <a href="https://adventofcode.com/2018/day/5">Advent Of Code Day-5</a>, the puzzle is as follows:</p>
+
+<p>You got a simple string like this one:</p>
+
+<p><code>
+xdaADf
+</code></p>
+
+<p>You need to scan this string any pair of letters that are equal but with different capitalization.</p>
+
+<ul>
+<li>In the case above we eliminate <code>aA</code> and we got this <code>xdDf</code></li>
+<li>Then we apply the algorithm again over <code>xdDf</code> to reduce the word to <code>xf</code> by removing the <code>dD</code> and so on.</li>
+</ul>
+
+<h2 id="rust-implementation">Rust Implementation</h2>
+
+<p>I wrote two functions one called <code>process</code> takes a pair of characters another function <code>react</code> check that the above rule and returns <code>true</code> or <code>false</code> as the case might be.</p>
+
+<pre><code class="language-rust">fn react(token1: &amp;String, token2: &amp;String) -&gt; bool {
+    if token1.to_lowercase() == token2.to_lowercase() {
+        return token1.to_string() != token2.to_string()
+    }
+
+    false
+}
+
+fn process(tokens: &amp;mut Vec&lt;String&gt;) -&gt; i32 {
+    let mut polymer: Vec&lt;String&gt; = Vec::new();
+
+    while let Some(token) = tokens.pop() {
+        if polymer.is_empty() {
+            polymer.push(token);
+            continue;
+        }
+
+        let candidate = polymer.pop().unwrap();
+
+        if !react(&amp;candidate, &amp;token) {
+            polymer.push(candidate.to_string());
+            polymer.push(token.to_string());
+        }
+    }
+
+    polymer.len() as i32
+}
+</code></pre>
+
+<p>The idea behind the <code>process</code> function is basically to create where I only save components that don&rsquo;t <code>react</code>.</p>
+
+<h2 id="second-puzzle">Second Puzzle</h2>
+
+<p>In the second part of the puzzle you have to find pick a letter and remove any existence regardless of capitalization and then apply the algorithm above.</p>
+
+<p>For the String:</p>
+
+<pre><code>xdaADf
+</code></pre>
+
+<ul>
+<li>Eliminate all <code>x</code> the result after applying above algorithm <code>f</code> is equals 1.</li>
+<li>Eliminate all <code>d</code> the result after applying above algorithm <code>xf</code> is equals 2.</li>
+</ul>
+
+<p>### Algorithm</p>
+
+<p>To find the minimum iteration, I another function called <code>remove_tokens</code> which remove a specific letter <code>chr</code> from an array of strings.</p>
+
+<pre><code class="language-rust">fn remove_unit(polymer: &amp;Vec&lt;String&gt;, chr: &amp;str ) -&gt; Vec&lt;String&gt; {
+    let mut npoly: Vec&lt;String&gt; = polymer.to_vec();
+    npoly.retain(|s| *s != chr.to_lowercase() &amp;&amp; *s != remove_chr.to_uppercase() );
+    npoly
+}
+</code></pre>
+
+<p>Then I iterate over all the strings:</p>
+
+<pre><code class="language-rust">let series = code.iter().map(|chr| {
+    if None == cache.get(&amp;chr.to_lowercase()) {
+        let mut moded = remove_unit(&amp;code, chr.as_str());
+
+        cache.insert(chr.to_lowercase(), true);
+        return process(&amp;mut moded);
+    }
+    0x00beef
+}).collect::&lt;Vec&lt;i32&gt;&gt;();
+</code></pre>
+
+<p>One optimization for this algorithm is to cache past letters, we are  removing uppercases and lowercases in each iteration so it doesn&rsquo;t make sense to go over previously generated values.</p>
+
+<h2 id="why">Why ?</h2>
+
+<p>My idea of doing this puzzles was to practice my skills with Rust, so once I finished I felt satisfied, is not the best algorithm in the world I think it can be done better, but for a someone new to Rust was ok.</p>
+
+<h2 id="performance">Performance</h2>
+
+<p>The general assumption is that Rust or any system language (like C/C++) is that it should be fast, in the sense that we implement two naive algorithms one in Javascript another in Rust, I assumed Rust should be faster, but that wasn&rsquo;t quite the case.</p>
+
+<p>This assumption come from the fact that Rust uses the LLVM backend to generate machine code, while Javascript is a virtual machine that interpret code, of course I using a very mature V8 VM but I still expect Rust to win this battle.</p>
+
+<h2 id="benchmark">Benchmark</h2>
+
+<p>For curiosity I tested implemented a naive algorithm in GO and then I tested using a 50K long string sequence provided by the puzzle page and test how much it took to each implementation to reduce the string with the following result:</p>
+
+<pre><code class="language-xml">Node.js
+==================
+real	0m0.360s user	0m0.286s sys	  0m0.036s
+
+Go-lang
+==================
+real	0m0.296s user	0m0.285s sys	  0m0.036s
+
+Rust
+==================
+real	0m0.645s user	0m0.560s sys 0m0.008s
+</code></pre>
+
+<p><img src="https://media.giphy.com/media/2wSaulb0fsDydh0IoB/giphy.gif" alt="" /></p>
+
+<p>To be honest I did this test a courtesy for my self I was very sure that Rust would obliterate JS and at least be like 5-10% faster than Go but this was surprising.</p>
+
+<h2 id="debugging">Debugging</h2>
+
+<p>My first reaction was that maybe I needed some flag to generate some kind of optimized version of this code so I went found that you can add <code>opt-level = 3</code> to Cargo.yml:</p>
+
+<pre><code class="language-toml">[package]
+name = &quot;day-5-puzzle&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;cesar &lt;cesarv01@gmail.com&gt;&quot;]
+edition = &quot;2018&quot;
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+</code></pre>
+
+<pre><code class="language-sh"> Rust 1.04s user 0.02s system 98% cpu 1.070 total
+</code></pre>
+
+<blockquote>
+<p>Nop, that didn&rsquo;t work either it got even worst&hellip;</p>
+</blockquote>
+
+<p>But you see I was looking at my code, the algorithm is correct, of course it can be better, but I didn&rsquo;t think it was as crazy as to get a 200% performance penalty.</p>
+
+<p>So I decided press use my secret weapon for this circumstances and use <a href="http://www.brendangregg.com/linuxperf.html">Linux performance tools</a>.</p>
+
+<p>## Linux Performance Tools</p>
+
+<p>Moderns CPU&rsquo;s includes a set of registers that storing CPU events like instruction per seconds (IPC), etc. Making the correlation between this events and running process is the job of <a href="http://www.brendangregg.com/linuxperf.html">Linux performance tools</a>.</p>
+
+<p>To install Linux performance:</p>
+
+<pre><code class="language-sh">#install perf in Archlinux
+sudo pacman -Sy perf
+
+#install perf in Fedora
+sudo dnf install perf
+</code></pre>
+
+<p>Here is the quick syntax <code>perf</code>:</p>
+
+<pre><code class="language-sh">perf record -F 99 -p `PID`
+</code></pre>
+
+<ul>
+<li><code>F</code> You specify the sampling frequency <code>99hz</code>.</li>
+<li><code>p</code> We need here the process identifier (PID).</li>
+</ul>
+
+<p>Before I start inspecting <em>my awesome</em> Rust algorithm, I have to configure the compiler to emit <a href="http://carol-nichols.com/2015/12/09/rust-profiling-on-osx-cpu-time/">debugging symbols</a>, otherwise I will only see x86 assembler instructions.</p>
+
+<p>Adding <code>debug</code> to <code>Cargo.toml</code> will do the trick:</p>
+
+<pre><code class="language-toml">[profile.release]
+opt-level = 3
+debug=true
+</code></pre>
+
+<p>Then I recompiled the code again:</p>
+
+<pre><code class="language-sh"> cargo build --release
+</code></pre>
+
+<p>And attached <code>perf</code> to the running binary:</p>
+
+<pre><code class="language-sh">./target/release/day-5 &amp; perf record -F 99 -p `pgrep day-5`
+[1] 27466
+sample size 50003
+--
+solution 1: 9526
+solution 2: 6694
+[ perf record: Woken up 1 times to write data ]
+[1]  + 27466 done       ./target/release/day-5
+[ perf record: Captured and wrote 0.002 MB perf.data (13 samples) ]
+</code></pre>
+
+<blockquote>
+<p>Here I executed the binary <code>day-5</code> and after that spawn a new <code>perf</code> process, passing the PID using <a href="https://linux.die.net/man/1/pgrep">pgrep</a>.</p>
+</blockquote>
+
+<p>Now we can run <code>perf report</code> to have a execution map:</p>
+
+<pre><code class="language-sh">perf report
+</code></pre>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/rust/perf-1.png" alt="" /></p>
+
+<blockquote>
+<p>old-school UI</p>
+</blockquote>
+
+<p>Interesting the program spend a lot of time in this area:</p>
+
+<pre><code class="language-sh">30% core::unicode::tables::conversions::to_lower
+15% alloc::str::&lt;impl str&gt;::to_lowercase
+</code></pre>
+
+<p>It seems that I made the wrong assumption about the cost of doing <code>to_lowercase()</code>. Umm, one advantage of Rust is that its source code is publicly available so tracking down <a href="https://doc.rust-lang.org/std/primitive.str.html#method.to_lowercase">to_lowercase</a> was easy, finally I understood the problem.</p>
+
+<p>I found out that <a href="https://doc.rust-lang.org/std/primitive.str.html#method.to_lowercase">to_lowercase</a> calls <a href="https://doc.rust-lang.org/1.29.2/src/core/unicode/tables.rs.html#1279">conversions::to_lower</a>, this function perform a binary search against a <a href="https://doc.rust-lang.org/1.29.2/src/core/unicode/tables.rs.html#1297">huge table</a> of characters.</p>
+
+<p>The decision for this costly is maybe motivated because of the <em>safety philosophy</em>, but well I found out a function that does what I want called <a href="https://doc.rust-lang.org/std/primitive.str.html#method.eq_ignore_ascii_case">eq_ignore_ascii_case</a>.</p>
+
+<p>Run the program again a got:</p>
+
+<pre><code class="language-sh">Go       0.21s user 0.02s system 111% cpu 0.203 total
+Node.js  0.24s user 0.08s system 77% cpu 0.416 total
+*Rust    0.53s user 0.01s system 89% cpu 0.602 total
+</code></pre>
+</div>
+  <footer class="post-footer">
+    
+    <ul class="post-tags">
+      
+      <li><a href="/tags/programming/">programming</a></li>
+      
+      <li><a href="/tags/performance/">performance</a></li>
+      
+    </ul>
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2019 Cesar Valdez</span>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+

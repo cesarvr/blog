@@ -1,166 +1,202 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on Shipwreck</title>
+    <title>Categories on code_scripter</title>
     <link>/categories/</link>
-    <description>Recent content in Categories on Shipwreck</description>
+    <description>Recent content in Categories on code_scripter</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 01 Dec 2017 19:51:38 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Android</title>
-      <link>/categories/android/</link>
-      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
-      
-      <guid>/categories/android/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Buildconfig</title>
-      <link>/categories/buildconfig/</link>
-      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
-      
-      <guid>/categories/buildconfig/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C</title>
-      <link>/categories/c/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/c/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C&#43;&#43;</title>
-      <link>/categories/c&#43;&#43;/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/c&#43;&#43;/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Chrome</title>
-      <link>/categories/chrome/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/categories/chrome/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Container</title>
-      <link>/categories/container/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/container/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Containers</title>
-      <link>/categories/containers/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/containers/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Cordova</title>
-      <link>/categories/cordova/</link>
-      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
-      
-      <guid>/categories/cordova/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Imagestream</title>
-      <link>/categories/imagestream/</link>
-      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
-      
-      <guid>/categories/imagestream/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Ios</title>
-      <link>/categories/ios/</link>
-      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
-      
-      <guid>/categories/ios/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Javascript</title>
-      <link>/categories/javascript/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/categories/javascript/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Kubernetes</title>
-      <link>/categories/kubernetes/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/kubernetes/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Linux</title>
-      <link>/categories/linux/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/linux/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Mobile</title>
-      <link>/categories/mobile/</link>
-      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
-      
-      <guid>/categories/mobile/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Openshift</title>
-      <link>/categories/openshift/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/openshift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Performance</title>
+      <title>performance</title>
       <link>/categories/performance/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
       
       <guid>/categories/performance/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Services</title>
+      <title>programming</title>
+      <link>/categories/programming/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/programming/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>container</title>
+      <link>/categories/container/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/container/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubernetes</title>
+      <link>/categories/kubernetes/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>nodejs</title>
+      <link>/categories/nodejs/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/nodejs/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>openshift</title>
+      <link>/categories/openshift/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/openshift/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>services</title>
       <link>/categories/services/</link>
       <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/categories/services/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Chrome</title>
+      <link>/categories/Chrome/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/categories/Chrome/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>JavaScript</title>
+      <link>/categories/JavaScript/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/categories/JavaScript/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Performance</title>
+      <link>/categories/Performance/</link>
+      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
+      
+      <guid>/categories/Performance/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>BuildConfig</title>
+      <link>/categories/BuildConfig/</link>
+      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
+      
+      <guid>/categories/BuildConfig/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ImageStream</title>
+      <link>/categories/ImageStream/</link>
+      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
+      
+      <guid>/categories/ImageStream/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>OpenShift</title>
+      <link>/categories/OpenShift/</link>
+      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
+      
+      <guid>/categories/OpenShift/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>C</title>
+      <link>/categories/C/</link>
+      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/C/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>C&#43;&#43;</title>
+      <link>/categories/C&#43;&#43;/</link>
+      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/C&#43;&#43;/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Containers</title>
+      <link>/categories/Containers/</link>
+      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/Containers/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Linux</title>
+      <link>/categories/Linux/</link>
+      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>/categories/Linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Android</title>
+      <link>/categories/Android/</link>
+      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
+      
+      <guid>/categories/Android/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Cordova</title>
+      <link>/categories/Cordova/</link>
+      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
+      
+      <guid>/categories/Cordova/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>IOS</title>
+      <link>/categories/IOS/</link>
+      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
+      
+      <guid>/categories/IOS/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Mobile</title>
+      <link>/categories/Mobile/</link>
+      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
+      
+      <guid>/categories/Mobile/</guid>
       <description></description>
     </item>
     

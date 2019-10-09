@@ -1,15 +1,37 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Shipwreck</title>
+    <title>code_scripter</title>
     <link>/</link>
-    <description>Recent content on Shipwreck</description>
+    <description>Recent content on code_scripter</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 11 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Performance Profiling in Rust</title>
+      <link>/post/performance-rust/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/post/performance-rust/</guid>
+      <description>Puzzle 1 I was working on a puzzle from the Advent Of Code Day-5, the puzzle is as follows:
+You got a simple string like this one:
+ xdaADf 
+You need to scan this string any pair of letters that are equal but with different capitalization.
+ In the case above we eliminate aA and we got this xdDf Then we apply the algorithm again over xdDf to reduce the word to xf by removing the dD and so on.</description>
+    </item>
+    
+    <item>
+      <title>Self Deploying Node.JS Applications</title>
+      <link>/post/self-deploy/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/post/self-deploy/</guid>
+      <description>&lt;p&gt;Few days ago I was watching in &lt;a href=&#34;https://www.youtube.com/watch?v=XPC-hFL-4lU&#34;&gt;Youtube a talk&lt;/a&gt; given by &lt;a href=&#34;https://twitter.com/kelseyhightower&#34;&gt;Kelsey Hightower&lt;/a&gt; titled &amp;ldquo;Self Deploying Kubernetes Applications&amp;rdquo;. In this talk which is a bit old now (over a year) he was demoing a &lt;a href=&#34;https://golang.org&#34;&gt;Golang&lt;/a&gt; application capable of running locally but also capable of &lt;em&gt;magically&lt;/em&gt; deploy itself into a Kubernetes cluster.&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>Creating Your Own Istio (Part 3) - Dashboard</title>
@@ -17,9 +39,7 @@
       <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-4/</guid>
-      <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -28,9 +48,7 @@
       <pubDate>Sat, 01 Dec 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-2.5/</guid>
-      <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -39,9 +57,7 @@
       <pubDate>Wed, 07 Nov 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/istio-2/</guid>
-      <description>&lt;p&gt;Let&amp;rsquo;s talk about container oriented programming&amp;hellip;&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;Let&amp;rsquo;s talk about container oriented programming&amp;hellip;&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -50,9 +66,7 @@
       <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
       
       <guid>/post/istio/</guid>
-      <description>&lt;p&gt;Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -61,9 +75,7 @@
       <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
       
       <guid>/post/js-performance/</guid>
-      <description>&lt;p&gt;One of my hobbies is to write (and sometimes re-write) graphics engines. I do this because I love the challenge of writing not only fast code but scalable code and also because I like visual stuff. This time I decide to write one in JavaScript using WebGL and as soon as I have a workable set of API&amp;rsquo;s I decide to write an simple vortex animation to see how well my new shinny new engine will perform.&lt;/p&gt;
-
-&lt;p&gt;&lt;/p&gt;</description>
+      <description>&lt;p&gt;One of my hobbies is to write (and sometimes re-write) graphics engines. I do this because I love the challenge of writing not only fast code but scalable code and also because I like visual stuff. This time I decide to write one in JavaScript using WebGL and as soon as I have a workable set of API&amp;rsquo;s I decide to write an simple vortex animation to see how well my new shinny new engine will perform.&lt;/p&gt;</description>
     </item>
     
     <item>
@@ -72,8 +84,7 @@
       <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
       
       <guid>/post/buildconfig/</guid>
-      <description>&lt;p&gt;We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:
-&lt;/p&gt;</description>
+      <description>&lt;p&gt;We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:&lt;/p&gt;</description>
     </item>
     
     <item>

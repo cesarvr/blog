@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Self Deploying Node.JS Applications - code_scripter</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="Let&#39;s write an application that runs itself into OpenShift." />
+  <meta name="twitter:title" content="Self Deploying Node.JS Applications" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png" />
+
+  <meta property="og:title" content="Self Deploying Node.JS Applications" />
+  <meta property="og:description" content="Let&#39;s write an application that runs itself into OpenShift." />
+  <meta property="og:image" content="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png" />
+
+  <meta name="description" content="Few days ago I was watching in Youtube a talk given by Kelsey Hightower titled &ldquo;Self Deploying Kubernetes Applications&rdquo;. In this talk which is a bit old now (over a year) he was demoing a Golang application capable of running locally but also capable of magically deploy itself into a Kubernetes cluster.">
+  <meta name="author" content="Cesar Valdez">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
+  <link href="/css/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+  
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="icon" href="/img/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.56.3" />
+  
+  <link rel="alternate" type="application/atom+xml" href="/index.xml" title="code_scripter">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="/">code_scripter</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="categories/">Categories</a>
+        </li>
+        
+        <li class="">
+          <a href="/about/">About</a>
+        </li>
+        
+        <li class="">
+          <a href="https://github.com/cesarvr">Code</a>
+        </li>
+        
+        <li class="">
+          <a href="/post/">Writing</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
+  <script src="/js/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Self Deploying Node.JS Applications</h1>
+    <p class="post-meta">Cesar Valdez · 2019.2.20</p>
+  </header>
+  <div class="post-content"><p>Few days ago I was watching in <a href="https://www.youtube.com/watch?v=XPC-hFL-4lU">Youtube a talk</a> given by <a href="https://twitter.com/kelseyhightower">Kelsey Hightower</a> titled &ldquo;Self Deploying Kubernetes Applications&rdquo;. In this talk which is a bit old now (over a year) he was demoing a <a href="https://golang.org">Golang</a> application capable of running locally but also capable of <em>magically</em> deploy itself into a Kubernetes cluster.</p>
+
+<p>This is how think deploying applications to the cloud should be, instead of copy/pasting configuration files or issuing cryptic commands we should  aim to make this task simple, after all the tools we use are just a mean to an end. So after watching the talk I started to think on how I can achieve this, how I can make a process deploy itself and how to do it using my favorite programming language Javascript/Node.JS.</p>
+
+<p>After a few days of hacking with Kubernetes/OpenShift REST API, I finally end up writing a small module that when imported ( or required) in a Node.JS application it extends its runtime options allowing it to run in a OpenShift cluster (at the moment) by just adding a simple flag <code>--cloud</code>. From the point of view of a non-expert it will looks like OpenShift is just a JavaScript interpreter.</p>
+
+<h2 id="hello-world">Hello World</h2>
+
+<p>Let&rsquo;s see how this works by writing a simple web server.</p>
+
+<pre><code class="language-js">let count = 0
+console.log('Running...')
+require('http')
+    .createServer((req, res) =&gt; {
+        res.end(`&lt;HTML&gt;
+                    &lt;h1&gt;Hello From -&gt; ${process.platform}&lt;/h1&gt;
+                    &lt;h2&gt;Visitor: ${count++} &lt;/h2&gt;
+                &lt;/HTML&gt;`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
+</code></pre>
+
+<p>In this 9 lines we defined a HTTP/Server listening in Port 8080, serving a webpage that shows a counter with the visitors and the OS platform so we can see what OS is running our script.</p>
+
+<p>We save this file with the name <code>app.js</code> and run test it locally:</p>
+
+<pre><code class="language-sh">  node app   # app.js
+</code></pre>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deploy-before.gif?raw=true" alt="" /></p>
+
+<p><BR></p>
+
+<h3 id="getting-started">Getting Started</h3>
+
+<p>Before continue you&rsquo;ll need an OpenShift cluster up and running, the easiest way is to subscribe here <a href="https://manage.openshift.com/">OpenShift Online</a> for free or if you <em>feel strong</em> you can setup one in your computer via <a href="https://github.com/minishift/minishift">Minishift</a> or <a href="https://github.com/cesarvr/Openshift#ocup">oc cluster-up</a>.</p>
+
+<p>Once you have OpenShift sorted out, you&rsquo;ll need to create a project/namespace manually, you can do this by login into the web console and clicking into new project.</p>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/making-project.gif?raw=true" alt="" /></p>
+
+<p><BR></p>
+
+<h3 id="self-deploying">Self Deploying</h3>
+
+<p>Now we should get back to our working directory and install <code>okd-runner</code> <a href="https://www.npmjs.com/package/okd-runner">module from npm</a>, this is the module that does the <em>magic</em>:</p>
+
+<pre><code class="language-sh">npm install install okd-runner --save
+</code></pre>
+
+<p>We add the module:</p>
+
+<pre><code class="language-js">let count = 0
+
+const run = require('okd-runner') // &lt;- self-deploy module
+
+require('http')
+    .createServer((req, res) =&gt; {
+        res.end(`&lt;HTML&gt;
+                    &lt;h1&gt;Hello From -&gt; ${process.platform}&lt;/h1&gt;
+                    &lt;h2&gt;Visitor: ${count++} &lt;/h2&gt;
+                &lt;/HTML&gt;`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
+</code></pre>
+
+<p>By adding this module you still can run your application locally, the only difference is that now you can choose a different execution runtime by passing the <code>--cloud</code> flag, this flag will tell your JS program to run in OpenShift:</p>
+
+<pre><code class="language-sh">  node app --cloud   # or node app -c for short
+</code></pre>
+
+<ul>
+<li>The first time it will ask you for your cluster credentials:</li>
+</ul>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/credentials.png?raw=true" alt="" /></p>
+
+<ul>
+<li>And also to choose the namespace/project:</li>
+</ul>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/namespace.png?raw=true" alt="" /></p>
+
+<h5 id="runtime">Runtime</h5>
+
+<p>After that your application will start the deployment:</p>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/self-deployment.gif?raw=true" alt="" /></p>
+
+<pre><code class="language-sh">...
+building  ok
+URL:  http://my-app-dev-01.7e14.starter-us-west-2.openshiftapps.com
+...
+...
+npm info using node@v10.14.0
+npm info lifecycle my-app@1.0.0~prestart: my-app@1.0.0
+npm info lifecycle my-app@1.0.0~start: my-app@1.0.0
+
+&gt; my-app@1.0.0 start /opt/app-root/src
+&gt; node app.js
+
+response: 1550511176623
+...
+</code></pre>
+
+<p>Here you can see the logs of you container plus the URL, to exit you just need to press <code>Ctrl-C</code> and you will get back to your console.</p>
+
+<h5 id="updating">Updating</h5>
+
+<p>From now everything is similar as to run your application locally, let&rsquo;s add a line of code to get the pods name, this way showcase how we can make an update:</p>
+
+<pre><code class="language-js">let count = 0
+const run = require('okd-runner')
+console.log('listening in 8080')
+require('http')
+    .createServer((req, res) =&gt; {
+        res.end(`&lt;HTML&gt;
+                    &lt;h1&gt;Hello From ${process.platform}&lt;/h1&gt;
+                    &lt;h2&gt;Visitors ${count++} &lt;/h2&gt;
+
+                    &lt;!-- changes --&gt;
+                    &lt;p&gt;Pod ${require('os').hostname()}&lt;p&gt;
+                    &lt;img src=&quot;https://media.giphy.com/media/12NUbkX6p4xOO4/giphy.gif&quot;&gt;
+                    &lt;!--         --&gt;
+
+                &lt;/HTML&gt;`)
+        console.log(`response: ${Date.now()}`)
+    }).listen(8080)
+
+</code></pre>
+
+<p>We run our application again:</p>
+
+<pre><code class="language-sh">  node app --cloud
+</code></pre>
+
+<p>This time it goes straight to deployment.</p>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/self-deploy/oc-update.gif?raw=true" alt="" /></p>
+
+<h5 id="cleaning-up">Cleaning up</h5>
+
+<p>To remove your application you just need to pass the <code>-rm</code> flag:</p>
+
+<pre><code class="language-js">node app -rm
+</code></pre>
+
+<p>You see not a single YAML file, hope this module helps you simplify your workflow while developing Node.JS micro-services. Also this module is still under development so feel free to <a href="https://github.com/cesarvr/okd-runner">contribute</a> by sending suggestions, pull request, improvements or by opening an <a href="https://github.com/cesarvr/okd-runner/issues">issue</a>.</p></div>
+  <footer class="post-footer">
+    
+    <ul class="post-tags">
+      
+      <li><a href="/tags/openshift/">openshift</a></li>
+      
+      <li><a href="/tags/container/">container</a></li>
+      
+      <li><a href="/tags/services/">services</a></li>
+      
+      <li><a href="/tags/kubernetes/">kubernetes</a></li>
+      
+    </ul>
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2019 Cesar Valdez</span>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+

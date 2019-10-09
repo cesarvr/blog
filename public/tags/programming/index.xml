@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>programming on code_scripter</title>
+    <link>/tags/programming/</link>
+    <description>Recent content in programming on code_scripter</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/programming/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Performance Profiling in Rust</title>
+      <link>/post/performance-rust/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/post/performance-rust/</guid>
+      <description>Puzzle 1 I was working on a puzzle from the Advent Of Code Day-5, the puzzle is as follows:
+You got a simple string like this one:
+ xdaADf 
+You need to scan this string any pair of letters that are equal but with different capitalization.
+ In the case above we eliminate aA and we got this xdDf Then we apply the algorithm again over xdDf to reduce the word to xf by removing the dD and so on.</description>
+    </item>
+    
+  </channel>
+</rss>

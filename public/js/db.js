@@ -11,16 +11,5 @@
     $el.append($link)
   })
 }
-
- setTimeout(settingUPLinks, 1000);
-
-  $.getJSON("db/db.json", function(result){
-    let n = rnd(result.length)
-    let msg = result[n]
-
-/*    setTimeout(()=>
-      toastr.info(`<a href=${msg.url} target="_blank"> ${msg.phrase} </a>`, 'Quote',{  "positionClass": "toast-bottom-left", timeout: 5000 })
-    , 2000)*/
-  })
-
 })()
+

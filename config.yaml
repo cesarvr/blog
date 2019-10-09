@@ -1,7 +1,7 @@
 baseURL: "/"
 disablePathToLower: true
 languageCode: en-us
-title: code_scripter
+title: Terahertz
 theme: hugo-paper
 enableRobotsTXT: true
 defaultContentLanguage: en
@@ -9,13 +9,11 @@ enableEmoji: true
 
 params:
   author: Cesar Valdez
-  description: Crafting Beautiful Software
+  description: My place for hacking and writing about software.
 
 PygmentsUseClasses: true
 PygmentsCodefencesGuessSyntax: true
 PygmentsOptions: linenos=table
-
-
 
 menu:
   main:
