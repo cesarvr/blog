@@ -6,16 +6,9 @@ image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/containers
 description: In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux.
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/containers/container_are_linux.png?raw=true
-categories:
-  - Containers
-  - Linux
-  - C
-  - C++
 tags:
+  - Programming
   - Containers
-  - Linux
-  - C
-  - C++
 ---
 
 # What is this post about

@@ -8,10 +8,7 @@ description: "If you are migrating legacy applications or creating an automatic 
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 categories: [OpenShift, BuildConfig]
-categories:
-  - OpenShift
-  - BuildConfig
-  - ImageStream
+
 
 # You can also close(false) or open(true) something for this content.
 # P.S. comment can only be closed

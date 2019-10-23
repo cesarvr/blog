@@ -1,8 +1,8 @@
 baseURL: "/"
 disablePathToLower: true
 languageCode: en-us
-title: Terahertz
-theme: hugo-paper
+title: Cesar.io
+theme: hugo-theme-cleanwhite  
 enableRobotsTXT: true
 defaultContentLanguage: en
 enableEmoji: true

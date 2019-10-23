@@ -4,9 +4,10 @@ date: 2019-08-07
 draft: false
 keywords: []
 description: "Writing performant Rust code."
-tags: [Rust, Programming, Performance]
+tags: [Programming, Performance]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
+draft: true
 ---
 
 I had the impression that Rust being a system language its performance should be comparable only to C/C++, that the worst code in Rust should perform faster than the good code written in a high level language like JavaScript. Well I discover by pure accident that that's not always the case. It all started when I tried to benchmark an algorithm that I wrote to solve a puzzle and I found out for my surprise that my JS code was performing twice as fast than my Rust implementation.

@@ -5,8 +5,7 @@ lastmod: 2018-12-11
 draft: false
 keywords: []
 description: "Reusable Telemetry"
-tags: [openshift, container, services, kubernetes]
-categories: [openshift, container, services, kubernetes]
+categories: [openshift]
 toc: false
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/dashboard.png?raw=true
 ---

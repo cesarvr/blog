@@ -5,8 +5,7 @@ lastmod: 2018-11-07
 draft: false
 keywords: []
 description: "Decorating services at runtime."
-tags: [openshift, container, services, kubernetes ]
-categories: [openshift, container, services, kubernetes ]
+categories: [ openshift ]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---

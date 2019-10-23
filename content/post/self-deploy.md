@@ -5,8 +5,7 @@ lastmod: 2019-02-20
 draft: false
 keywords: []
 description: "Let's write an application that runs itself into OpenShift."
-tags: [openshift, container, services, kubernetes]
-categories: [openshift, container, nodejs, kubernetes]
+tags: [openshift]
 toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
 ---

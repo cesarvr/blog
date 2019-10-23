@@ -5,11 +5,9 @@ lastmod: 2018-09-06T15:23:40+01:00
 draft: false
 keywords: []
 description: "How to use the Chrome performance monitor to optimise JavaScript performance."
-tags: [JavaScript, Chrome, Performance]
-categories: [JavaScript, Chrome, Performance]
+tags: [Performance]
 images:
   - https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/js.png
-author: ""
 
 # You can also close(false) or open(true) something for this content.
 # P.S. comment can only be closed

@@ -6,7 +6,7 @@ draft: true
 keywords: []
 description: "Reusable Telemetry"
 tags: [openshift, container, services, kubernetes]
-categories: [openshift, container, services, kubernetes]
+categories: [openshift]
 toc: true
 image: https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/logo/profiler.png
 ---

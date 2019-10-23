@@ -5,8 +5,7 @@ lastmod: 2018-09-19T14:30:07+01:00
 draft: false
 keywords: []
 description: "How we can add/remove features to existing micro-services just by adding/removing containers."
-tags: [openshift, container, services, kubernetes ]
-categories: [openshift, container, services, kubernetes ]
+categories: [openshift]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 ---
