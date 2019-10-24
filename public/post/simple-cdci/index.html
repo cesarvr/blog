@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    
+    
+     | Cesar 
+  </title>
+  <link rel="stylesheet" href='https://cesarvr.io/css/site.min.cc3fc5270f71da844cfcd512ac94081d2c969c9619b62a823c9279c7179b2d8fabd5b53456f25fa3c1586d19ce4255b5cb5f0dc927ee3b0b15d60065c50372fd.css' integrity='sha512-zD/FJw9x2oRM/NUSrJQIHSyWnJYZtiqCPJJ5xxebLY&#43;r1bU0VvJfo8FYbRnOQlW1y18NySfuOwsV1gBlxQNy/Q=='>
+  <link rel="canonical" href="https://cesarvr.io/post/simple-cdci/">
+  <link rel="alternate" type="application/rss&#43;xml" href="https://cesarvr.io/index.xml" title="Happy Hacking">
+  <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<meta name="author" content="Cesar">
+<meta name="description" content="Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that you can improve with more complex use cases in the future.
+Step One Let&rsquo;s start by defining how the container will be created in Openshift, for this we are going to define a build configuration (AKA BuildConfig).
+What is a BuildConfig? A BuildConfig is basically an Openshift object that defines how images are constructed in Openshift, they are four ways to build an image, we are going to use the binary because it give us freedom to choose how to build our software.">
+
+<meta property="og:title" content="" />
+<meta property="og:description" content="Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that you can improve with more complex use cases in the future.
+Step One Let&rsquo;s start by defining how the container will be created in Openshift, for this we are going to define a build configuration (AKA BuildConfig).
+What is a BuildConfig? A BuildConfig is basically an Openshift object that defines how images are constructed in Openshift, they are four ways to build an image, we are going to use the binary because it give us freedom to choose how to build our software." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://cesarvr.io/post/simple-cdci/" />
+
+
+
+</head>
+<body><nav class="navbar is-transparent " role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="https://cesarvr.io/">
+      <figure class="image">
+        <img alt="" class="is-rounded" src="https://www.gravatar.com/avatar/a0c107b88dd0930e66b241a400e11bd2?s=128&d=identicon">
+      </figure>
+    </a>
+    <a class="navbar-item" href="https://cesarvr.io/">
+      Happy Hacking
+    </a>
+  </div>
+  
+  <div class="navbar-menu">
+    <div class="navbar-start">
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/build/">
+        
+        Build
+        
+      </a>
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/containers/">
+        
+        Containers
+        
+      </a>
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/docker/">
+        
+        Docker
+        
+      </a>
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/openshift/">
+        
+        Openshift
+        
+      </a>
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/performance/">
+        
+        Performance
+        
+      </a>
+      
+      <a class="navbar-item" href="https://cesarvr.io/tags/programming/">
+        
+        Programming
+        
+      </a>
+      
+    </div>
+    
+    <div class="navbar-end">
+      
+      <a class="navbar-item" href="https://github.com/cesarvr" rel="noopener" target="_blank">
+        <span class="icon">
+          <img alt="github-circle" src='https://cesarvr.io/icons/svg/github-circle.svg'>
+        </span>
+      </a>
+      
+      <a class="navbar-item" href="https://www.linkedin.com/in/cesarvr/" rel="noopener" target="_blank">
+        <span class="icon">
+          <img alt="linkedin" src='https://cesarvr.io/icons/svg/linkedin.svg'>
+        </span>
+      </a>
+      
+      <a class="navbar-item" href="mailto:cesarv01@yahoo.com" target="_blank">
+        <span class="icon">
+          <img alt="email" src='https://cesarvr.io/icons/svg/email.svg'>
+        </span>
+      </a>
+      <a class="navbar-item" href="https://cesarvr.io/index.xml" target="_blank">
+        <span class="icon">
+          <img alt="rss" src='https://cesarvr.io/icons/svg/rss.svg'>
+        </span>
+      </a>
+      
+    </div>
+  </div>
+</nav>
+<section class="hero is-small is-info is-fullwidth">
+  <div class="hero-body">
+<div class="container">
+  <h1 class="title">
+    
+  </h1>
+  <h2 class="subtitle">
+    <time datetime='0001-01-01T00:00:00Z'>
+      January 01, 0001
+    </time>
+    
+  </h2>
+</div>
+
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+<div class="content is-medium">
+  
+
+<p>Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that
+you can improve with more complex use cases in the future.</p>
+
+<h2 id="step-one">Step One</h2>
+
+<p>Let&rsquo;s start by defining how the container will be created in Openshift, for this we are going to define a build configuration (AKA <a href="https://cesarvr.io/post/buildconfig/">BuildConfig</a>).</p>
+
+<h3 id="what-is-a-buildconfig">What is a BuildConfig?</h3>
+
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/static/BuildConfig.png?raw=true" alt="" /></p>
+
+<p>A BuildConfig is basically an Openshift object that defines how images are constructed in Openshift, they are <a href="https://cesarvr.io/post/buildconfig/">four ways to build an image</a>, we are going to use the <strong>binary</strong> because it give us freedom to choose how to build our software.</p>
+
+<h3 id="defining-our-buildconfig">Defining Our BuildConfig</h3>
+
+<p>To define one we are going to use the command line tool <code>oc-client</code> and it will look like this:</p>
+
+<pre><code class="language-sh">oc new-project my-java-services # Creates project 
+oc new-build redhat-openjdk18-openshift --binary=true --name=java-microservice 
+</code></pre>
+
+<blockquote>
+<p>We create a project with a BuildConfig called <code>java-microservice</code> using <code>redhat-openjdk18-openshift</code> as our base and we specify the <strong>binary</strong> flag saying that we want to provide the artifact ourselves.</p>
+</blockquote>
+
+<h3 id="deploying-mechanism">Deploying Mechanism</h3>
+
+<p>Next we are going to specify how we deploy images created by <code>java-microservice</code>, for this we are going to use a DeploymentConfig, which basically defines how many replicas and keep sure that our containers are always running.</p>
+
+<p>We need the URL where our image is stored:</p>
+
+<pre><code class="language-sh">oc get is 
+ #   NAME         DOCKER REPO                                                TAGS      UPDATED
+ #   java-microservice docker-registry.default.svc:5000/my-java-services/java-microservice  ... ...
+</code></pre>
+
+<p>We define a deployment:</p>
+
+<pre><code class="language-sh">oc create deploymentconfig microservice --image=docker-registry.default.svc:5000/my-java-services/java-microservice
+</code></pre>
+
+<p>We automate the deployment when a new image is created (Optional):</p>
+
+<pre><code class="language-sh">oc set triggers dc/microservice --from-image=docker-registry.default.svc:5000/my-java-services/java-microservice:latest -c default-container
+</code></pre>
+
+<blockquote>
+<p>We define that we want to re-deploy our services each time a new image with tag <code>:latest</code> is created.</p>
+</blockquote>
+
+<h3 id="traffic">Traffic</h3>
+
+<p>Last step is to configure the traffic allowing our containers to receive traffic:</p>
+
+<pre><code># To expose this container to the cluster.
+oc expose dc/microservice --port 8080  
+
+# To expose this service to the internet.
+oc expose svc/microservice --port 8080  
+</code></pre>
+
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/static/backbone.PNG" alt="" /></p>
+
+<p>Now we got our backbone ready to deploy any image created by our <code>java-microservice</code> <strong>BuildConfig</strong>, now the next step is trigger this by sending a binary tested and packaged by <strong>Jenkins</strong>.</p>
+
+<h2 id="step-two">Step Two</h2>
+
+<p>This part assumes that you already have Jenkins deployed and running in your Openshift cluster, if you haven&rsquo;t do this before, I&rsquo;ve wrote <a href="https://github.com/cesarvr/Spring-Boot#configuring-continuous-integration">this small guide</a> to help you get the basics, you can comeback to this point when you finnish the installation.</p>
+
+<p>One advantage of doing our build configuration using the binary strategy is that it give us a &ldquo;common interface&rdquo;, meaning that it doesn&rsquo;t matter if we build our binary with Gradle, Maven or Ant; this build just require that we provide a JAR file.</p>
+
+<p>Spring Boot offers a way to create light weight microservices using an embeded Tomcat, so <a href="https://github.com/cesarvr/GradleOpenShift">let&rsquo;s containerize a Spring Boot </a> microservice using Gradle.</p>
+
+<p>Now let&rsquo;s create a simple Pipeline:</p>
+
+<p><img src="https://github.com/cesarvr/Spring-Boot/blob/master/docs/newPipeline.png?raw=true" alt="" /></p>
+
+<p>No we open this pipeline project and go to the scripting part and we define the tools and some variables:</p>
+
+<pre><code class="language-groovy">def project = &quot;my-java-services&quot;   // we've created this using oc new-project...
+def clusterName = &quot;your-openshift-endpoint&quot; // Example: https://openshift.console.org. 
+def imageBuildConfig = &quot;java-microservice&quot;  // The one we created above.
+def GIT_URL = &quot;https://github.com/cesarvr/Spring-Boot&quot; // Your Spring Boot project. 
+
+pipeline {
+  agent any
+ 
+  tools { 
+    gradle 'Gradle562' // You can setup this using Jenkins Global Tools. 
+  }
+}
+</code></pre>
+
+<p>We instruct Jenkins to clone, test and package our Java binary:</p>
+
+<pre><code class="language-groovy">   stages {
+        
+    /*=============================================*/
+    /* Clone the project                           */
+    /*=============================================*/
+        
+    stage('Preparation'){
+        steps {
+             git GIT_URL
+        }
+    }
+    
+    /*=============================================*/
+    /* We keep Maven related stuff here            */
+    /*=============================================*/
+        
+   stage('Testing And Packaging') {
+        steps {
+            sh   'gradle build'
+        }
+    }
+    /*=============================================*/
+</code></pre>
+
+<p>And finally we need to deploy our JAR binary into our BuildConfig:</p>
+
+<pre><code class="language-groovy">   stage('Build') {
+          
+        steps {
+            echo &quot;Pushing The JAR Into OpenShift OpenJDK-Container&quot;
+            script {
+                openshift.withCluster( clusterName ) {
+                    openshift.withProject( project ) {
+                        openshift
+                        .selector(&quot;bc&quot;, imageBuildConfig)
+                        .startBuild(&quot;--from-file=build/libs/gs-spring-boot-0.1.0.jar&quot;, &quot;--wait&quot;)
+                    }
+               }
+              }
+          }
+    	  
+          post {
+            success {
+              archiveArtifacts artifacts: 'build/libs/**.jar', fingerprint: true
+            }
+          }
+        }
+    }
+</code></pre>
+
+<blockquote>
+<p>Here we are using <a href="https://github.com/openshift/jenkins-client-plugin">Openshift DSL Plugin</a> to select the BuildConfig (<code>java-microservice</code>) and provide the binary and block the task until the container is created.</p>
+</blockquote>
+
+</div>
+
+
+  </div>
+</section><footer class="footer">
+  <div class="content has-text-centered">
+    
+    <p>
+      Last modified September 18, 2019
+      
+      (commit b311981)
+      
+    </p>
+    
+    
+    <p>
+      
+      
+    </p>
+    
+  </div>
+</footer>
+
+
+</body>
+</html>

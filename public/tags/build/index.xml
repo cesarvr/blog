@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>build on code_scripter</title>
-    <link>/tags/build/</link>
-    <description>Recent content in build on code_scripter</description>
+    <title>build on Happy Hacking</title>
+    <link>https://cesarvr.io/tags/build/</link>
+    <description>Recent content in build on Happy Hacking</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 21 Jul 2018 11:18:43 +0200</lastBuildDate>
     
-	<atom:link href="/tags/build/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://cesarvr.io/tags/build/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Chaining Builds In Openshift</title>
-      <link>/post/ocp-chainbuild/</link>
+      <link>https://cesarvr.io/post/ocp-chainbuild/</link>
       <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
       
-      <guid>/post/ocp-chainbuild/</guid>
+      <guid>https://cesarvr.io/post/ocp-chainbuild/</guid>
       <description>New application Creating a Node.js application in Openshift is simple:
 oc login -u user oc new-project hello # Assuming you are logged and you have a project you can start here. oc new-app --name node-app nodejs~https://github.com/cesarvr/hello-world-nodejs #new app using nodejs:latest (Node.js 8)  This command will create the backbone (BuildConfig, DeploymentConfig and Service) to orchestrate the different stages from source code to a running application.
 The size problem But this nice abstraction come with a cost, to explain what I mean, let&amp;rsquo;s review size of our final image using du:</description>
+    </item>
+    
+    <item>
+      <title>Simple CI/CD</title>
+      <link>https://cesarvr.io/post/okd-cicd/</link>
+      <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
+      
+      <guid>https://cesarvr.io/post/okd-cicd/</guid>
+      <description>&lt;p&gt;Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that
+you can improve with more complex use cases in the future.&lt;/p&gt;</description>
     </item>
     
   </channel>

@@ -1,148 +1,67 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on code_scripter</title>
-    <link>/tags/</link>
-    <description>Recent content in Tags on code_scripter</description>
+    <title>Tags on Happy Hacking</title>
+    <link>https://cesarvr.io/tags/</link>
+    <description>Recent content in Tags on Happy Hacking</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Feb 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://cesarvr.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>performance</title>
-      <link>/tags/performance/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/performance/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>programming</title>
-      <link>/tags/programming/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/programming/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>container</title>
-      <link>/tags/container/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/container/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>kubernetes</title>
-      <link>/tags/kubernetes/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/kubernetes/</guid>
-      <description></description>
-    </item>
     
     <item>
       <title>openshift</title>
-      <link>/tags/openshift/</link>
+      <link>https://cesarvr.io/tags/openshift/</link>
       <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>/tags/openshift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>services</title>
-      <link>/tags/services/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/services/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Chrome</title>
-      <link>/tags/Chrome/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/tags/Chrome/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>JavaScript</title>
-      <link>/tags/JavaScript/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/tags/JavaScript/</guid>
+      <guid>https://cesarvr.io/tags/openshift/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Performance</title>
-      <link>/tags/Performance/</link>
+      <link>https://cesarvr.io/tags/performance/</link>
       <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
       
-      <guid>/tags/Performance/</guid>
+      <guid>https://cesarvr.io/tags/performance/</guid>
       <description></description>
     </item>
     
     <item>
       <title>build</title>
-      <link>/tags/build/</link>
+      <link>https://cesarvr.io/tags/build/</link>
       <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
       
-      <guid>/tags/build/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C</title>
-      <link>/tags/C/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/C/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C&#43;&#43;</title>
-      <link>/tags/C&#43;&#43;/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/tags/C&#43;&#43;/</guid>
+      <guid>https://cesarvr.io/tags/build/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Containers</title>
-      <link>/tags/Containers/</link>
+      <link>https://cesarvr.io/tags/containers/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/Containers/</guid>
+      <guid>https://cesarvr.io/tags/containers/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Linux</title>
-      <link>/tags/Linux/</link>
+      <title>Programming</title>
+      <link>https://cesarvr.io/tags/programming/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/tags/Linux/</guid>
+      <guid>https://cesarvr.io/tags/programming/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Docker</title>
-      <link>/tags/Docker/</link>
+      <link>https://cesarvr.io/tags/docker/</link>
       <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/tags/Docker/</guid>
+      <guid>https://cesarvr.io/tags/docker/</guid>
       <description></description>
     </item>
     

@@ -1,160 +1,168 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on code_scripter</title>
-    <link>/post/</link>
-    <description>Recent content in Posts on code_scripter</description>
+    <title>Posts on Happy Hacking</title>
+    <link>https://cesarvr.io/post/</link>
+    <description>Recent content in Posts on Happy Hacking</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Feb 2019 00:00:00 +0000</lastBuildDate>
     
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://cesarvr.io/post/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Performance Profiling in Rust</title>
-      <link>/post/performance-rust/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/post/performance-rust/</guid>
-      <description>Puzzle 1 I was working on a puzzle from the Advent Of Code Day-5, the puzzle is as follows:
-You got a simple string like this one:
- xdaADf 
-You need to scan this string any pair of letters that are equal but with different capitalization.
- In the case above we eliminate aA and we got this xdDf Then we apply the algorithm again over xdDf to reduce the word to xf by removing the dD and so on.</description>
-    </item>
     
     <item>
       <title>Self Deploying Node.JS Applications</title>
-      <link>/post/self-deploy/</link>
+      <link>https://cesarvr.io/post/self-deploy/</link>
       <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>/post/self-deploy/</guid>
+      <guid>https://cesarvr.io/post/self-deploy/</guid>
       <description>&lt;p&gt;Few days ago I was watching in &lt;a href=&#34;https://www.youtube.com/watch?v=XPC-hFL-4lU&#34;&gt;Youtube a talk&lt;/a&gt; given by &lt;a href=&#34;https://twitter.com/kelseyhightower&#34;&gt;Kelsey Hightower&lt;/a&gt; titled &amp;ldquo;Self Deploying Kubernetes Applications&amp;rdquo;. In this talk which is a bit old now (over a year) he was demoing a &lt;a href=&#34;https://golang.org&#34;&gt;Golang&lt;/a&gt; application capable of running locally but also capable of &lt;em&gt;magically&lt;/em&gt; deploy itself into a Kubernetes cluster.&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Creating Your Own Istio (Part 3) - Dashboard</title>
-      <link>/post/istio-4/</link>
+      <link>https://cesarvr.io/post/istio-4/</link>
       <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/istio-4/</guid>
+      <guid>https://cesarvr.io/post/istio-4/</guid>
       <description>&lt;p&gt;In &lt;a href=&#34;https://cesarvr.io/post/istio-2.5/&#34;&gt;the previous post&lt;/a&gt; we where able to collect information about pods running in our cluster thanks to the deployment of our &lt;a href=&#34;https://github.com/cesarvr/ambassador&#34;&gt;Ambassador container&lt;/a&gt;, but having this information is of little value if we don&amp;rsquo;t have a way to make sense of it. In this post we are going to develop a new functionality in our Ambassador so we can publish this information into a service.&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Creating Your Own Istio (Part 2.5)</title>
-      <link>/post/istio-2.5/</link>
+      <link>https://cesarvr.io/post/istio-2.5/</link>
       <pubDate>Sat, 01 Dec 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/istio-2.5/</guid>
+      <guid>https://cesarvr.io/post/istio-2.5/</guid>
       <description>&lt;p&gt;In the last post we create our first &lt;a href=&#34;https://cesarvr.io/post/istio-2/&#34;&gt;container decorator&lt;/a&gt;, a container that when included into an arbitrary pod enhance the main container. In our particular case we created a container that override the HTTP 404 responses as an introduction, in this post we are going to build upon and develop some functionalities to monitor the performance of a running service.&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Creating Your Own Istio (Part 2)</title>
-      <link>/post/istio-2/</link>
+      <link>https://cesarvr.io/post/istio-2/</link>
       <pubDate>Wed, 07 Nov 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/istio-2/</guid>
+      <guid>https://cesarvr.io/post/istio-2/</guid>
       <description>&lt;p&gt;Let&amp;rsquo;s talk about container oriented programming&amp;hellip;&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Creating Your Own Istio (Part 1)</title>
-      <link>/post/istio/</link>
+      <link>https://cesarvr.io/post/istio/</link>
       <pubDate>Wed, 19 Sep 2018 14:30:07 +0100</pubDate>
       
-      <guid>/post/istio/</guid>
+      <guid>https://cesarvr.io/post/istio/</guid>
       <description>&lt;p&gt;Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Finding Performance Bottlenecks in JavaScript.</title>
-      <link>/post/js-performance/</link>
+      <link>https://cesarvr.io/post/js-performance/</link>
       <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
       
-      <guid>/post/js-performance/</guid>
+      <guid>https://cesarvr.io/post/js-performance/</guid>
       <description>&lt;p&gt;One of my hobbies is to write (and sometimes re-write) graphics engines. I do this because I love the challenge of writing not only fast code but scalable code and also because I like visual stuff. This time I decide to write one in JavaScript using WebGL and as soon as I have a workable set of API&amp;rsquo;s I decide to write an simple vortex animation to see how well my new shinny new engine will perform.&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>4 Ways to Build Applications in OpenShift</title>
-      <link>/post/buildconfig/</link>
+      <link>https://cesarvr.io/post/buildconfig/</link>
       <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
       
-      <guid>/post/buildconfig/</guid>
+      <guid>https://cesarvr.io/post/buildconfig/</guid>
       <description>&lt;p&gt;We are going to discuss the different strategies for building our software in OpenShift. These strategies are useful if you need to solve any of the following problems:&lt;/p&gt;</description>
     </item>
     
     <item>
       <title>Chaining Builds In Openshift</title>
-      <link>/post/ocp-chainbuild/</link>
+      <link>https://cesarvr.io/post/ocp-chainbuild/</link>
       <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
       
-      <guid>/post/ocp-chainbuild/</guid>
+      <guid>https://cesarvr.io/post/ocp-chainbuild/</guid>
       <description>New application Creating a Node.js application in Openshift is simple:
 oc login -u user oc new-project hello # Assuming you are logged and you have a project you can start here. oc new-app --name node-app nodejs~https://github.com/cesarvr/hello-world-nodejs #new app using nodejs:latest (Node.js 8)  This command will create the backbone (BuildConfig, DeploymentConfig and Service) to orchestrate the different stages from source code to a running application.
 The size problem But this nice abstraction come with a cost, to explain what I mean, let&amp;rsquo;s review size of our final image using du:</description>
     </item>
     
     <item>
+      <title>Simple CI/CD</title>
+      <link>https://cesarvr.io/post/okd-cicd/</link>
+      <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
+      
+      <guid>https://cesarvr.io/post/okd-cicd/</guid>
+      <description>&lt;p&gt;Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that
+you can improve with more complex use cases in the future.&lt;/p&gt;</description>
+    </item>
+    
+    <item>
       <title>Creating Your Own Containers</title>
-      <link>/post/2018-05-22-create-containers/</link>
+      <link>https://cesarvr.io/post/2018-05-22-create-containers/</link>
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/2018-05-22-create-containers/</guid>
+      <guid>https://cesarvr.io/post/2018-05-22-create-containers/</guid>
       <description>What is this post about This post is basically about how to create your own container program using C. In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux, the steps are based on this excellent talk by Liz Rice.
 Why C Because I love the simplicity of the language (maybe I&amp;rsquo;m just a romantic) and also it is the lingua franca of Linux, which means that it helps to get a better understanding about how things work at a system level.</description>
     </item>
     
     <item>
       <title>Containers For Beginners</title>
-      <link>/post/2017-12-22-Containers/</link>
+      <link>https://cesarvr.io/post/2017-12-22-containers/</link>
       <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-12-22-Containers/</guid>
+      <guid>https://cesarvr.io/post/2017-12-22-containers/</guid>
       <description>What is a container ? A container is just a way to achieve process isolation. Unlike virtual machines, they don’t achieve isolation by simulating hardware, but by using existing Linux kernel features.
 In a typical Unix/Linux OS all processes share the same user space, but with the introduction of new features in Linux 2.6+, you can create a process that has its own particular set of isolated contexts like file tree, threads, etc.</description>
     </item>
     
     <item>
       <title>How to generate a PDF Documents using Cordova, for Android and IOS</title>
-      <link>/post/2017-12-01-cordova-pdf-generator/</link>
+      <link>https://cesarvr.io/post/2017-12-01-cordova-pdf-generator/</link>
       <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
       
-      <guid>/post/2017-12-01-cordova-pdf-generator/</guid>
+      <guid>https://cesarvr.io/post/2017-12-01-cordova-pdf-generator/</guid>
       <description>Why Some of my work at Red Hat is to design and develop end-to-end mobile/desktop application using Apache Cordova and using Node.JS, One of the typical challenges I face, when working with some costumer, is how to generate reports in PDF format, the usual way to solve this was to use a server side API render the document there and send it to the phone, this is not nice, the first reason, you need network connectivity for this to work, the second is the lack of good and free PDF API&amp;rsquo;s in the server side, so I decide to write a plugin to move this job to the mobile device, the advantages of doing this are:</description>
     </item>
     
     <item>
       <title>Exporting external images to Openshift</title>
-      <link>/post/2017-11-12-imagestream/</link>
+      <link>https://cesarvr.io/post/2017-11-12-imagestream/</link>
       <pubDate>Sun, 12 Nov 2017 00:00:00 +0000</pubDate>
       
-      <guid>/post/2017-11-12-imagestream/</guid>
+      <guid>https://cesarvr.io/post/2017-11-12-imagestream/</guid>
       <description>Getting Started First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the oc cluster up command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the documentation.
 Creating a project Once oc cluster up finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project.</description>
     </item>
     
     <item>
       <title>Embedding Javascript v8</title>
-      <link>/post/2015-11-20-javascript-v8/</link>
+      <link>https://cesarvr.io/post/2015-11-20-javascript-v8/</link>
       <pubDate>Fri, 20 Nov 2015 00:00:00 +0000</pubDate>
       
-      <guid>/post/2015-11-20-javascript-v8/</guid>
+      <guid>https://cesarvr.io/post/2015-11-20-javascript-v8/</guid>
       <description>Building V8 Javascript Engine. Introduction I was thinking sometime ago about starting hacking with V8, aside from the fact that I work every day with Javascript, is that the Chromium engineers are doing a very good job making V8 fast and efficient and for some task good Javascript code is faster than C++, here is a great talk about the sophisticated JIT generation in Javascript.
 After many days of procrastination, I put my hands-on and start the task of downloading the project and prayed that everything would just work, like many things in life it didn&amp;rsquo;t work the first time, here I documented all the steps, if somebody wants to start playing with this, hopefully this will make their life easy.</description>
     </item>
     
     <item>
       <title>Arch Linux install cheat sheet</title>
-      <link>/post/2015-09-01-archlinux-install/</link>
+      <link>https://cesarvr.io/post/2015-09-01-archlinux-install/</link>
       <pubDate>Tue, 01 Sep 2015 19:51:38 +0000</pubDate>
       
-      <guid>/post/2015-09-01-archlinux-install/</guid>
+      <guid>https://cesarvr.io/post/2015-09-01-archlinux-install/</guid>
       <description>Arch Linux installation instruction for the impatient.
 Partition fdisk /dev/d #sda all disk in my case. #15 GB partition. Command (m for help): #type n and press Enter Partition type: Select (default p): #press Enter Partition number (1-4, default 1): #press Enter First sector (2048-209715199, default 2048): #press Enter start in the beginning. Last sector, +sectors or +size...(): #type +19G and press Enter. #SWAP 1GB Command (m for help): #type n and press Enter Partition type: Select (default p): #press Enter Partition number (1-4, default 2): #press Enter First sector (): #press Enter Last sector, +sectors or +size.</description>
+    </item>
+    
+    <item>
+      <title></title>
+      <link>https://cesarvr.io/post/simple-cdci/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/post/simple-cdci/</guid>
+      <description>Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that you can improve with more complex use cases in the future.
+Step One Let&amp;rsquo;s start by defining how the container will be created in Openshift, for this we are going to define a build configuration (AKA BuildConfig).
+What is a BuildConfig? A BuildConfig is basically an Openshift object that defines how images are constructed in Openshift, they are four ways to build an image, we are going to use the binary because it give us freedom to choose how to build our software.</description>
     </item>
     
   </channel>
