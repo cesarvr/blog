@@ -21,6 +21,7 @@ postcss = false
 includeAuthorInTitle = true
 disableAttribution = true
 
+
 [[params.social]]
 icon = "github-circle"
 url = "https://github.com/cesarvr"
