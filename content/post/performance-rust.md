@@ -7,28 +7,38 @@ description: "Writing performant Rust code."
 tags: [Programming, Performance]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
-draft: true
+draft: false
 ---
 
-I had the impression that Rust being a system language its performance should be comparable only to C/C++, that the worst code in Rust should perform faster than the good code written in a high level language like JavaScript. Well I discover by pure accident that that's not always the case. It all started when I tried to benchmark an algorithm that I wrote to solve a puzzle and I found out for my surprise that my JS code was performing twice as fast than my Rust implementation.
+I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that's surprisingly not always the true.
 
-The critical part of the algorithm was to create a function that accept two characters as parameters and return ``true`` if the characters are equal but they have a different capitalisation.
+This happened while I was trying to learn Rust programming language by solving the [day-5 puzzle](https://adventofcode.com/2018/day/5) on this website called [Advent Of Code 2018](https://adventofcode.com/). In that puzzle I would have to write an algorithm that find in a strings for a pair of letters that are equals have different capitalisation, once found I should remove it from the string.
 
 For example:
 
 ```sh
-'aA'
-'bB'
-'Cc'
+abBAp
+```
+I should remove:
+
+```sh
+bB
 ```
 
-My Rust implementation look like this:
+Then:
+```sh
+aA
+```
+
+With the final result of ``p``.
+
+
+I wrote two functions, one that **scan** the string looking for pair of characters and the another one that test if a pair of characters follows above rules for deletion.
 
 ```js
 fn react(token1: &String, token2: &String) -> bool {
     // Are they equals ignoring the case.
     if token1.to_lowercase() == token2.to_lowercase() {
-        // are they still equals ?
         return token1 != token2
     }
 
@@ -36,32 +46,7 @@ fn react(token1: &String, token2: &String) -> bool {
 }
 ```
 
-> My C instincts are telling me that this looks efficient.
-
-The code in JavaScript looks very similar:
-
-```js
-function react(candidate_1, candidate_2) {
-  if (candidate_1.toLowerCase() === candidate_2.toLowerCase()) {
-    if ( candidate_1 !== candidate_2 ) {
-      return true
-    }
-  }
-
-  return false
-}
-```
-
-> More verbose than Rust, for sure.
-
-
-# Performance
-
-In one corner Rust uses the LLVM backend to generate machine code, while Javascript in the other corner is an **interpreter** that does some black magic transform hot parts of the code into machine code, so this should be a walk in the park for Rust.
-
-### Benchmark
-
-This puzzle has an input of [50K characters](https://raw.githubusercontent.com/cesarvr/AOCRust/master/day-5/input.txt) and this where the result:
+Then and just for curiosity I wrote another version of this algorithm on Javascript for ``NodeJS 10`` and the for fun just started a benchmark armed with a huge input [50K characters](https://raw.githubusercontent.com/cesarvr/AOCRust/master/day-5/input.txt) and Linux ``time`` for benchmark.    
 
 ```xml
 Node.JS
@@ -74,7 +59,6 @@ Rust
   user	0m0.636s
   sys  	0m0.012s
 ```
-> This broke my heart, my Rust algorithm is twice slower than Javascript.
 
 ![](https://media.giphy.com/media/2wSaulb0fsDydh0IoB/giphy.gif)
 
@@ -216,7 +200,7 @@ This simple change made the program 2.5x faster, now we are talking.
 
 ### Lessons Learned
 
-This experiment make me think about the amount of time that we think on terms about speed like absolute metric, but we should take into consideration how resilient is a programming language running non-expert code. 
+This experiment make me think about the amount of time that we think on terms about speed like absolute metric, but we should take into consideration how resilient is a programming language running non-expert code.
 
 Well here are some take aways from this experience, if you want to choose a language assuming that is faster, you should take in account the time you are willing to spend optimising your first **naive algorithm** implementation. Of course as soon as you get more experience you will be able to hit the performance sweet spot.
 
