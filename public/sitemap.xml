@@ -3,53 +3,48 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://cesarvr.io/post/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <loc>https://cesarvr.io/categories/buildconfig/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://cesarvr.io/post/rust-performance/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <loc>https://cesarvr.io/categories/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://cesarvr.io/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://cesarvr.io/tags/build/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://cesarvr.io/post/devops/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://cesarvr.io/tags/openshift/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://cesarvr.io/tags/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <loc>https://cesarvr.io/categories/openshift/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
     <loc>https://cesarvr.io/tags/performance/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://cesarvr.io/post/performance-rust/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <loc>https://cesarvr.io/post/rust-performance/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
   </url>
   
   <url>
-    <loc>https://cesarvr.io/tags/programming/</loc>
-    <lastmod>2020-01-14T16:40:16+00:00</lastmod>
+    <loc>https://cesarvr.io/post/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/tags/</loc>
+    <lastmod>2020-01-21T14:19:36+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/tags/openshift/</loc>
+    <lastmod>2019-10-23T20:18:52+01:00</lastmod>
   </url>
   
   <url>
@@ -88,6 +83,11 @@
   </url>
   
   <url>
+    <loc>https://cesarvr.io/tags/build/</loc>
+    <lastmod>2019-09-12T09:03:08+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://cesarvr.io/post/ocp-chainbuild/</loc>
     <lastmod>2018-08-02T10:45:32+01:00</lastmod>
   </url>
@@ -113,6 +113,16 @@
   </url>
   
   <url>
+    <loc>https://cesarvr.io/tags/programming/</loc>
+    <lastmod>2019-10-23T20:18:52+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/containers/</loc>
+    <lastmod>2019-01-16T15:26:43+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://cesarvr.io/post/2017-12-22-containers/</loc>
     <lastmod>2019-01-16T15:26:43+00:00</lastmod>
   </url>
@@ -123,12 +133,57 @@
   </url>
   
   <url>
+    <loc>https://cesarvr.io/categories/linux/</loc>
+    <lastmod>2019-01-16T15:26:43+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/android/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/cordova/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://cesarvr.io/post/2017-12-01-cordova-pdf-generator/</loc>
     <lastmod>2018-09-03T14:44:47+01:00</lastmod>
   </url>
   
   <url>
+    <loc>https://cesarvr.io/categories/ios/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/javascript/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/mobile/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://cesarvr.io/post/2017-11-12-imagestream/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/imagestream/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/c/</loc>
+    <lastmod>2018-09-03T14:44:47+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://cesarvr.io/categories/c&#43;&#43;/</loc>
     <lastmod>2018-09-03T14:44:47+01:00</lastmod>
   </url>
   
@@ -145,10 +200,6 @@
   <url>
     <loc>https://cesarvr.io/post/simple-cdci/</loc>
     <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://cesarvr.io/series/</loc>
   </url>
   
 </urlset>

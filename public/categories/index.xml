@@ -1,202 +1,121 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on code_scripter</title>
-    <link>/categories/</link>
-    <description>Recent content in Categories on code_scripter</description>
+    <title>Categories on Cesar&#39;s Bitacora</title>
+    <link>https://cesarvr.io/categories/</link>
+    <description>Recent content in Categories on Cesar&#39;s Bitacora</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 01 Jan 2020 19:24:19 +0100</lastBuildDate>
     
-	<atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://cesarvr.io/categories/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>performance</title>
-      <link>/categories/performance/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/performance/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>programming</title>
-      <link>/categories/programming/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/programming/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>container</title>
-      <link>/categories/container/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/container/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>kubernetes</title>
-      <link>/categories/kubernetes/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/kubernetes/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>nodejs</title>
-      <link>/categories/nodejs/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/nodejs/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>openshift</title>
-      <link>/categories/openshift/</link>
-      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/openshift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>services</title>
-      <link>/categories/services/</link>
-      <pubDate>Tue, 11 Dec 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/services/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Chrome</title>
-      <link>/categories/Chrome/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/categories/Chrome/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>JavaScript</title>
-      <link>/categories/JavaScript/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/categories/JavaScript/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Performance</title>
-      <link>/categories/Performance/</link>
-      <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
-      
-      <guid>/categories/Performance/</guid>
-      <description></description>
-    </item>
     
     <item>
       <title>BuildConfig</title>
-      <link>/categories/BuildConfig/</link>
-      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
+      <link>https://cesarvr.io/categories/buildconfig/</link>
+      <pubDate>Wed, 01 Jan 2020 19:24:19 +0100</pubDate>
       
-      <guid>/categories/BuildConfig/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>ImageStream</title>
-      <link>/categories/ImageStream/</link>
-      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
-      
-      <guid>/categories/ImageStream/</guid>
+      <guid>https://cesarvr.io/categories/buildconfig/</guid>
       <description></description>
     </item>
     
     <item>
       <title>OpenShift</title>
-      <link>/categories/OpenShift/</link>
-      <pubDate>Sat, 28 Jul 2018 19:24:19 +0100</pubDate>
+      <link>https://cesarvr.io/categories/openshift/</link>
+      <pubDate>Wed, 01 Jan 2020 19:24:19 +0100</pubDate>
       
-      <guid>/categories/OpenShift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C</title>
-      <link>/categories/C/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/C/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>C&#43;&#43;</title>
-      <link>/categories/C&#43;&#43;/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/categories/C&#43;&#43;/</guid>
+      <guid>https://cesarvr.io/categories/openshift/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Containers</title>
-      <link>/categories/Containers/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      <link>https://cesarvr.io/categories/containers/</link>
+      <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/categories/Containers/</guid>
+      <guid>https://cesarvr.io/categories/containers/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Linux</title>
-      <link>/categories/Linux/</link>
-      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      <link>https://cesarvr.io/categories/linux/</link>
+      <pubDate>Fri, 22 Dec 2017 00:00:00 +0000</pubDate>
       
-      <guid>/categories/Linux/</guid>
+      <guid>https://cesarvr.io/categories/linux/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Android</title>
-      <link>/categories/Android/</link>
+      <link>https://cesarvr.io/categories/android/</link>
       <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
       
-      <guid>/categories/Android/</guid>
+      <guid>https://cesarvr.io/categories/android/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Cordova</title>
-      <link>/categories/Cordova/</link>
+      <link>https://cesarvr.io/categories/cordova/</link>
       <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
       
-      <guid>/categories/Cordova/</guid>
+      <guid>https://cesarvr.io/categories/cordova/</guid>
       <description></description>
     </item>
     
     <item>
       <title>IOS</title>
-      <link>/categories/IOS/</link>
+      <link>https://cesarvr.io/categories/ios/</link>
       <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
       
-      <guid>/categories/IOS/</guid>
+      <guid>https://cesarvr.io/categories/ios/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>JavaScript</title>
+      <link>https://cesarvr.io/categories/javascript/</link>
+      <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/categories/javascript/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Mobile</title>
-      <link>/categories/Mobile/</link>
+      <link>https://cesarvr.io/categories/mobile/</link>
       <pubDate>Fri, 01 Dec 2017 19:51:38 +0000</pubDate>
       
-      <guid>/categories/Mobile/</guid>
+      <guid>https://cesarvr.io/categories/mobile/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ImageStream</title>
+      <link>https://cesarvr.io/categories/imagestream/</link>
+      <pubDate>Sun, 12 Nov 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/categories/imagestream/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>C</title>
+      <link>https://cesarvr.io/categories/c/</link>
+      <pubDate>Fri, 20 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/categories/c/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>C&#43;&#43;</title>
+      <link>https://cesarvr.io/categories/c&#43;&#43;/</link>
+      <pubDate>Fri, 20 Nov 2015 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/categories/c&#43;&#43;/</guid>
       <description></description>
     </item>
     

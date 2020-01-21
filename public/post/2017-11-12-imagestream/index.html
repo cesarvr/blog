@@ -1,82 +1,138 @@
 <!DOCTYPE html>
-<html lang="en-us">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  
-  <title>Exporting external images to Openshift - Terminal</title>
-  
-
-
-  <meta name="twitter:site" content="@cvaldezr">
-  <meta name="twitter:creator" content="@cvaldezr">
-  <meta name="twitter:description" content="" />
-  <meta name="twitter:title" content="Exporting external images to Openshift" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:image" content="" />
-
-  <meta property="og:title" content="Exporting external images to Openshift" />
-  <meta property="og:description" content="" />
-  <meta property="og:image" content="" />
-
-  <meta name="description" content="Getting Started First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the oc cluster up command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the documentation.
-Creating a project Once oc cluster up finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project.">
-  <meta name="author" content="Cesar">
-  
-  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
-  <link href="https://cesarvr.iocss/style.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
-
-  
-  <link rel="apple-touch-icon" href="https://cesarvr.ioimg/apple-touch-icon.png">
-  <link rel="icon" href="https://cesarvr.ioimg/favicon.ico">
-  
-  <meta name="generator" content="Hugo 0.62.2" />
-  
-  <link rel="alternate" type="application/atom+xml" href="https://cesarvr.ioindex.xml" title="Terminal">
-  
-</head>
-<body class="single">
-  <header class="header">
+<html lang="en">
+  <head>
     
-    <p class="title"><a href="https://cesarvr.io">Terminal</a></p>
+      <title>Exporting external images to Openshift :: Cesar&#39;s Bitacora — A simple theme for Hugo</title>
     
-    <button class="menu-toggle" type="button"></button>
-    <nav class="menu">
-      <ul>
-        
-        
-        <li class="">
-          <a href="/about">About</a>
-        </li>
-        
-        <li class="">
-          <a href="/showcase">Showcase</a>
-        </li>
-        
-      </ul>
-    </nav>
-  </header>
-  <main class="main">
-
-  <script
-    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
-    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
-    			  crossorigin="anonymous"></script>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="description" content="Getting Started First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the oc cluster up command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the documentation.
+Creating a project Once oc cluster up finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project."/>
+<meta name="keywords" content=""/>
+<meta name="robots" content="noodp"/>
+<link rel="canonical" href="https://cesarvr.io/post/2017-11-12-imagestream/" />
 
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
-  <script src="https://cesarvr.iojs/db.js"></script>
 
-<article class="post post-view">
-  <header class="post-header">
-    <h1 class="post-title">Exporting external images to Openshift</h1>
-    <p class="post-meta">Cesar · 2017.11.12</p>
-  </header>
-  <div class="post-content"><h1 id="getting-started">Getting Started</h1>
+
+
+<link rel="stylesheet" href="https://cesarvr.io/assets/style.css">
+
+
+<link rel="stylesheet" href="https://cesarvr.io/style.css">
+
+
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="https://cesarvr.io/img/apple-touch-icon-144-precomposed.png">
+<link rel="shortcut icon" href="https://cesarvr.io/img/favicon.png">
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Exporting external images to Openshift"/>
+<meta name="twitter:description" content="Getting Started First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the oc cluster up command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the documentation.
+Creating a project Once oc cluster up finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project."/>
+
+
+
+<meta property="og:title" content="Exporting external images to Openshift" />
+<meta property="og:description" content="Getting Started First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the oc cluster up command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the documentation.
+Creating a project Once oc cluster up finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://cesarvr.io/post/2017-11-12-imagestream/" />
+<meta property="article:published_time" content="2017-11-12T00:00:00+00:00" />
+<meta property="article:modified_time" content="2018-09-03T14:44:47+01:00" /><meta property="og:site_name" content="Cesar&#39;s Bitacora" />
+
+
+
+
+
+
+  </head>
+  <body class="dark-theme">
+    <div class="container">
+      <header class="header">
+  <span class="header__inner">
+    <a href="/" class="logo" style="text-decoration: none;">
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367"/>
+</svg>
+</span>
+    <span class="logo__text">Cesar&#39;s Bitacora</span>
+    <span class="logo__cursor"></span>
+  
+</a>
+
+    <span class="header__right">
+      
+        <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/about">About</a></li>
+        
+      
+        
+          <li><a href="/post">Showcase</a></li>
+        
+      
+      
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/about">About</a></li>
+      
+    
+      
+        <li><a href="/post">Showcase</a></li>
+      
+    
+  </ul>
+</nav>
+
+        <span class="menu-trigger">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+          </svg>
+        </span>
+      
+      <span class="theme-toggle">
+        <svg class="theme-toggler" width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M22 41C32.4934 41 41 32.4934 41 22C41 11.5066 32.4934 3 22
+  3C11.5066 3 3 11.5066 3 22C3 32.4934 11.5066 41 22 41ZM7 22C7
+  13.7157 13.7157 7 22 7V37C13.7157 37 7 30.2843 7 22Z"/>
+</svg>
+
+      </span>
+    </span>
+  </span>
+</header>
+
+
+      <div class="content">
+        
+  <div class="post">
+    <h2 class="post-title"><a href="https://cesarvr.io/post/2017-11-12-imagestream/">Exporting external images to Openshift</a></h2>
+    <div class="post-meta">
+      
+        <span class="post-date">
+            2017-11-12
+        </span>
+      
+      
+      
+    </div>
+
+    
+
+    
+
+    <div class="post-content">
+      <h1 id="getting-started">Getting Started</h1>
 <p>First you need to have an Openshift installation on the cloud or in your machine, the second option is the easiest one thanks to the <code>oc cluster up</code> command, this will create a small local installation of openshift in your machine, if your are not familiar take a quick look at the <a href="https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md#getting-started">documentation</a>.</p>
 <h1 id="creating-a-project">Creating a project</h1>
 <p>Once <code>oc cluster up</code> finish you should have an Openshift installation up and ready in your local machine, now next step is to login in and create a project.</p>
@@ -145,40 +201,79 @@ spec:
 oc expose service node-example  
 </code></pre></div><h3 id="demo">Demo</h3>
 <!-- raw HTML omitted -->
-</div>
-  <footer class="post-footer">
-    
-  </footer>
-  
-  
-  
-  
-</article>
-</main>
-<footer class="footer">
-  <span>&copy; 2020 Cesar</span>
-</footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
-<script data-no-instant>InstantClick.init();</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
-<script data-no-instant>
-  hljs.initHighlightingOnLoad();
-  addMenuListener();
-  InstantClick.on('change', function() {
-    var blocks = document.querySelectorAll('pre code');
-    for (var i = 0; i < blocks.length; i++) {
-      hljs.highlightBlock(blocks[i]);
-    }
-    addMenuListener();
-  });
-  function addMenuListener() {
-    var $toggle = document.querySelector('.menu-toggle');
-    var $body = document.querySelector('body');
-    $toggle.addEventListener('click', function() {
-      $body.classList.toggle('noscroll');
-    }, false);
-  }
-</script>
-</body>
-</html>
 
+    </div>
+    
+      
+        <div class="pagination">
+          <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+          </div>
+          <div class="pagination__buttons">
+            
+              <span class="button previous">
+                <a href="https://cesarvr.io/post/2017-12-01-cordova-pdf-generator/">
+                  <span class="button__icon">←</span>
+                  <span class="button__text">How to generate a PDF Documents using Cordova, for Android and IOS</span>
+                </a>
+              </span>
+            
+            
+              <span class="button next">
+                <a href="https://cesarvr.io/post/2015-11-20-javascript-v8/">
+                  <span class="button__text">Embedding Javascript v8</span>
+                  <span class="button__icon">→</span>
+                </a>
+              </span>
+            
+          </div>
+        </div>
+      
+    
+    
+
+    
+      
+        
+
+      
+    
+    
+    </div>
+
+      </div>
+
+      
+        <footer class="footer">
+  <div class="footer__inner">
+    
+      <a href="/" class="logo" style="text-decoration: none;">
+  
+    <span class="logo__mark"><svg xmlns="http://www.w3.org/2000/svg" class="greater-icon" viewBox="0 0 44 44">
+  <path fill="none" d="M15 8l14.729 14.382L15 35.367"/>
+</svg>
+</span>
+    <span class="logo__text">Cesar&#39;s Bitacora</span>
+    <span class="logo__cursor"></span>
+  
+</a>
+
+      <div class="copyright">
+        <span>© 2020 Powered by <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a></span>
+        <span>Theme created by <a href="https://twitter.com/panr" target="_blank" rel="noopener">panr</a></span>
+      </div>
+    
+  </div>
+</footer>
+
+<script src="https://cesarvr.io/assets/main.js"></script>
+<script src="https://cesarvr.io/assets/prism.js"></script>
+
+
+      
+    </div>
+
+    
+  </body>
+</html>

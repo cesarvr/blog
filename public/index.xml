@@ -1,44 +1,23 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Terminal</title>
+    <title>Cesar&#39;s Bitacora</title>
     <link>https://cesarvr.io/</link>
-    <description>Recent content on Terminal</description>
+    <description>Recent content on Cesar&#39;s Bitacora</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 13 Jan 2020 14:00:55 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 01 Jan 2020 19:24:19 +0100</lastBuildDate>
     
 	<atom:link href="https://cesarvr.io/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>Rust Performance</title>
+      <title>Performance Showdown: Rust vs Javascript</title>
       <link>https://cesarvr.io/post/rust-performance/</link>
-      <pubDate>Mon, 13 Jan 2020 14:00:55 +0000</pubDate>
+      <pubDate>Wed, 01 Jan 2020 19:24:19 +0100</pubDate>
       
       <guid>https://cesarvr.io/post/rust-performance/</guid>
-      <description>After having spent some weeks playing with Rust I felt I was ready to put my knowledge to test and solve some of the challenges on the Advent Of Code which is a nice site with programming puzzles. Some of the challenges are complex for one to try to solve them on a new language, so sometimes I solve them in Javascript first and the port it to Rust.
-Once I finish one of the puzzles and knowing that one of the Rust strongest points aside from security was its C++ like performance.</description>
-    </item>
-    
-    <item>
-      <title>DevOps</title>
-      <link>https://cesarvr.io/post/devops/</link>
-      <pubDate>Wed, 23 Oct 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/post/devops/</guid>
-      <description>To take full advantage of Openshift we should change the way we build, deploy and run software. To spark that change here some good engineering principles (that later will become buzzwords on their own) extracted from an interview with Werner Vogel Amazon&#39;s CTO on 2006.
-Encapsulation  We went through a period of serious introspection and concluded that a service-oriented architecture would give us the level of isolation that would allow us to build many software components rapidly and independently&amp;hellip;</description>
-    </item>
-    
-    <item>
-      <title>Performance Profiling in Rust</title>
-      <link>https://cesarvr.io/post/performance-rust/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/post/performance-rust/</guid>
-      <description>I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that&#39;s surprisingly not always the true.
-This happened while I was trying to learn Rust programming language by solving the day-5 puzzle on this website called Advent Of Code 2018.</description>
+      <description>After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the Advent Of Code. My approach to tackle some of those challenges was to solve them on Javascript first (I use it in my day to day) to then port the code to Rust, while porting I just focus on getting the Rust code as elegant as possible. It was after finishing porting this puzzle in particular and feeling a sense of accomplishment that I decided to test how the Rust compiled code will perform against Javascript interpreter.</description>
     </item>
     
     <item>

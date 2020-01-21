@@ -1,49 +1,40 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on Terminal</title>
+    <title>Tags on Cesar&#39;s Bitacora</title>
     <link>https://cesarvr.io/tags/</link>
-    <description>Recent content in Tags on Terminal</description>
+    <description>Recent content in Tags on Cesar&#39;s Bitacora</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 23 Oct 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 01 Jan 2020 19:24:19 +0100</lastBuildDate>
     
 	<atom:link href="https://cesarvr.io/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
-      <title>build</title>
-      <link>https://cesarvr.io/tags/build/</link>
-      <pubDate>Wed, 23 Oct 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/tags/build/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>openshift</title>
-      <link>https://cesarvr.io/tags/openshift/</link>
-      <pubDate>Wed, 23 Oct 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/tags/openshift/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Performance</title>
       <link>https://cesarvr.io/tags/performance/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 01 Jan 2020 19:24:19 +0100</pubDate>
       
       <guid>https://cesarvr.io/tags/performance/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Programming</title>
-      <link>https://cesarvr.io/tags/programming/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      <title>openshift</title>
+      <link>https://cesarvr.io/tags/openshift/</link>
+      <pubDate>Wed, 20 Feb 2019 00:00:00 +0000</pubDate>
       
-      <guid>https://cesarvr.io/tags/programming/</guid>
+      <guid>https://cesarvr.io/tags/openshift/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>build</title>
+      <link>https://cesarvr.io/tags/build/</link>
+      <pubDate>Sat, 21 Jul 2018 11:18:43 +0200</pubDate>
+      
+      <guid>https://cesarvr.io/tags/build/</guid>
       <description></description>
     </item>
     
@@ -53,6 +44,15 @@
       <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
       
       <guid>https://cesarvr.io/tags/containers/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Programming</title>
+      <link>https://cesarvr.io/tags/programming/</link>
+      <pubDate>Tue, 22 May 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/tags/programming/</guid>
       <description></description>
     </item>
     

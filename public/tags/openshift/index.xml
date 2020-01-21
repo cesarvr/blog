@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>openshift on Terminal</title>
+    <title>openshift on Cesar&#39;s Bitacora</title>
     <link>https://cesarvr.io/tags/openshift/</link>
-    <description>Recent content in openshift on Terminal</description>
+    <description>Recent content in openshift on Cesar&#39;s Bitacora</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 23 Oct 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 20 Feb 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://cesarvr.io/tags/openshift/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>DevOps</title>
-      <link>https://cesarvr.io/post/devops/</link>
-      <pubDate>Wed, 23 Oct 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/post/devops/</guid>
-      <description>To take full advantage of Openshift we should change the way we build, deploy and run software. To spark that change here some good engineering principles (that later will become buzzwords on their own) extracted from an interview with Werner Vogel Amazon&#39;s CTO on 2006.
-Encapsulation  We went through a period of serious introspection and concluded that a service-oriented architecture would give us the level of isolation that would allow us to build many software components rapidly and independently&amp;hellip;</description>
-    </item>
     
     <item>
       <title>Self Deploying Node.JS Applications</title>

@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Programming on Terminal</title>
+    <title>Programming on Cesar&#39;s Bitacora</title>
     <link>https://cesarvr.io/tags/programming/</link>
-    <description>Recent content in Programming on Terminal</description>
+    <description>Recent content in Programming on Cesar&#39;s Bitacora</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 22 May 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://cesarvr.io/tags/programming/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Performance Profiling in Rust</title>
-      <link>https://cesarvr.io/post/performance-rust/</link>
-      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
-      
-      <guid>https://cesarvr.io/post/performance-rust/</guid>
-      <description>I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that&#39;s surprisingly not always the true.
-This happened while I was trying to learn Rust programming language by solving the day-5 puzzle on this website called Advent Of Code 2018.</description>
-    </item>
     
     <item>
       <title>Creating Your Own Containers</title>
