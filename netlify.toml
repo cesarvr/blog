@@ -1,6 +1,6 @@
 [build]
 publish = "public"
-command = "git submodule update --init --recursives && hugo --gc --minify"
+command = "hugo --gc --minify"
 
 
 [context.production.environment]

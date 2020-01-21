@@ -1,180 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
-
-
-
-
+<html lang="en-us">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>
-    
-    Creating Your Own Istio (Part 1)
-     | Cesar 
-  </title>
-  <link rel="stylesheet" href='https://cesarvr.io/css/site.min.cc3fc5270f71da844cfcd512ac94081d2c969c9619b62a823c9279c7179b2d8fabd5b53456f25fa3c1586d19ce4255b5cb5f0dc927ee3b0b15d60065c50372fd.css' integrity='sha512-zD/FJw9x2oRM/NUSrJQIHSyWnJYZtiqCPJJ5xxebLY&#43;r1bU0VvJfo8FYbRnOQlW1y18NySfuOwsV1gBlxQNy/Q=='>
-  <link rel="canonical" href="https://cesarvr.io/post/istio/">
-  <link rel="alternate" type="application/rss&#43;xml" href="https://cesarvr.io/index.xml" title="Happy Hacking">
-  <meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="chrome=1">
-<meta name="HandheldFriendly" content="True">
-<meta name="MobileOptimized" content="320">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="referrer" content="no-referrer">
-<meta name="author" content="Cesar">
-<meta name="description" content="How we can add/remove features to existing micro-services just by adding/removing containers.">
-
-<meta property="og:title" content="Creating Your Own Istio (Part 1)" />
-<meta property="og:description" content="How we can add/remove features to existing micro-services just by adding/removing containers." />
-<meta property="og:type" content="article" />
-<meta property="og:url" content="https://cesarvr.io/post/istio/" />
-<meta property="article:published_time" content="2018-09-19T14:30:07+01:00" />
-<meta property="article:modified_time" content="2019-10-23T20:18:52+01:00" />
-
-
-</head>
-<body><nav class="navbar is-transparent " role="navigation" aria-label="main navigation">
-  <div class="navbar-brand">
-    <a class="navbar-item" href="https://cesarvr.io/">
-      <figure class="image">
-        <img alt="" class="is-rounded" src="https://www.gravatar.com/avatar/a0c107b88dd0930e66b241a400e11bd2?s=128&d=identicon">
-      </figure>
-    </a>
-    <a class="navbar-item" href="https://cesarvr.io/">
-      Happy Hacking
-    </a>
-  </div>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   
-  <div class="navbar-menu">
-    <div class="navbar-start">
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/build/">
-        
-        Build
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/containers/">
-        
-        Containers
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/docker/">
-        
-        Docker
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/openshift/">
-        
-        Openshift
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/performance/">
-        
-        Performance
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/programming/">
-        
-        Programming
-        
-      </a>
-      
-    </div>
-    
-    <div class="navbar-end">
-      
-      <a class="navbar-item" href="https://github.com/cesarvr" rel="noopener" target="_blank">
-        <span class="icon">
-          <img alt="github-circle" src='https://cesarvr.io/icons/svg/github-circle.svg'>
-        </span>
-      </a>
-      
-      <a class="navbar-item" href="https://www.linkedin.com/in/cesarvr/" rel="noopener" target="_blank">
-        <span class="icon">
-          <img alt="linkedin" src='https://cesarvr.io/icons/svg/linkedin.svg'>
-        </span>
-      </a>
-      
-      <a class="navbar-item" href="mailto:cesarv01@yahoo.com" target="_blank">
-        <span class="icon">
-          <img alt="email" src='https://cesarvr.io/icons/svg/email.svg'>
-        </span>
-      </a>
-      <a class="navbar-item" href="https://cesarvr.io/index.xml" target="_blank">
-        <span class="icon">
-          <img alt="rss" src='https://cesarvr.io/icons/svg/rss.svg'>
-        </span>
-      </a>
-      
-    </div>
-  </div>
-</nav>
-<section class="hero is-small is-info is-fullwidth">
-  <div class="hero-body">
-<div class="container">
-  <h1 class="title">
-    Creating Your Own Istio (Part 1)
-  </h1>
-  <h2 class="subtitle">
-    <time datetime='2018-09-19T14:30:07&#43;01:00'>
-      September 19, 2018
-    </time>
-    
-  </h2>
-</div>
+  <title>Creating Your Own Istio (Part 1) - Terminal</title>
+  
 
-  </div>
-</section>
-<section class="section">
-  <div class="container">
-<div class="content is-medium">
-  <p>Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.</p>
 
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="How we can add/remove features to existing micro-services just by adding/removing containers." />
+  <meta name="twitter:title" content="Creating Your Own Istio (Part 1)" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta property="og:title" content="Creating Your Own Istio (Part 1)" />
+  <meta property="og:description" content="How we can add/remove features to existing micro-services just by adding/removing containers." />
+  <meta property="og:image" content="https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true" />
+
+  <meta name="description" content="Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.">
+  <meta name="author" content="Cesar">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
+  <link href="https://cesarvr.iocss/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+  
+  <link rel="apple-touch-icon" href="https://cesarvr.ioimg/apple-touch-icon.png">
+  <link rel="icon" href="https://cesarvr.ioimg/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.62.2" />
+  
+  <link rel="alternate" type="application/atom+xml" href="https://cesarvr.ioindex.xml" title="Terminal">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="https://cesarvr.io">Terminal</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="/about">About</a>
+        </li>
+        
+        <li class="">
+          <a href="/showcase">Showcase</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
+  <script src="https://cesarvr.iojs/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Creating Your Own Istio (Part 1)</h1>
+    <p class="post-meta">Cesar · 2018.9.19</p>
+  </header>
+  <div class="post-content"><p>Let say we have a micro-service exposing some business API and we want to gather some data about its usage, such as how many calls, payload size, errors, response time, etc. Adding this feature would usually involve writing some code, testing and the re-deployment of a new version. But when you have multiple micro-services, this solution can be difficult to reuse.</p>
 <p>One way to reuse this functionality is to create a module or library, but this bring the complexity of having to add the library manually by each service, plus the fact that this library only work for services using the same programming language.</p>
-
 <h2 id="service-mesh">Service Mesh</h2>
-
 <p>What we are looking for is a non-intrusive way to add behaviour to a running services in Kubernetes/OpenShift. To achieve this goal we are going to take advantage of some advance deployment capabilities of this platforms, like running a service composed of multiple containers and creating containers that <a href="https://en.wikipedia.org/wiki/Decorator_pattern">decorates</a> or add some additional functionality to a running service.</p>
-
 <h2 id="real-world-examples">&ldquo;Real World&rdquo; Examples</h2>
-
 <p>This may sound like magic, but here are some examples of framework that use this techniques:</p>
-
 <ul>
 <li><a href="https://istio.io/">Istio</a>.</li>
 <li><a href="https://linkerd.io/">Linkerd</a>.</li>
 </ul>
-
 <h1 id="before-we-start">Before We Start</h1>
-
 <p>In these post we are going to learn how to do this:</p>
-
 <ul>
-<li><strong>Part One</strong>: We learn how to setup multiples containers in a single pod.<br /></li>
-<li><strong>Part Two</strong>: We are going to write a simple server to read the usage pattern of any micro-service.<br /></li>
-<li><strong>Part Three</strong>: Write a simple dashboard. Once this container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our &ldquo;service mesh&rdquo;.<br /></li>
+<li><strong>Part One</strong>: We learn how to setup multiples containers in a single pod.</li>
+<li><strong>Part Two</strong>: We are going to write a simple server to read the usage pattern of any micro-service.</li>
+<li><strong>Part Three</strong>: Write a simple dashboard. Once this container is injected to other services, we are going to send some usage data to the dashboard with the usage information across our &ldquo;service mesh&rdquo;.</li>
 </ul>
-
-<p>For the examples I&rsquo;m going to use OpenShift because is the Kubernetes distro I&rsquo;m most familiar with, but this techniques should also work in Kubernetes as well.</p>
-
+<p>For the examples I'm going to use OpenShift because is the Kubernetes distro I'm most familiar with, but this techniques should also work in Kubernetes as well.</p>
 <p>If you want to follow this guide you can install <a href="https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md">oc-client</a> with oc-cluster-up or even better make a free account in <a href="https://manage.openshift.com">OpenShift.io</a>. If you have trouble understanding some of the concepts, you read this <a href="https://github.com/cesarvr/Openshift">OpenShift getting started guide</a>.</p>
-
 <h1 id="understanding-the-pod">Understanding The Pod</h1>
-
 <p>Pods are the building blocks to create applications in OpenShift, but for our purposes we can think of them as an container of containers, they provide a <a href="http://cesarvr.github.io/post/2018-05-22-create-containers/">isolation layer</a> similar to Linux container. This means that containers running inside the pods believe they are running in a single machine.</p>
-
 <p>Like processes running in a &ldquo;single machine&rdquo;, contained processes running inside the pod can communicate between each other using System V semaphore, POSIX shared memory or Linux sockets through &ldquo;localhost&rdquo;.</p>
-
 <h2 id="pod-creation">Pod Creation</h2>
-
 <p>This is a quick example of what a <a href="https://gist.github.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444">pod</a> looks like:</p>
-
-<pre><code class="language-xml">apiVersion: v1
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">apiVersion: v1
 kind: Pod
 metadata:
   name: my-pod
@@ -184,31 +109,19 @@ spec:
   containers:
   - name: my-container
     image: busybox
-    command: ['sh', '-c', 'echo Hello World! &amp;&amp; sleep 3600']
-</code></pre>
-
-<p>This YAML template defines a pod named <em>my-pod</em>, inside we are going to deploy a container using Busybox (a very small Linux distribution) base image. Then we are going display &ldquo;Hello World&rdquo; and sleep to keep the entire container alive for 3 thousand seconds.</p>
-
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World! <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
+</code></pre></div><p>This YAML template defines a pod named <em>my-pod</em>, inside we are going to deploy a container using Busybox (a very small Linux distribution) base image. Then we are going display &ldquo;Hello World&rdquo; and sleep to keep the entire container alive for 3 thousand seconds.</p>
 <p>We save this in a file called pod.yml and we execute the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc create -f pod.yml
 
-<pre><code class="language-sh">oc create -f pod.yml
-
-# or you can create using a template stored somewhere else
+<span style="color:#75715e"># or you can create using a template stored somewhere else</span>
 oc create -f https://gist.githubusercontent.com/cesarvr/3e80053aca02c7ccd014cbdfc2288444/raw/52cde49116a6d6261a1f813034b957058180a7ee/pod.yml
-</code></pre>
-
-<p>That template creates the big jail (the pod) and once created it execute inside something similar to this: <code>docker run -it busybox echo Hello World!; sleep 3600</code>.</p>
-
+</code></pre></div><p>That template creates the big jail (the pod) and once created it execute inside something similar to this: <code>docker run -it busybox echo Hello World!; sleep 3600</code>.</p>
 <p>We can login into the pods running container using this <em>magic words</em>:</p>
-
-<pre><code class="language-sh">oc rsh my-pod
-</code></pre>
-
-<h2 id="adding-more-containers">Adding More Containers</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc rsh my-pod
+</code></pre></div><h2 id="adding-more-containers">Adding More Containers</h2>
 <p>Adding a new container to existing pod is not difficult, we just need add a new entry in the template:</p>
-
-<pre><code class="language-xml">apiversion: v1
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">apiversion: v1
 kind: pod
 metadata:
   name: my-pod
@@ -218,57 +131,36 @@ spec:
   containers:
   - name: first-container
     image: busybox
-    command: ['sh', '-c', 'echo Hello World &amp;&amp; sleep 3600']
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
   - name: second-container
     image: busybox
-    command: ['sh', '-c', 'echo Hello World 2 &amp;&amp; sleep 3600']
-</code></pre>
-
-<p>As you can observe that containers section is a collection, you can add as many containers as you want. After editing our template we just need to load the new template into OpenShift.</p>
-
-<pre><code class="language-sh"># if you create a pod before, you need to deleted first.
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World 2 <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
+</code></pre></div><p>As you can observe that containers section is a collection, you can add as many containers as you want. After editing our template we just need to load the new template into OpenShift.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># if you create a pod before, you need to deleted first.</span>
 oc delete pod my-pod
 
-# create it again.
+<span style="color:#75715e"># create it again.</span>
 oc create -f pod.yml
 
-#or
+<span style="color:#75715e">#or</span>
 
 oc create -f https://gist.githubusercontent.com/cesarvr/97a0139ca2dba9412254d9919da64e69/raw/5e593a9a4b9fff9af06c53670f939fd9caef94ff/pod.yml
-</code></pre>
-
-<p>Logging into the pod gets a bit trickier now as we need to specify the container, let say we want to login into the <code>first-container</code> container:</p>
-
-<pre><code class="language-sh">oc rsh -c first-container my-pod
-</code></pre>
-
-<p>If you want to login into the <code>second-container</code>:</p>
-
-<pre><code class="language-sh">oc rsh -c second-container my-pod
-</code></pre>
-
-<h2 id="communication-between-pods">Communication Between Pods</h2>
-
+</code></pre></div><p>Logging into the pod gets a bit trickier now as we need to specify the container, let say we want to login into the <code>first-container</code> container:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc rsh -c first-container my-pod
+</code></pre></div><p>If you want to login into the <code>second-container</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc rsh -c second-container my-pod
+</code></pre></div><h2 id="communication-between-pods">Communication Between Pods</h2>
 <h3 id="simple-server">Simple Server</h3>
-
-<p>By now we should understand all the theory behind how the pod works, so let&rsquo;s put some of it into practice and deploy a simple web server using python, first we need to build our image:</p>
-
-<pre><code class="language-sh">oc new-build python~https://github.com/cesarvr/demos-webgl --name=web
-</code></pre>
-
-<p>Here we are using <a href="https://cesarvr.io/post/buildconfig/">new-build</a> to create an image. We are going to provide this <a href="https://github.com/cesarvr/demos-webgl">repository</a>, where we got some simple HTTP pages.</p>
-
+<p>By now we should understand all the theory behind how the pod works, so let's put some of it into practice and deploy a simple web server using python, first we need to build our image:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc new-build python~https://github.com/cesarvr/demos-webgl --name<span style="color:#f92672">=</span>web
+</code></pre></div><p>Here we are using <a href="https://cesarvr.io/post/buildconfig/">new-build</a> to create an image. We are going to provide this <a href="https://github.com/cesarvr/demos-webgl">repository</a>, where we got some simple HTTP pages.</p>
 <p>We can check the location of our new image using the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc get is
 
-<pre><code class="language-sh">oc get is
-
-# NAME          DOCKER REPO                                             TAGS
-# web           docker-registry.default.svc:5000/web-apps/web           latest    
-</code></pre>
-
-<p>Now we need to update our template to add our newly created image:</p>
-
-<pre><code class="language-xml">apiversion: v1
+<span style="color:#75715e"># NAME          DOCKER REPO                                             TAGS</span>
+<span style="color:#75715e"># web           docker-registry.default.svc:5000/web-apps/web           latest</span>    
+</code></pre></div><p>Now we need to update our template to add our newly created image:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">apiversion: v1
 kind: Pod
 metadata:
   name: my-pod
@@ -278,15 +170,12 @@ spec:
   containers:
   - name: web
     image: docker-registry.default.svc:5000/web-apps/web
-    command: ['sh', '-c', 'echo Hello World &amp;&amp; sleep 3600']
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
   - name: proxy
     image: busybox
-    command: ['sh', '-c', 'echo Hello World 2 &amp;&amp; sleep 3600']
-</code></pre>
-
-<p>Here I just renamed containers name for clarity, we got the <strong>web</strong> container using our Python image we created before, and the second container to <strong>proxy</strong>. The only thing left is to edit the command section in the <strong>web</strong> container so we deploy a web server instead of just showing a message.</p>
-
-<pre><code class="language-xml">apiversion: v1
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World 2 <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
+</code></pre></div><p>Here I just renamed containers name for clarity, we got the <strong>web</strong> container using our Python image we created before, and the second container to <strong>proxy</strong>. The only thing left is to edit the command section in the <strong>web</strong> container so we deploy a web server instead of just showing a message.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">apiversion: v1
 kind: Pod
 metadata:
   name: my-pod
@@ -296,77 +185,67 @@ spec:
   containers:
   - name: web
     image: docker-registry.default.svc:5000/web-apps/web
-    command: ['sh', '-c', 'cd static &amp;&amp; python -m http.server 8087']
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;cd static <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> python -m http.server 8087&#39;]
  - name: proxy
     image: busybox
-    command: ['sh', '-c', 'echo Hello World 2 &amp;&amp; sleep 3600']
-</code></pre>
-
-<p>This command is very simple, once the container is created it will jump to the <a href="https://github.com/cesarvr/demos-webgl/tree/master/static">static folder</a> and then run the <a href="https://docs.python.org/3/library/http.server.html">HTTP.Server module</a>.</p>
-
+    command: [&#39;sh&#39;, &#39;-c&#39;, &#39;echo Hello World 2 <span style="color:#960050;background-color:#1e0010">&amp;</span><span style="color:#960050;background-color:#1e0010">&amp;</span> sleep 3600&#39;]
+</code></pre></div><p>This command is very simple, once the container is created it will jump to the <a href="https://github.com/cesarvr/demos-webgl/tree/master/static">static folder</a> and then run the <a href="https://docs.python.org/3/library/http.server.html">HTTP.Server module</a>.</p>
 <p>The only thing remaining is to re-create our pods:</p>
-
-<pre><code class="language-sh">oc delete my-pod
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc delete my-pod
 
 oc create my-pod.yml
-# or ...
+<span style="color:#75715e"># or ...</span>
 
 oc create -f https://gist.githubusercontent.com/cesarvr/cecaf693a17b6f09b9eb3f5d38f33165/raw/2227781e4c3e71ecb68b22d052bdf8cd2c083c55/my-pod.yml
-</code></pre>
-
-<p>Now let&rsquo;s test that our containers can talk to each other inside the pod, for that we are going to the command <a href="https://docs.openshift.com/enterprise/3.0/dev_guide/executing_remote_commands.html">oc exec</a> (which is similar to <a href="https://dzone.com/articles/docker-for-beginners">docker exec</a> allow us to execute remote shell commands.</p>
-
+</code></pre></div><p>Now let's test that our containers can talk to each other inside the pod, for that we are going to the command <a href="https://docs.openshift.com/enterprise/3.0/dev_guide/executing_remote_commands.html">oc exec</a> (which is similar to <a href="https://dzone.com/articles/docker-for-beginners">docker exec</a> allow us to execute remote shell commands.</p>
 <p>The syntax goes as follows:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc exec -c &lt;container-name&gt; &lt;pod-name&gt; -- &lt;shell-command&gt;
+</code></pre></div><p>Let's run <a href="https://www.computerhope.com/unix/wget.htm">wget</a> Linux command to fetch the webpage in our <strong>web</strong> container:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc exec -c web my-pod -- wget -qO- 0.0.0.0:8087
 
-<pre><code class="language-sh">oc exec -c &lt;container-name&gt; &lt;pod-name&gt; -- &lt;shell-command&gt;
-</code></pre>
+<span style="color:#75715e"># &lt;!DOCTYPE HTML PUBLIC &#34;-//W3C//DTD HTML 4.01//EN&#34; &#34;http://www.w3.org/TR/html4/strict.dtd&#34;&gt;</span>  
+</code></pre></div><p>This means that our web server is running, now let's test same remote command with the <strong>proxy</strong> container and we should get the same result:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">oc exec -c proxy my-pod -- wget -qO- 0.0.0.0:8087
 
-<p>Let&rsquo;s run <a href="https://www.computerhope.com/unix/wget.htm">wget</a> Linux command to fetch the webpage in our <strong>web</strong> container:</p>
-
-<pre><code class="language-sh">oc exec -c web my-pod -- wget -qO- 0.0.0.0:8087
-
-# &lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;  
-</code></pre>
-
-<p>This means that our web server is running, now let&rsquo;s test same remote command with the <strong>proxy</strong> container and we should get the same result:</p>
-
-<pre><code class="language-sh">oc exec -c proxy my-pod -- wget -qO- 0.0.0.0:8087
-
-#&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;
-</code></pre>
-
-<p>Here is the whole process:</p>
-
-<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif" alt="sidecar-deployment" /></p>
-
+<span style="color:#75715e">#&lt;!DOCTYPE HTML PUBLIC &#34;-//W3C//DTD HTML 4.01//EN&#34; &#34;http://www.w3.org/TR/html4/strict.dtd&#34;</span>
+</code></pre></div><p>Here is the whole process:</p>
+<p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/prometheus/sidecar-deployment.gif" alt="sidecar-deployment"></p>
 <h2 id="container-patterns">Container Patterns</h2>
-
 <p>We should be able to create applications with multiple containers, also another important point is that we demonstrate that containers running inside the pod operate similar as it they where in a single machine, this is very important as we are going to use this in the <a href="https://cesarvr.io/post/istio-2/">next article</a> to create our “Telemetry” container.</p>
-
-<p>If you want to know more about the container patterns you can take a look a this <a href="https://ai.google/research/pubs/pub45406">paper</a>.</p>
-</div>
-
-
-  </div>
-</section><footer class="footer">
-  <div class="content has-text-centered">
+<p>If you want to know more about the container patterns you can take a look a this <a href="https://ai.google/research/pubs/pub45406">paper</a>.</p></div>
+  <footer class="post-footer">
     
-    <p>
-      Last modified October 23, 2019
-      
-      (commit e3406b5)
-      
-    </p>
-    
-    
-    <p>
-      
-      
-    </p>
-    
-  </div>
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2020 Cesar</span>
 </footer>
-
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
 </body>
 </html>
+

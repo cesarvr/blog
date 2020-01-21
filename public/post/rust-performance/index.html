@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Rust Performance - Terminal</title>
+  
+
+
+  <meta name="twitter:site" content="@cvaldezr">
+  <meta name="twitter:creator" content="@cvaldezr">
+  <meta name="twitter:description" content="" />
+  <meta name="twitter:title" content="Rust Performance" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="" />
+
+  <meta property="og:title" content="Rust Performance" />
+  <meta property="og:description" content="" />
+  <meta property="og:image" content="" />
+
+  <meta name="description" content="After having spent some weeks playing with Rust I felt I was ready to put my knowledge to test and solve some of the challenges on the Advent Of Code which is a nice site with programming puzzles. Some of the challenges are complex for one to try to solve them on a new language, so sometimes I solve them in Javascript first and the port it to Rust.
+Once I finish one of the puzzles and knowing that one of the Rust strongest points aside from security was its C&#43;&#43; like performance.">
+  <meta name="author" content="Cesar">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
+  <link href="https://cesarvr.iocss/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+
+  
+  <link rel="apple-touch-icon" href="https://cesarvr.ioimg/apple-touch-icon.png">
+  <link rel="icon" href="https://cesarvr.ioimg/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.62.2" />
+  
+  <link rel="alternate" type="application/atom+xml" href="https://cesarvr.ioindex.xml" title="Terminal">
+  
+</head>
+<body class="single">
+  <header class="header">
+    
+    <p class="title"><a href="https://cesarvr.io">Terminal</a></p>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="/about">About</a>
+        </li>
+        
+        <li class="">
+          <a href="/showcase">Showcase</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
+
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
+  <script src="https://cesarvr.iojs/db.js"></script>
+
+<article class="post post-view">
+  <header class="post-header">
+    <h1 class="post-title">Rust Performance</h1>
+    <p class="post-meta">Cesar · 2020.1.13</p>
+  </header>
+  <div class="post-content"><p>After having spent some weeks playing with Rust I felt I was ready to put my knowledge to test and solve some of the challenges on the  <a href="https://adventofcode.com/">Advent Of Code</a> which is a nice site with programming puzzles. Some of the challenges are complex for one to try to solve them on a new language, so sometimes I solve them in Javascript first and the port it to Rust.</p>
+<p>Once I finish one of <a href="https://adventofcode.com/2018/day/5">the puzzles</a> and knowing that one of the Rust strongest points aside from security was its C++ like performance. I thought that it would be interesting to see how fast the Rust version of the algorithm will perform against Javascript, so let’s see the result of this benchmarks:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># Javascript (Node.js)</span>
+  real  0m0.374s
+  user  0m0.301s
+  sys 0m0.030s
+
+<span style="color:#75715e"># Rust</span>
+  real  0m0.720s
+  user  0m0.636s
+  sys   0m0.012s
+</code></pre></div><p>Aside from the fact that Javascript deserve some praise for pushing the performance boundaries, there also have to be something really wrong with the Rust algorithm, so let’s review the code.</p>
+<p>After having heard lots of good things about Rust I decided to give it a try. My approach was to immerse myself in the <a href="https://doc.rust-lang.org/std/string/struct.String.html">Rust documentation</a>, do the classic <code>hello world</code>, learn some its polymorphic capabilities (I love code easy to customize) and accept after some though love that the pedantic borrow checker is there to save me from myself. Once that I felt ready to write some code I decided to try some of the challenges in <a href="https://adventofcode.com/">Advent Of Code</a> which is a nice place to practice your programming skills.</p>
+<p>Some puzzles are fairly complex and to solve, so what I do is that I wrote the solution first in Javascript (my day to day programming language) and then port the code to Rust, where I just focus on improvements and syntax sugar.</p>
+<p>After finishing the puzzle for the <a href="https://adventofcode.com/2018/day/5">day 5</a>, I got curious to see how much faster is Rust compared to Javascript.</p>
+<p>One of the most marketable capabilities of Rust is its security and speed, knowing this, I thought that it would be interesting to see how fast the Rust version of the algorithm will perform versus Javascript.</p>
+<p>To solve this dilemma I setup a quick benchmark using as input <a href="https://raw.githubusercontent.com/cesarvr/AOCRust/master/day-5/input.txt">50K characters</a>) word and to measure time nothing fancy just Linux <code>time</code>, I run both programs and got this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># Javascript (Node.js)</span>
+  real  0m0.374s
+  user  0m0.301s
+  sys 0m0.030s
+
+<span style="color:#75715e"># Rust</span>
+  real  0m0.720s
+  user  0m0.636s
+  sys   0m0.012s
+</code></pre></div><p>To my surprise the Javascript version was nearly twice as fast than the Rust version, that I have to admit was a surprise for me, but let’s take a quick look to the algorithm.</p>
+<h2 id="naive-algorithm">Naive Algorithm</h2>
+<h3 id="puzzle">Puzzle</h3>
+<p>Before jumping to the solution, let’s take a quick look at <a href="https://adventofcode.com/2018/day/5">the puzzle in question</a>. In this puzzle, you start with an input string with <code>N</code> amount of characters, then the algorithm should find and remove any sequential pairs of characters that are the same but with different capitalisation:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">bB <span style="color:#75715e"># Remove</span>
+bb <span style="color:#75715e"># Do Nothing</span>
+ab#  Do Nothing
+</code></pre></div><p>Then the algorithm should re-evaluate the string recursively searching for new pairs created after the removal.</p>
+<p>For example, let’s say we get this input <code>abBAp</code>:</p>
+<p>I should remove <code>bB</code> to get:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">aAp
+</code></pre></div><p>And now <code>aAp</code> has been formed and require to parsed as well:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#75715e"># remove aA</span>
+p
+</code></pre></div><p>With the final result of <code>p</code>.</p>
+<h3 id="the-code">The Code</h3>
+<p>To solve this I wrote two functions, one that <strong>process</strong> the string fetching a pair each time, then I evaluate the pair using a function <strong>react</strong> that returns true or false if the pair need to be removed.</p>
+<p>Here is what the function <code>react</code> looks like in Rust:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust"><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">react</span>(token1: String, token2: String) -&gt; <span style="color:#66d9ef">bool</span> {
+    <span style="color:#66d9ef">if</span> token1.to_lowercase() <span style="color:#f92672">=</span><span style="color:#f92672">=</span> token2.to_lowercase() {
+        <span style="color:#66d9ef">return</span> token1 <span style="color:#f92672">!</span><span style="color:#f92672">=</span> token2
+    }
+
+    <span style="color:#66d9ef">false</span>
+}
+
+<span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">process</span>(tokens: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vec<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span>) -&gt; <span style="color:#66d9ef">i32</span> { 
+<span style="color:#e6db74">/**
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">Getting characters
+</span><span style="color:#e6db74"></span><span style="color:#e6db74">*</span><span style="color:#e6db74">*/</span>
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">!</span>react(chr1, chr2) {
+  <span style="color:#75715e">/*</span><span style="color:#75715e"> Add to the collection </span><span style="color:#75715e">*/</span>
+}
+</code></pre></div><blockquote>
+<p>Basically is a rudimentary implementation of a <strong>equals-ignore-case</strong> plus an additional check to see if they are they same character (the same capitalization).</p>
+</blockquote>
+<p>Javascript version:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">react</span>(<span style="color:#a6e22e">candidate_1</span>, <span style="color:#a6e22e">candidate_2</span>) {
+  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">candidate_1</span>.<span style="color:#a6e22e">toLowerCase</span>() <span style="color:#f92672">===</span> <span style="color:#a6e22e">candidate_2</span>.<span style="color:#a6e22e">toLowerCase</span>()) {
+    <span style="color:#66d9ef">if</span> ( <span style="color:#a6e22e">candidate_1</span> <span style="color:#f92672">!==</span> <span style="color:#a6e22e">candidate_2</span> ) {
+      <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>
+    }
+  }
+
+  <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
+}
+
+<span style="color:#75715e">/* fetch pair of characters ... */</span>
+</code></pre></div><p>My first approach to look for the bottleneck was to use the <a href="http://www.brendangregg.com/methodology.html">Drunk man anti-method</a> which consist of changing things at random until the problem get magically solved, but after a few wasted hours I gave up and decided to sober up and profile the code with <a href="https://perf.wiki.kernel.org/index.php/Main_Page">perf</a>.</p>
+<h2 id="profiling">Profiling</h2>
+<p>If you have never heard before about  <a href="https://perf.wiki.kernel.org/index.php/Main_Page">perf</a>, perf it's a powerful <strong>Linux</strong> tool to profile processes on Linux. Instead of adding your own timestamp function in every suspicious line of code (like I used to do), it does that in your behalf and more efficiently, because it collaborate with the <a href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/developer_guide/perf">Linux Performance Counters</a> that read performance metrics from hardware making it easier to diagnose problems as you will see below.</p>
+<h3 id="getting-started">Getting Started</h3>
+<p>Before I can start profiling I've to enable the <a href="http://carol-nichols.com/2015/12/09/rust-profiling-on-osx-cpu-time/">debugging symbols</a> on the Rust compiler, so ``perf``` can show us if Rust code in its report.</p>
+<p>To enable this just add the <code>debug=true</code> property to the <code>Cargo.toml</code> configuration file:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-toml" data-lang="toml">[<span style="color:#a6e22e">profile</span>.<span style="color:#a6e22e">release</span>]
+<span style="color:#a6e22e">opt</span><span style="color:#960050;background-color:#1e0010">-</span><span style="color:#a6e22e">level</span> = <span style="color:#ae81ff">3</span>
+<span style="color:#a6e22e">debug</span>=<span style="color:#66d9ef">true</span>
+</code></pre></div><h3 id="profiling-1">Profiling</h3>
+<p>I recompiled the algorithm again using <code>cargo build</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">cargo build
+</code></pre></div><p>Then run the binary and attached <code>perf</code> like this:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">./target/release/day-5 &amp; perf record -F <span style="color:#ae81ff">99</span> -p <span style="color:#e6db74">`</span>pgrep day-5<span style="color:#e6db74">`</span>
+</code></pre></div><p>Here we run the Rust program (<code>day-5</code>)  using the <code>&amp;</code> symbol so it goes to the background and just after that <code>perf</code> gets executed and receives the process id (<code>PID</code>) courtesy of <code>pgrep</code>, which returns the <code>PID</code> of a process by name (<code>day-5</code>).</p>
+<p>Here is the output:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#ae81ff">27466</span>
+sample size <span style="color:#ae81ff">50003</span>
+--
+solution 1: <span style="color:#ae81ff">9526</span>
+solution 2: <span style="color:#ae81ff">6694</span>
+<span style="color:#f92672">[</span> perf record: Woken up <span style="color:#ae81ff">1</span> times to write data <span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>  + <span style="color:#ae81ff">27466</span> <span style="color:#66d9ef">done</span>       ./target/release/day-5
+<span style="color:#f92672">[</span> perf record: Captured and wrote 0.002 MB perf.data <span style="color:#f92672">(</span><span style="color:#ae81ff">13</span> samples<span style="color:#f92672">)</span> <span style="color:#f92672">]</span>
+</code></pre></div><blockquote>
+<p>I run it like this because the Rust program finished <em>relatively</em> fast and perf work by attaching itself to the process.</p>
+</blockquote>
+<p>After running this multiple times,<code>perf</code> aggregates the data to a report file (<code>perf.data</code>) which we can visualise using:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">perf report
+</code></pre></div><p><img src="https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/rust/perf-1.png" alt=""></p>
+<blockquote>
+<p>perf report showing the hottest instructions.</p>
+</blockquote>
+<p>Interestingly the algorithm spend <strong>30 percent</strong> of the time in the <a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_lowercase">String::to_lowercase</a> which is suspicious:</p>
+<p>fn react(token1: String, token2: String) -&gt; bool {
+if token1.to_lowercase() == token2.to_lowercase() {  // 30% CPU wasted here
+return token1 != token2
+}</p>
+<pre><code>false
+</code></pre>
+<p>}</p>
+<p>My first impression is that I made a mistake while running <code>perf</code> (never used it before with Rust), but everything started to make sense when I looked at the source code of the <a href="https://doc.rust-lang.org/std/string/struct.String.html#method.to_lowercase">to_lowercase</a> function.</p>
+<p>What happen is that Rust lowercase function try to be correct in any idiom, so it delegates this conversion to a function called <a href="https://doc.rust-lang.org/1.29.2/std_unicode/conversions/fn.to_lower.html">std_unicode::conversions</a> this function then does a binary search of each character against a big array (≈1200) of unicode characters:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-rust" data-lang="rust">   <span style="color:#66d9ef">const</span> to_lowercase_table: <span style="color:#66d9ef">&amp;</span>[(char, [char; <span style="color:#ae81ff">3</span>])] <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>[
+        (<span style="color:#e6db74">&#39;\u{41}&#39;</span>, [<span style="color:#e6db74">&#39;\u{61}&#39;</span>, <span style="color:#e6db74">&#39;\0&#39;</span>, <span style="color:#e6db74">&#39;\0&#39;</span>]), (<span style="color:#e6db74">&#39;\u{42}&#39;</span>, [<span style="color:#e6db74">&#39;\u{62}&#39;</span>, <span style="color:#e6db74">&#39;\0&#39;</span>, <span style="color:#e6db74">&#39;\0&#39;</span>]), (<span style="color:#e6db74">&#39;\u{43}&#39;</span>,.... <span style="color:#75715e">// 
+</span><span style="color:#75715e"></span>
+
+ <span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">to_lower</span>(c: <span style="color:#a6e22e">char</span>) -&gt; [char; <span style="color:#ae81ff">3</span>] {
+        <span style="color:#66d9ef">match</span> bsearch_case_table(c, to_lowercase_table) {
+            None        <span style="color:#f92672">=</span><span style="color:#f92672">&gt;</span> [c, <span style="color:#e6db74">&#39;\0&#39;</span>, <span style="color:#e6db74">&#39;\0&#39;</span>],
+            Some(index) <span style="color:#f92672">=</span><span style="color:#f92672">&gt;</span> to_lowercase_table[index].<span style="color:#ae81ff">1</span>,
+        }
+    }
+
+</code></pre></div><p>Going back to my solution to the puzzle the code was doing this binary search twice per iteration adding to the fact that the solution was a word of 50K, the slow down is now understandable. After some googling I found that I should use <a href="https://doc.rust-lang.org/src/core/str/mod.rs.html#4006">eq_ignore_ascii_case</a> instead, which basically makes this operation on <a href="https://doc.rust-lang.org/1.37.0/src/core/slice/mod.rs.html#2487">linear time</a> and for one character is nearly the same as saying constant time.</p>
+<p><a href="https://github.com/cesarvr/AOCRust/compare/master...perf">After some refactoring</a> I recompiled the code and run the benchmarks again:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">Node.JS
+real  0m0.374s
+user  0m0.301s
+sys 0m0.030s
+
+Rust
+real  0m0.283s
+user  0m0.248s
+sys 0m0.005s
+</code></pre></div><p>Now we are talking, profiling pay its dividends and made the Rust program <code>2.5x</code> <em>faster</em> than the original and <code>91ms</code> faster than the Javascript version, I can start celebrating and telling my friends that I’m a rustacean now.</p>
+<p>What I learn from this is that basically a language is as fast as the knowledge about the language paraphrasing Michael Abrash <em>“if you are not measuring, you are guessing and if you are guessing chances are that you your code is underperforming”</em>.</p>
+<p>Another example of taking this performance for granted is that I thought this was over, yes I was padding myself in the back, opening champagne to celebrate the achievement. But while getting my algorithms from my Linux VM to <strong>MacOSX</strong> I gave them another run because I love suffering:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">  Node   0.19s user 0.03s system 101% cpu 0.209 total
+  Rust   0.23s user 0.01s system 98% cpu 0.238 total
+</code></pre></div><p>This was so devastating for my ego that I started to think that it should be a bug on the MacOSX <code>time</code> but then a quick look at XCode Instrumentation (profiling for MacOSX) tell us that it wasn’t my code:</p>
+<p><img src="https://github.com/cesarvr/hugo-blog/blob/master/static/rust/malloc-xcode-2.png?raw=true" alt=""></p>
+<p>It seems that by using <strong>MacOSX</strong> <code>malloc</code> my Rust program is taking a hit on the performance side and ironically JS version is the fastest of both (if I remember correctly, you can change the default allocator there, but not sure if that is the case here).</p>
+<p>Again more knowledge is required to overcome this bottleneck, but that for another post. If you want to take a look at the algorithms for yourself here is the <a href="https://github.com/cesarvr/AOCRust/tree/master/day-5">Rust</a> and <a href="https://github.com/cesarvr/AOCRust/tree/master/JS">JS</a>, if you have any improvement suggestions let me know by <a href="https://twitter.com/cvaldezr">Twitter</a> or send a <a href="https://github.com/cesarvr/AOCRust">pull request</a>.</p>
+</div>
+  <footer class="post-footer">
+    
+  </footer>
+  
+  
+  
+  
+</article>
+</main>
+<footer class="footer">
+  <span>&copy; 2020 Cesar</span>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
+</body>
+</html>
+

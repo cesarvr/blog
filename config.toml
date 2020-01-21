@@ -1,25 +1,52 @@
 baseURL = "https://cesarvr.io"
 languageCode = "en-us"
-title = "Happy Hacking"
-theme = "bare"
+title = "Cesar's Bitacora"
+theme = "hello-friend"
 enableGitInfo = true
 
-
-[taxonomies]
-  tag = "tags"
-  series = "series"
-
 [params]
-mainSections = ["post"]
-author = "Cesar"
-email = "cesarv01@yahoo.com"
-description = 'Programmer & Openshift Hacker'
-# PostCSS is harder than it should be to get working on a theme
-# example site. It's easy on _your_ site.
-postcss = false
-# Include the author name in the <title> of articles
-includeAuthorInTitle = true
-disableAttribution = true
+  # dir name of your blog content (default is `content/posts`)
+  contentTypeName = "post"
+  # "light" or "dark"
+  defaultTheme = "dark"
+  # if you set this to 0, only submenu trigger will be visible
+  showMenuItems = 2
+  # Show reading time in minutes for posts
+  showReadingTime = false
+
+[languages]
+  [languages.en]
+    title = "Cesar's Bitacora"
+    subtitle = "A simple theme for Hugo"
+    keywords = ""
+    copyright = ""
+    menuMore = "Show more"
+    writtenBy = "Written by"
+    readMore = "Read more"
+    readOtherPosts = "Read other posts"
+    newerPosts = "Newer posts"
+    olderPosts = "Older posts"
+    minuteReadingTime = "min read"
+
+
+    [languages.en.params.logo]
+      logoText = "Cesar's Bitacora"
+      logoHomeLink = "/"
+    # or
+    #
+    # path = "/img/your-example-logo.svg"
+    # alt = "Your example logo alt text"
+
+    [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "about"
+        name = "About"
+        url = "/about"
+      [[languages.en.menu.main]]
+        identifier = "showcase"
+        name = "Showcase"
+        url = "/post"
+
 
 
 [[params.social]]

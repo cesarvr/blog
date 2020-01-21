@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Containers on Happy Hacking</title>
+    <title>Containers on Terminal</title>
     <link>https://cesarvr.io/tags/containers/</link>
-    <description>Recent content in Containers on Happy Hacking</description>
+    <description>Recent content in Containers on Terminal</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 22 May 2018 00:00:00 +0000</lastBuildDate>
@@ -18,7 +18,7 @@
       
       <guid>https://cesarvr.io/post/2018-05-22-create-containers/</guid>
       <description>What is this post about This post is basically about how to create your own container program using C. In this article we are going to review the technology and principles that make the isolation of processes a reality in Linux, the steps are based on this excellent talk by Liz Rice.
-Why C Because I love the simplicity of the language (maybe I&amp;rsquo;m just a romantic) and also it is the lingua franca of Linux, which means that it helps to get a better understanding about how things work at a system level.</description>
+Why C Because I love the simplicity of the language (maybe I&#39;m just a romantic) and also it is the lingua franca of Linux, which means that it helps to get a better understanding about how things work at a system level.</description>
     </item>
     
     <item>

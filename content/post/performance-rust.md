@@ -7,7 +7,7 @@ description: "Writing performant Rust code."
 tags: [Programming, Performance]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
-draft: false
+draft: true
 ---
 
 I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that's surprisingly not always the true.

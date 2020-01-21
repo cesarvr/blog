@@ -7,7 +7,7 @@ description: DevOps.
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 tags: [openshift, build]
-draft: false
+draft: true
 ---
 
 

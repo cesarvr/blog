@@ -1,15 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Performance on Happy Hacking</title>
+    <title>Performance on Terminal</title>
     <link>https://cesarvr.io/tags/performance/</link>
-    <description>Recent content in Performance on Happy Hacking</description>
+    <description>Recent content in Performance on Terminal</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 06 Sep 2018 15:23:40 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://cesarvr.io/tags/performance/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Performance Profiling in Rust</title>
+      <link>https://cesarvr.io/post/performance-rust/</link>
+      <pubDate>Wed, 07 Aug 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://cesarvr.io/post/performance-rust/</guid>
+      <description>I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that&#39;s surprisingly not always the true.
+This happened while I was trying to learn Rust programming language by solving the day-5 puzzle on this website called Advent Of Code 2018.</description>
+    </item>
     
     <item>
       <title>Finding Performance Bottlenecks in JavaScript.</title>
@@ -17,7 +27,7 @@
       <pubDate>Thu, 06 Sep 2018 15:23:40 +0100</pubDate>
       
       <guid>https://cesarvr.io/post/js-performance/</guid>
-      <description>&lt;p&gt;One of my hobbies is to write (and sometimes re-write) graphics engines. I do this because I love the challenge of writing not only fast code but scalable code and also because I like visual stuff. This time I decide to write one in JavaScript using WebGL and as soon as I have a workable set of API&amp;rsquo;s I decide to write an simple vortex animation to see how well my new shinny new engine will perform.&lt;/p&gt;</description>
+      <description>&lt;p&gt;One of my hobbies is to write (and sometimes re-write) graphic libraries in various languages. I like to do this because, for one thing I like to see cool animation flying on the screen and nice side effect is that when your code is not performant the animation on the screen will let you know, as simple as that if you write good enough code you will receive a quick feedback.&lt;/p&gt;</description>
     </item>
     
   </channel>

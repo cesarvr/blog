@@ -1,241 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
-
-
-
-
+<html lang="en-us">
 <head>
-	<meta name="generator" content="Hugo 0.56.3" />
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>
-    
-    Happy Hacking
-    
-  </title>
-  <link rel="stylesheet" href='https://cesarvr.io/css/site.min.cc3fc5270f71da844cfcd512ac94081d2c969c9619b62a823c9279c7179b2d8fabd5b53456f25fa3c1586d19ce4255b5cb5f0dc927ee3b0b15d60065c50372fd.css' integrity='sha512-zD/FJw9x2oRM/NUSrJQIHSyWnJYZtiqCPJJ5xxebLY&#43;r1bU0VvJfo8FYbRnOQlW1y18NySfuOwsV1gBlxQNy/Q=='>
-  <link rel="canonical" href="https://cesarvr.io/">
-  <link rel="alternate" type="application/rss&#43;xml" href="https://cesarvr.io/index.xml" title="Happy Hacking">
-  <meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="chrome=1">
-<meta name="HandheldFriendly" content="True">
-<meta name="MobileOptimized" content="320">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="referrer" content="no-referrer">
-<meta name="author" content="Cesar">
-<meta name="description" content="Programmer &amp; Openshift Hacker">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <title>Terminal</title>
+  
+  <meta name="description" content="Programmer &amp; Openshift Hacker">
+  <meta name="author" content="Cesar">
+  
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-dark.min.css" integrity="sha256-akwTLZec/XAFvgYgVH1T5/369lhA2Efr22xzCNl1nHs=" crossorigin="anonymous" />
+  <link href="https://cesarvr.iocss/style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
 
-<meta property="og:title" content="Happy Hacking" />
-<meta property="og:description" content="Programmer &amp; Openshift Hacker" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://cesarvr.io/" />
-
-<meta property="og:updated_time" content="2019-02-20T00:00:00+00:00" />
-
-
+  
+  <link rel="apple-touch-icon" href="https://cesarvr.ioimg/apple-touch-icon.png">
+  <link rel="icon" href="https://cesarvr.ioimg/favicon.ico">
+  
+  <meta name="generator" content="Hugo 0.62.2" />
+  
+  <link rel="alternate" type="application/atom+xml" href="https://cesarvr.ioindex.xml" title="Terminal">
+  
 </head>
-<body><nav class="navbar is-transparent is-hidden-touch" role="navigation" aria-label="main navigation">
-  <div class="navbar-brand">
-    <a class="navbar-item" href="https://cesarvr.io/">
-      <figure class="image">
-        <img alt="" class="is-rounded" src="https://www.gravatar.com/avatar/a0c107b88dd0930e66b241a400e11bd2?s=128&d=identicon">
-      </figure>
-    </a>
-    <a class="navbar-item" href="https://cesarvr.io/">
-      Happy Hacking
-    </a>
-  </div>
-  
-  <div class="navbar-menu">
-    <div class="navbar-start">
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/build/">
-        
-        Build
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/containers/">
-        
-        Containers
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/docker/">
-        
-        Docker
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/openshift/">
-        
-        Openshift
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/performance/">
-        
-        Performance
-        
-      </a>
-      
-      <a class="navbar-item" href="https://cesarvr.io/tags/programming/">
-        
-        Programming
-        
-      </a>
-      
-    </div>
+<body class="list home">
+  <header class="header">
     
-    <div class="navbar-end">
-      
-      <a class="navbar-item" href="https://github.com/cesarvr" rel="noopener" target="_blank">
-        <span class="icon">
-          <img alt="github-circle" src='https://cesarvr.io/icons/svg/github-circle.svg'>
-        </span>
-      </a>
-      
-      <a class="navbar-item" href="https://www.linkedin.com/in/cesarvr/" rel="noopener" target="_blank">
-        <span class="icon">
-          <img alt="linkedin" src='https://cesarvr.io/icons/svg/linkedin.svg'>
-        </span>
-      </a>
-      
-      <a class="navbar-item" href="mailto:cesarv01@yahoo.com" target="_blank">
-        <span class="icon">
-          <img alt="email" src='https://cesarvr.io/icons/svg/email.svg'>
-        </span>
-      </a>
-      <a class="navbar-item" href="https://cesarvr.io/index.xml" target="_blank">
-        <span class="icon">
-          <img alt="rss" src='https://cesarvr.io/icons/svg/rss.svg'>
-        </span>
-      </a>
-      
-    </div>
-  </div>
-</nav>
-<section class="hero is-small is-info is-fullwidth">
-  <div class="hero-body">
-<div class="container">
-  <article class="media">
-    <figure class="image is-64x64 media-left">
-      <img alt="" class="is-rounded" src="https://www.gravatar.com/avatar/a0c107b88dd0930e66b241a400e11bd2?s=128&d=identicon"
-           width="32" height="32">
-    </figure>
-    <div class="media-content">
-      <h1 class="title">
-        Cesar
-      </h1>
-      <h2 class="subtitle">
-        Programmer &amp; Openshift Hacker
-      </h2>
-    </div>
-  </article>
-</div>
+    <h1 class="title"><a href="https://cesarvr.io">Terminal</a>
+    <div class="phrase"></div>
+    </h1>
+    
+    <button class="menu-toggle" type="button"></button>
+    <nav class="menu">
+      <ul>
+        
+        
+        <li class="">
+          <a href="/about">About</a>
+        </li>
+        
+        <li class="">
+          <a href="/showcase">Showcase</a>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+  <main class="main">
 
-  </div>
-</section>
-<section class="section">
-  <div class="container">
-<div class="posts">
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/self-deploy/" class="title is-size-5">Self Deploying Node.JS Applications</a></div>
-    <div class="subtitle is-6">February 20, 2019</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/istio-4/" class="title is-size-5">Creating Your Own Istio (Part 3) - Dashboard</a></div>
-    <div class="subtitle is-6">December 11, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/istio-2.5/" class="title is-size-5">Creating Your Own Istio (Part 2.5)</a></div>
-    <div class="subtitle is-6">December 01, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/istio-2/" class="title is-size-5">Creating Your Own Istio (Part 2)</a></div>
-    <div class="subtitle is-6">November 07, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/istio/" class="title is-size-5">Creating Your Own Istio (Part 1)</a></div>
-    <div class="subtitle is-6">September 19, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/js-performance/" class="title is-size-5">Finding Performance Bottlenecks in JavaScript.</a></div>
-    <div class="subtitle is-6">September 06, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/buildconfig/" class="title is-size-5">4 Ways to Build Applications in OpenShift</a></div>
-    <div class="subtitle is-6">July 28, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/ocp-chainbuild/" class="title is-size-5">Chaining Builds In Openshift</a></div>
-    <div class="subtitle is-6">July 21, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/okd-cicd/" class="title is-size-5">Simple CI/CD</a></div>
-    <div class="subtitle is-6">July 21, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2018-05-22-create-containers/" class="title is-size-5">Creating Your Own Containers</a></div>
-    <div class="subtitle is-6">May 22, 2018</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2017-12-22-containers/" class="title is-size-5">Containers For Beginners</a></div>
-    <div class="subtitle is-6">December 22, 2017</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2017-12-01-cordova-pdf-generator/" class="title is-size-5">How to generate a PDF Documents using Cordova, for Android and IOS</a></div>
-    <div class="subtitle is-6">December 01, 2017</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2017-11-12-imagestream/" class="title is-size-5">Exporting external images to Openshift</a></div>
-    <div class="subtitle is-6">November 12, 2017</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2015-11-20-javascript-v8/" class="title is-size-5">Embedding Javascript v8</a></div>
-    <div class="subtitle is-6">November 20, 2015</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/2015-09-01-archlinux-install/" class="title is-size-5">Arch Linux install cheat sheet</a></div>
-    <div class="subtitle is-6">September 01, 2015</div>
-  </div>
-  
-  <div class="post">
-    <div><a href="https://cesarvr.io/post/simple-cdci/" class="title is-size-5"></a></div>
-    <div class="subtitle is-6">January 01, 0001</div>
-  </div>
-  
-</div>
+  <script
+    			  src="https://code.jquery.com/jquery-3.3.1.min.js"
+    			  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+    			  crossorigin="anonymous"></script>
 
 
-  </div>
-</section><footer class="footer">
-  <div class="content has-text-centered">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js" async></script>
+  <script src="https://cesarvr.iojs/db.js"></script>
+
+
+
+
+
+
+
+
+
+<article class="post first-entry">
+  <header class="post-header">
+    <span class="welcome-emoji">🚀</span>
+    <h2 class="post-title">Posts</h2>
+  </header>
+  <p class="post-summary">...</p>
+  <footer class="post-footer">
+    <p class="post-meta">2020.1.13</p>
+  </footer>
+  <a class="post-link" href="https://cesarvr.io/post/"></a>
+</article>
+
+
+
+
+<article class="post post-entry">
+  <header class="post-header">
     
-    
-    <p>
-      
-      
-    </p>
-    
-  </div>
+    <h2 class="post-title">About</h2>
+  </header>
+  <p class="post-summary">My name is César Valdez nice to meet you…
+When I was a kid I like to watch a tv show called Mission Impossible my favourite character was the “hacker” this guy was able throw some buzzwords like “compiling, algorithm” then he will expertly hit some keystrokes and was able to open doors, shutdown helicopters, etc. That show with the bad/good movie “Hackers” where my introduction to the world of computers....</p>
+  <footer class="post-footer">
+    <p class="post-meta">2018.5.22</p>
+  </footer>
+  <a class="post-link" href="https://cesarvr.io/about/"></a>
+</article>
+
+
+
+</main>
+<footer class="footer">
+  <span>&copy; 2020 Cesar</span>
 </footer>
-
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/instantclick/3.0.1/instantclick.min.js" integrity="sha256-SVgP0duWZXZFPVIX+woWPFhpnHcxG5IXS6zvZAVoa3Y=" crossorigin="anonymous"></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+<script data-no-instant>
+  hljs.initHighlightingOnLoad();
+  addMenuListener();
+  InstantClick.on('change', function() {
+    var blocks = document.querySelectorAll('pre code');
+    for (var i = 0; i < blocks.length; i++) {
+      hljs.highlightBlock(blocks[i]);
+    }
+    addMenuListener();
+  });
+  function addMenuListener() {
+    var $toggle = document.querySelector('.menu-toggle');
+    var $body = document.querySelector('body');
+    $toggle.addEventListener('click', function() {
+      $body.classList.toggle('noscroll');
+    }, false);
+  }
+</script>
 </body>
 </html>
+
