@@ -2,6 +2,7 @@
 title: "Simple CI/CD"
 date: 2018-07-21T11:18:43+02:00
 showDate: false
+draft: true
 toc: true
 description: Using chained builds to improve the size of your images and overall deployment performance in Openshift.
 images:
