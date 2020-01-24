@@ -10,7 +10,7 @@ categories: [OpenShift, BuildConfig]
 tags: [Performance]
 ---
 
-After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them on Javascript first (I use it in my day to day) to then port the code to Rust, while porting I just focus on getting the Rust code as elegant as possible. It was after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment that I decided to test how the Rust compiled code will perform against Javascript interpreter.  
+After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them on Javascript first (I use it in my day to day) to then port the code to Rust, while porting the code I put the focus on getting the Rust code as rustacean as possible. Then, one day after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment I decided to test how the Rust binary will perform against Javascript version of the same algorithm.
 
 
 ## Naive Algorithm
@@ -57,7 +57,7 @@ tp
 
 ### My Solution
 
-To solve this I wrote two functions, one that ``process`` an array of strings and fetch a pair each time: 
+To solve this I wrote two functions, one that ``process`` takes array of characters, traverse the array a pair at a time and validate that they follow the rules mentioned above: 
 
 #### Rust
 ----- 
@@ -148,9 +148,9 @@ function react(candidate_1, candidate_2) {
 }
 ```
 
-> Basically is a rudimentary implementation of a **equals-ignore-case** plus an additional check to see if they are they same character (the same capitalization).
+> Basically is a rudimentary implementation of an **equals-ignore-case** plus an additional check to see if they are they same character (the same capitalization).
 
-To complete the challenge each version (Rust, Javascript) need to reduce a large string ([50K character](https://adventofcode.com/2018/day/5/input)) which is good enough to test how well one version performs against the other, then I run each code using Linux ``time`` and got this: 
+To complete the challenge each version (Rust, Javascript) needs to reduce a large string ([50K character](https://adventofcode.com/2018/day/5/input)) which is good enough to test how well one version performs against the other, then I run each code using Linux ``time`` and got this: 
 
 ```python
 # Javascript (Node.js)
@@ -165,19 +165,20 @@ To complete the challenge each version (Rust, Javascript) need to reduce a large
 ``` 
 
 
-Now that was unexpected, my first instinctive reaction was to make I was using the correct flag ``release`` and ``opt-level=3``, but even if that’s the case this (Rust code) was running natively and this language is supposed to be C++ level of fast. So I started to search for inefficiencies in the code using the ancient [Drunk man anti-method](http://www.brendangregg.com/methodology.html) technique which obviously didn’t work, so I settled for the sane approach of running the code through a profiler called [perf](https://perf.wiki.kernel.org/index.php/Main_Page). 
+This is a surprising turn of events, here we can see the Rust version is ``2x`` slower than Javascript, How? My first reaction (in an act of self denial) was to check the compiler flags ``opt-level`` and after checking that was fine, which to be honest won’t make a difference, I started to look for inefficiencies in the code, first using the ancient [Drunk man anti-method](http://www.brendangregg.com/methodology.html) technique and when that didn’t work, I end up settling for a more scientific method of profiling my code with [perf](https://perf.wiki.kernel.org/index.php/Main_Page).    
+
 
 
 
 ## Debugging
 ----
 
-Every time you are debugging a performance issues you might feel tempted to start adding your own function to calculate the duration of suspicious section of code (like I used to do, in the past). [Perf](http://www.brendangregg.com/perf.html) does this for you by taking various approaches such as listening CPU/Kernel [performance events](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/developer_guide/perf) while your process is running. This makes perf the tool of choice to debug performance issues. Let’s see how it works. 
+Every time you are debugging a performance issues you might feel tempted to start adding your own function to calculate the duration of suspicious section of code (like I used to do, in the past). [Perf](http://www.brendangregg.com/perf.html) does this for you by taking various approaches such as listening to CPU/Kernel [performance events](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/developer_guide/perf) metrics emitted by the system in reaction of your process while running. Things like this makes perf the tool of choice to debug performance issues, so let’s see how it works. 
 
 
 ### Debugging Symbols
 
-Before we start we need to enable the [debugging symbols](http://carol-nichols.com/2015/12/09/rust-profiling-on-osx-cpu-time/) on the Rust compiler, this will make ``perf`` reports more informative. To enable this just add ``debug=true`` to the ``Cargo.toml``:
+Before we start we need to enable the [debugging symbols](http://carol-nichols.com/2015/12/09/rust-profiling-on-osx-cpu-time/) on the Rust compiler, this will make ``perf`` reports more informative. To enable this add ``debug=true`` to the ``Cargo.toml``:
 
 ```toml
 [profile.release]
@@ -263,7 +264,7 @@ const to_lowercase_table: &[(char, [char; 3])] = &[
 > Going back at the code, this binary search is done twice per iteration now multiply this by ``50K`` and we found the reason for the slow down. 
 
 
-After some googling I found that I should use [eq_ignore_ascii_case](https://doc.rust-lang.org/src/core/str/mod.rs.html#4006) instead, which basically makes this operation on [linear time](https://doc.rust-lang.org/1.37.0/src/core/slice/mod.rs.html#2487) and for one character is nearly the same as saying constant time. I recompiled the code and run the benchmarks:
+After some googling I found that I should use [eq_ignore_ascii_case](https://doc.rust-lang.org/src/core/str/mod.rs.html#4006) instead, which basically makes this operation in [linear time](https://doc.rust-lang.org/1.37.0/src/core/slice/mod.rs.html#2487) and for one character is nearly the same as saying constant time. I recompiled the code and run the benchmarks:
 
 ```xml
 Node.JS
@@ -277,22 +278,25 @@ user  0m0.248s
 sys   0m0.005s
 ```
 
-Now we are talking, profiling have pay its dividends and made the Rust program ``2.5x`` *faster* than the original and ``91ms`` faster than the Javascript version, I can start celebrating and telling my friends that I’m a **rustacean** now.
+Now we are talking, profiling has pay its dividends and made the Rust program ``2.5x`` *faster* than the original and ``91ms`` faster than the Javascript version, I can start celebrating and telling my friends that I’m a Rust expert now. But this leaves me with some questions: 
+
+> The ``91ms`` is not bad, but I  wonder how much effort it will take to optimize this code to make it ``>1.5x`` faster than the Javascript counterpart?
 
 ## Performance On MacOS
 
-Thing is that I thought this was over, so while I was unpacking my Rust stickers and preparing my laptop for some re-branding, I decided to move the code (Javascript and Rust) from my Linux VM to my main OS (**MacOS Catalina**), once there I gave the benchmark another try because I *love* suffering:
+While I was thinking of this and was in the middle of unpacking my Rust stickers and preparing my laptop for some re-branding, I decided to move the code (Javascript and Rust) from my Linux VM to my main OS (**MacOS Catalina**), once there I gave the benchmark another try because I *love* suffering:
 
 ```sh
 Node   0.17s user 0.03s system 101% cpu 0.209 total
 Rust   0.23s user 0.01s system 98% cpu 0.238 total
  ```
 
-After seeing this I started to blame MacOS ``time`` implementation, but then I calm down and decided to profile the code again this time using [XCode Instrumentation](https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html) which point me in the right direction: 
+After seeing this my confidence in my time measuring tool (``time``) started to fade a bit, but then I calmed down and profiled the code again this time using [XCode Instrumentation](https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html) which point me in the right direction: 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/rust/malloc-xcode-2.png?raw=true)
 
-> The slowest part of the program is the part that does the allocation and deallocation of memory produced when calling MacOS ``malloc``. 
+> The slowest part of the program (Rust version) is the part that does the allocation and deallocation of memory produced when calling MacOS ``malloc``. 
 
 To catch this one I'll need to dig more into Rust inner workings. Does this make it more expensive to get performance out of Rust? Did I choose the wrong abstractions? That's for another post. If you want to take a look at the code yourself here is the [Rust](https://github.com/cesarvr/AOCRust/tree/master/day-5) and [JS](https://github.com/cesarvr/AOCRust/tree/master/JS), if you have any improvement, idea, suggestions or performance trick let me know by [Twitter](https://twitter.com/cvaldezr), [pull request](https://github.com/cesarvr/AOCRust) or [open an issue](https://github.com/cesarvr/hugo-blog/issues).
+
 
