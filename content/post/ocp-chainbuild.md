@@ -11,6 +11,7 @@ tags: [openshift, build]
 
 ## New application
 
+
 Creating a Node.js application in Openshift is simple:
 
 ```sh
