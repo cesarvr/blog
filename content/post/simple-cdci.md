@@ -1,3 +1,12 @@
+---
+date: "2015-11-20T00:00:00Z"
+title: Embedding Javascript v8
+categories: [JavaScript, C, C++]
+draft: true
+---
+
+
+
 Get your Java source code, tested, packaged, containerized and deployed in four steps. We are going to defined 4 decoupled steps that
 you can improve with more complex use cases in the future. 
 
