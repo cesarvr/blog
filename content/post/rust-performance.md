@@ -3,14 +3,14 @@ title: "Performance Showdown: Rust vs Javascript"
 date: 2020-01-01T19:24:19+01:00
 draft: false
 keywords: []
-description: "After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them on Javascript first (I use it in my day to day) to then port the code to Rust, while porting I just focus on getting the Rust code as elegant as possible. It was after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment that I decided to test how the Rust compiled code will perform against Javascript interpreter. "
+description: "After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them using Javascript (I use it in my day to day) first and then port the code to Rust. While writing the port I just focus on getting the Rust code as elegant as possible to achieve that I research the Rust API's to get syntactically correct. It was after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment that I decided to test how the Rust compiled code will perform against Javascript interpreter. "
 images:
   - https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
 categories: [OpenShift, BuildConfig]
 tags: [Performance]
 ---
 
-After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them on Javascript first (I use it in my day to day) to then port the code to Rust, while porting the code I put the focus on getting the Rust code as rustacean as possible. Then, one day after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment I decided to test how the Rust binary will perform against Javascript version of the same algorithm.
+After spending some weeks playing with Rust, I felt ready to test my skills and try some programming challenges in the [Advent Of Code](https://adventofcode.com/). My approach to tackle some of those challenges was to solve them using Javascript (I use it in my day to day) first and then port the code to Rust. While writing the port I just focus on getting the Rust code as elegant as possible to achieve that I research the Rust API's to get syntactically correct. It was after finishing porting this [puzzle](https://adventofcode.com/2018/day/5) in particular and feeling a sense of accomplishment that I decided to test how the Rust compiled code will perform against Javascript interpreter.  
 
 
 ## Naive Algorithm
