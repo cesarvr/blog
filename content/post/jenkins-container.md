@@ -1,7 +1,7 @@
 ---
 title: "Decoupling Jenkins Builds In Openshift"
 date: 2020-02-17T18:37:00Z
-draft: true
+draft: false
 ---
 
 I was given the task to help my co-workers understand and take advantage of the Openshift 3.11 container platform which is based on Kubernetes. So I decided to write some guides on how to deploy applications and how to do it automatically.
@@ -364,6 +364,6 @@ podTemplate(cloud:'openshift', label: BUILD_TAG, serviceAccount: 'jenkins',
 }
 ```
 
-At the end I'm impress on how powerful this plugin is, somebody ask me some days ago how can I do a Quarkus pipeline for example and I think he was asking the question basically because they where official Jenkins agent yet that can do this. Hope that with this guide he/you can overcome this limitation.  
+At the end I'm impress on how powerful this plugin is, somebody ask me some days ago How he can do a Quarkus pipeline in Openshift? I think he was asking the question basically because they where using the official Jenkins agent. Hope that with this guide he/you can overcome this limitation and create really interesting workflows.  
 
 
