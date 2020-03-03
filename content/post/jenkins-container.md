@@ -43,34 +43,36 @@ v8.16.1
 [Pipeline] }
 ```
 
-This was very welcome by the teams, but as soon as they started to implement this they started to face some challenges. A team in particular was trying to develop something in Angular 8 which required minimum Node 10 and as you can see for the logs the official supported version in that [NodeJS-Slave-Container](https://access.redhat.com/containers/#/registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7) is 8.
+This was very welcome by the teams, but as soon as they started to implement this they started to face some challenges. A team in particular was trying to develop something in Angular 8 (which required minimum Node 10) and the version in [NodeJS-Slave-Container](https://access.redhat.com/containers/#/registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7) is 8.
 
-Another challenge they where facing was adding configuration files to their build. I try to dodge that bullet by suggesting them to use the Jenkins master to perform this configuration updates, but then we discovered that the Jenkins master was ephemeral (no storage) so when they restart they lost all changes.
-
+Then another team started to ask on a way to add configuration files to the build. I try to *dodge that bullet* by suggesting the inefficient solution to go manually to the Jenkins UI and configure the storage for their pods there, but then we discovered that the Jenkins master was ephemeral (no storage) in other words they can lose all those configuration if the container re-deploy.
 
 ## Another Approach
 
-So after all this good feedback I started to look for alternatives ways to improve this, so I wrote this wishlist of features for a good pipeline code:
+So after all *this good feedback* I started to look for alternatives ways to improve this, so I wrote this wish list of features:
 
 * *It should be flexible.*
   - It should be easy to reuse Openshift images in the Jenkins script. If this fails teams usually start making/customizing their own images adding maintenance overhead.
 
+
 * *Easy to customize.*
   - Adding a configuration file or storage to a build should be defined in the Jenkins DSL.
 
+
 * *Composable.*
-  - Use the best container for the job.
+  - It would be nice if we can use the best container for the task.
+
 
 * *Simple*.
-  - No Dockerfile and no black-magic (like installing NVM at runtime).
+  - No Dockerfile and/or black-magic (like installing NVM at runtime).
 
 ## Kubernetes Plugin For Jenkins
 
-I was under the impression that the [Kubernetes Plugin](https://github.com/jenkinsci/kubernetes-plugin) just provide a nice UI to configure Kubernetes/Jenkins related stuff, but after reading the docs carefully I discover that with this plugin you can actually define your own *jenkins-agents-pods*, instead of just using Openshift's pre-defined solution.
+Before all this I was under the impression that the [Kubernetes Plugin](https://github.com/jenkinsci/kubernetes-plugin) just provide a nice UI to configure Kubernetes/Jenkins related stuff, but after giving up and reading [the docs](https://github.com/jenkinsci/kubernetes-plugin) carefully I discover that with this plugin you can actually define your own *jenkins-agents-pods*.
 
 ### What Is A Pod
 
-A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The original idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application). But we can also think of it as a way to decouple task (like objects in OOP) -- i.e., you can use an image to build your code and delegate the deployment to another image.
+A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application) and made them look like a single logical entity (or machine). But we can also think of it as a way to decouple tasks (like objects in OOP) -- i.e., you can use an image to build your code and delegate the deployment to another image.
 
 
 ### Creating A Pod
@@ -109,7 +111,7 @@ Where:
 ## Hello World
 
 
-First let's look for an image that support Angular 8:
+If I wanted to solve that Angular 8 limitation we discussed before, I would start by locating an official image that support ``NodeJS:10``:
 
 ```sh
 oc get is -n openshift | grep node
@@ -118,7 +120,7 @@ oc get is -n openshift | grep node
 
 > You can get your cluster admin to create/update the image stream for [Node:12](https://access.redhat.com/containers/#/registry.access.redhat.com/rhel8/nodejs-12) if you want to target the [LTS](https://nodejs.org/en/).
 
-We can see that the ``nodejs:10`` is the supported image so let's work with that and write our Jenkins script:
+Good news we see that ``nodejs:10`` is the supported, so let's use that as the image for our container Jenkins script:
 
 ```java
 def NODEJS_IMAGE = 'docker-registry.default.svc:5000/openshift/nodejs:10'
@@ -169,11 +171,11 @@ v10.13.0
 [Pipeline] }
 ```
 
-Nice, we not longer need to wait for Red Hat to update their NodeJS Jenkins slave and the team can use any official image to accomplish their builds. Let's see how do we deal with state.
+Nice, we not longer need to wait for Red Hat to update their [NodeJS-Slave-Container](https://access.redhat.com/containers/#/registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7) and the teams can use any official image to build their *Angular 8 application*.
 
 ## Customizable
 
-Another thing we wanted was to be able to add configuration files (without touching Jenkins Master) to the build job, let's create add a configuration file via [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
+Another thing we wanted to improve was the way we add configuration files (this time without visiting the Jenkins UI) to the build job, let's create add a configuration file via [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/).
 
 First let's create a [Config Map](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/):
 
@@ -231,17 +233,15 @@ podTemplate(cloud:'openshift', label: BUILD_TAG,
 
 ## Composition
 
-Now this is getting interesting, sometimes having the right version of the framework is not enough like in the example above, Node-10 doesn't have the tools to deploy code into Openshift. What we can do is to use another container to accomplish this task. The candidate I'll choose is the [Jenkins-Slave-Base](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7) which is a minimal image which include those tools.
-
+Now this is getting interesting, we can build the code but we can't create a container yet because the *Node-10* image doesn't have the tools. We can solve this using another container like this [Jenkins-Slave-Base](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7) which is a minimal image which include those tools.
 
 ### How Do They Talk To Each Other
 
 ![](https://raw.githubusercontent.com/cesarvr/cicd/master/img/nodejs-3.PNG)
 
-Another feature of the pods is that it offers to containers a shared context, in the particular case of the Kubernetes Plugin containers share the same Jenkins ``workspace`` so they perform Jenkins instructions in the same folder.
+As mentioned before pods can run more that one container inside but they also offers a shared context to those containers, this mean that they can (if you want) see each other ports and folders. In the particular case of the Kubernetes Plugin containers share the same Jenkins ``workspace`` meaning that the actions of one in that folder are visible to the other container.
 
-
-This example we can see both containers collaborating:
+In this example we can see an example of this:
 
 
 ```java
@@ -279,12 +279,13 @@ podTemplate(cloud:'openshift', label: BUILD_TAG,
             stage('Building Node 10') {
                 sh "node -v"
                 /*
-                  Clone the repository and install dependencies...
+                  Clone the repository and install dependencies,
+                  changing the workspace folder.
                 */
                 git 'https://github.com/cesarvr/hello-world-nodejs.git'
                 sh "npm install"
 
-                // This should fail here
+                // This should fail here [don't have oc-cli]
                 sh "oc version || true"
             }
         }
@@ -408,4 +409,4 @@ podTemplate(cloud:'openshift', label: BUILD_TAG, serviceAccount: 'jenkins',
 
 > The good thing about we can reuse the code inside ``JNLP_CONTAINER`` for other frameworks or languages.
 
-I'm impress on how powerful this plugin and how easy is to simplify builds with this. Somebody asked me some days ago "*How can he do a [quarkus](https://quarkus.io/) pipeline in Openshift?*" I hope this post helps him solve that problem and help you guys create really sophisticated, and more important, easy to maintain builds.
+I'm impress on how easy is to simplify builds with this plugin. Somebody asked me some days ago "*How can he do a [quarkus](https://quarkus.io/) pipeline in Openshift?*" I hope this post helps him solve that problem and help you guys create really sophisticated, and more important, easy to maintain builds.
