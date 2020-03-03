@@ -72,7 +72,9 @@ Before all this I was under the impression that the [Kubernetes Plugin](https://
 
 ### What Is A Pod
 
-A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application) and made them look like a single logical entity (or machine). But we can also think of it as a way to decouple tasks (like objects in OOP) -- i.e., you can use an image to build your code and delegate the deployment to another image.
+A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application) and made them look like a single logical entity (or machine). 
+
+But we can make another interpretation (which I like more) and think of this feature as a way to decouple tasks (like objects in OOP) -- i.e., you can use an image to build your code and delegate the deployment to another image.
 
 
 ### Creating A Pod
