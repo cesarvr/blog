@@ -72,10 +72,9 @@ Before all this I was under the impression that the [Kubernetes Plugin](https://
 
 ### What Is A Pod
 
-A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application) and made them look like a single logical entity (or machine). 
+A [pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a Openshift/Kubernetes entity that can be thought as a *container with one or more containers inside*. The idea behind this is that you can deploy multiple piece of software that are tightly coupled together (like and old multi-tier application) and made them look like a single logical entity (or machine).
 
-But we can make another interpretation (which I like more) and think of this feature as a way to decouple tasks (like objects in OOP) -- i.e., you can use an image to build your code and delegate the deployment to another image.
-
+We can make another interpretation (which I like more) and think of this feature as a way to decouple tasks (like objects in OOP), and for example, we can take one task like build your code and isolate this into a specialized container and then delegate the deployment to another image that has all the tools to deploy your application.
 
 ### Creating A Pod
 
@@ -235,7 +234,7 @@ podTemplate(cloud:'openshift', label: BUILD_TAG,
 
 ## Composition
 
-Now this is getting interesting, we can build the code but we can't create a container yet because the *Node-10* image doesn't have the tools. We can solve this using another container like this [Jenkins-Slave-Base](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7) which is a minimal image which include those tools.
+Now this is getting interesting, we can build the code but we can't create a container yet because the *Node-10* image doesn't have the tools. As we mentioned before instead of adding those tools to the NodeJS image we are going to use another container [Jenkins-Slave-Base](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/openshift3/jenkins-slave-base-rhel7) to handle that task.
 
 ### How Do They Talk To Each Other
 
