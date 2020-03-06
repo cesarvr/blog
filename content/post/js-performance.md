@@ -20,24 +20,31 @@ reward: false
 mathjax: false
 ---
 
-One of my hobbies is to write (and sometimes re-write) graphic libraries in various languages. I like to do this because, for one thing I like to see cool animation flying on the screen and nice side effect is that when your code is not performant the animation on the screen will let you know, as simple as that if you write good enough code you will receive a quick feedback.
+One of my hobbies is to write (and sometimes re-write) graphic libraries and do some nice animations. One side effect of this is that when your code is not performant the animation on the screen will let you know, as simple as that.
 
 
 <!--more-->
 
-To test my library I wrote a small animation that draw 1600+ particles and in each frame I update speed and angle to get a vortex like effect, then I repeat this every 33 millisecond (ms) and if the code is good enough it will look like this:
+To test my graphic library I wrote a small animation that draw 1600+ particles, the algorithm at each frame updates speed and angle to get a vortex like effect, then I repeat this every 33 millisecond (ms) and if the code is good enough it will look like this:
 
-[Edge](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/vortex-edge.gif)
+![Edge](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/vortex-edge.gif)
 
 
+Everything was happy and nice until I tested the same code in Chrome:
 
 **Chrome**
 ==================
+
 ![Chrome](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/vortex-chrome.gif)
 
+> Seriously? Do I need a GTX Titan to run this ?
 
 
 
+
+## Drunken Man Anti-Method
+
+I don't know why but I started to look at the loop sections of the code and I was under the impression (no evidence whatsoever) that the problem has to do with the utilisation of the functional ```forEach```:
 
 ```js
     particles.forEach(particle => {
@@ -50,7 +57,7 @@ To test my library I wrote a small animation that draw 1600+ particles and in ea
     })
 ```
 
-I take a quick look at what at this loops and I got the impression that the problem has to do with the utilisation of ```forEach``` instead of using a classic for from C. This would sound silly but my rationale that for each iteration a memory scope was being created and that that was messing with the speed of my animation.
+Which I was using in favour of the classic **for** from C. My mind was telling me that for each iteration a memory scope was being created and that that was messing with the speed of my animation. Of course I didn't though at that moment that this was true I should see this behaviour everywhere not only Chrome, but I was under a spell.
 
 With that assumption I edited my code.  
 
@@ -70,18 +77,16 @@ With that assumption I edited my code.
   //....
 ```
 
-Now there is more code and less syntactic sugar but it looked C like and was giving me the impression that maybe should be faster. But I run the code again and I got 10 FPS and I was like "where are my other 50 frames?".
-
-Now the code not only was slow but look uglier, this is what happen when you use the ["drunken man anti-method"](http://www.brendangregg.com/methodology.html).
+Now the code is more verbose and more C like from my point of view was screaming performant. But I run the code again and I got only 10 FPS. So the code now, was not only slow but look uglier, this is what happen when you use the ["drunken man anti-method"](http://www.brendangregg.com/methodology.html).
 
 
 # Solving The Mystery
 
-Ironically Chrome has one of the best tools to instrument JavaScript applications and after this humbling experience, I decided that maybe I should give it a try, so I run the profiler and got this:
+Ironically **Chrome** has one of the best tools to instrument *Javascript* applications and after this humbling experience, I decided that maybe I should give it a try, so I run the profiler and got this:
 
 ![debugger-chrome](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/debugger-chrome.gif)
 
-My first surprise is to see how much the profiler has improved, I'm able to see the correlation between the frames, time and instructions executed. After watching that I discover how much I wasted my time.
+My first surprise is to see how much the profiler has improved, I'm able to see the correlation between the frames, time and instructions executed.
 
 ![profiler](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/profiling.PNG)
 
@@ -91,7 +96,7 @@ To look for a more detailed view I used the *Call Tree* section.
 
 ![data](https://raw.githubusercontent.com/cesarvr/hugo-blog/master/static/js-performance/data!!.PNG)
 
-The performance problem was calling *gl.getError()* inside the ```paint``` function, in Chrome.
+The performance problem was because I was calling *gl.getError()* inside the ```paint``` function, in Chrome.
 
 ```js
 paint(object) {
@@ -105,7 +110,7 @@ paint(object) {
 
 That method ``gl.getError()`` logs to the console any exception that happens on WebGL and for some reason calling this function is very slow (**≈119ms**) on Chrome, even when I run my demo with the inspector closed while other browsers like Edge seems to deactivate that logging mechanism.
 
-I rolled back those ugly changes and run the code again, [the demo now runs](http://webgl-hello01.7e14.starter-us-west-2.openshiftapps.com/gl_point/) at 60 FPS across all browsers (Android included).
+I rolled back those ugly changes and run the code again, the demo now runs at 60 FPS across all browsers (Android included).
 
 ### Always measure
 
