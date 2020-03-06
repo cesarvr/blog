@@ -50,7 +50,7 @@ v8.16.1
 [Pipeline] }
 ```
 
-This was very welcome but as soon as they started to implement this I started to receive *some feedback*. A team in particular was trying to build their Angular 8 (which required minimum Node 10) and the default image only supports ``NodeJS:8``, another group of guys started to ask for ways to add configuration files to the container in the form of a Config Map. 
+This was very welcome but as soon as they started to implement this I started to receive *some feedback*. A team in particular was trying to build their Angular 8 (which required minimum Node 10) and the default image only supports ``NodeJS:8`` while another group of guys where asking for ways to add configuration files into their builds. 
 
 So after all this *good* feedback it became clear that this approach lacks the flexibility to handle various use cases in the department.
 
