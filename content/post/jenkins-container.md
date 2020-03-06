@@ -50,9 +50,9 @@ v8.16.1
 [Pipeline] }
 ```
 
-This was very welcome but as soon as they started to implement this I started to receive *some feedback*. A team in particular was trying to build their Angular 8 (which required minimum Node 10) and the default image only supports ``NodeJS:8`` while another group of guys where asking for ways to add configuration files into their builds. 
+This was very welcome but as soon as they started to implement this I started to receive *some feedback*. A team in particular was trying to build their Angular 8 (which required minimum Node 10) and the default image only supports ``NodeJS:8`` while another group of guys were asking for ways to add configuration files into their builds. 
 
-So after all this *good* feedback it became clear that this approach lacks the flexibility to handle various use cases in the department.
+So after all this *good* feedback it became clear that this approach lacks the flexibility to handle various those use cases and that it needed some improvements or a totally different approach.
 
 
 ## Kubernetes Plugin For Jenkins
