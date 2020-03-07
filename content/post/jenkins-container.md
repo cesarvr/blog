@@ -1,5 +1,5 @@
 ---
-title: "Decoupling Jenkins Builds In Openshift"
+title: "Decoupling Jenkins Stages On Multiple Containers"
 date: 2020-02-17T18:37:00Z
 draft: false
 description: "Part of my day-to-day work consist in helping teams transition from monolithic architectures to a *build-and-own your service* using Openshift. As a gentle introduction into that world, I wrote some guides to provide a starting point to this transition. Recently I distribute this minimalistic *“Hello World”* [Jenkins Pipeline](https://jenkins.io/doc/pipeline/tour/hello-world/) which looks like this..."
