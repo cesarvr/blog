@@ -1,0 +1,3 @@
+puzz = "dabAcCaCBAcCcaDA"
+
+print puzz	
