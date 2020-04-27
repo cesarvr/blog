@@ -2,7 +2,7 @@
 title: "How to Quickly Serve Statics Files On Openshift"
 date: 2020-04-09T09:52:31+01:00
 draft: false
-tags: [openshift, HowTo]
+tags: [openshift, howto]
 ---
 
 We can start by creating a folder to store the static files: 
@@ -19,11 +19,11 @@ Copy the static content you want to serve, in this example we are going to serve
 # Jump into the folder
 cd mystatic
 
-
 # Download index.html *Hello World*
 curl https://gist.githubusercontent.com/timbergus/5812402/raw/10ed8484a7b71d0f860f6cc0d81f5fafcf9ef339/index.html -o index.html 
 
 cat index.html
+
 
 <!DOCTYPE html>
 <html lang="en">
