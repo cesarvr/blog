@@ -1,7 +1,7 @@
 ---
 title: "Falling In Love With Python"
 date: 2020-03-07T13:21:42Z
-draft: false
+draft: true
 ---
 
 I was dusting off my Python skills by solving this [puzzle](https://adventofcode.com/2018/day/5) and I have to say that I really enjoy how easy it’s for a mostly day-to-day Javascript developer to jump to Python and be productive. 
