@@ -8,7 +8,7 @@ tags: [openshift, build, cheatsheet]
 
 ## Simplifying Builds
 
-I was doing some experimentation with Jenkins Kubernetes plugin to [run Jenkins build using containers as Jenkins Slave](https://cesarvr.io/post/jenkins-container/). I also discover that you don't need to spin up a jnlp container to have access to Jenkins default tools (like running jobs, scm, etc) you can just run those commands in the *current node*.
+After more experimentation Jenkins Kubernetes plugin which allows to run Jenkins [to run build using containers as Jenkins Slave](https://cesarvr.io/post/jenkins-container/) I have found that you don't need to spin up a [Jenkins slave container](https://catalog.redhat.com/software/containers/detail/581d2f3f00e5d05639b6515b) to have access to Jenkins default tools (like running jobs, scm, etc) you can just run those commands in the *current node*.
 
 
 ```js
@@ -40,15 +40,11 @@ podTemplate(
       }
     }
 ```
+> ``Node:12`` shares the workspace with Jenkins.
 
-> If tomorrow I want to upgrade the source code to ``Node:13``, I just need to change the image.
-
-
-## Pulling Artifacts From Builds
+## Pulling Artifacts From Other Builds
 
 They are special situation when I need to pull **artifacts** from Jenkins, so I end up writing this small Jenkins DSL to fetch assets from other builds.  
-
-
 
 ```js
 def Artifact = "https://jenkins-server/.../lastSuccessfulBuild/artifact/target/artifact.jar"
