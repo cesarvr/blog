@@ -7,9 +7,9 @@ tags: [vpn, cheatsheet]
 
 I'm working at the moment for a company that use an OS (and spyware) Windows 10 and because of some [world wide events](https://en.wikipedia.org/wiki/2020_coronavirus_pandemic_in_the_Republic_of_Ireland) I started like everybody else to work remotely and connect to my desk machine remotely via VPN.
 
-To achieve this the IT department recomended the use of something called Cisco Anyway Connects which is a sort of VPN client.
+To achieve this the IT department recommended the use of something of a VPN client.
 
-The problem is that because I use a flavor of BSD at home I've to think on how to use that Cisco thing that only works on ``Winx86`` to make the VPN while keeping myself far from Windows.
+The problem is that because I use a flavour of BSD at home I've to think on how to use that VPN thing that only works on ``Winx86`` to make the VPN while keeping myself far from Windows.
 
 My solution was to create a Virtual Machine to put all the required VPN software there and setup a [SSH](https://en.wikipedia.org/wiki/Secure_Shell) tunnel to access my work machine through the VM-VPN and use my OS to work or RDP as needed.
 

@@ -1,13 +1,12 @@
 ---
 title: "Performance Profiling in Rust"
 date: 2019-08-07
-draft: false
+draft: true
 keywords: []
 description: "Writing performant Rust code."
-tags: [Programming, Performance]
+tags: [Programming, Performance, Rust]
 toc: true
 image: https://github.com/cesarvr/hugo-blog/blob/master/static/static/logo/ocp.png?raw=true
-draft: true
 ---
 
 I had the impression that Rust being a system language its performance should be comparable only to C/C++ and that the worst code in Rust should be faster than good code written in a high level language such as JavaScript. I discover that that's surprisingly not always the true.
@@ -97,7 +96,7 @@ Rust
 
 It was clear that some piece of code is or pattern is killing performance, so after a few hours applying the ["Drunk Man Anti-Method"](http://www.brendangregg.com/methodology.html) techniques to my Rust code, I started to consider that maybe the best way to find out the problem was to profile the code using [Linux perf](https://perf.wiki.kernel.org/index.php/Main_Page), the problem was that I wasn't sure that it would work very well with Rust.
 
-#### Install
+## Install
 
 For those who never hear before about [perf](https://perf.wiki.kernel.org/index.php/Main_Page), it's a powerful **Linux** tool to profile programs at runtime, to install it you can use your favourite package manager:
 
