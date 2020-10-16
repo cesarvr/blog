@@ -291,7 +291,7 @@ Node   0.17s user 0.03s system 101% cpu 0.209 total
 Rust   0.23s user 0.01s system 98% cpu 0.238 total
  ```
 
-After seeing this my confidence in my time measuring tool (``time``) started to fade a bit, but then I calmed down and profiled the code again this time using [XCode Instrumentation](https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html) which point me in the right direction: 
+After seeing this my confidence in my time measuring tool (``time``) started to fade a bit, but once I calm down and use the [XCode Instrumentation](https://developer.apple.com/library/archive/documentation/AnalysisTools/Conceptual/instruments_help-collection/Chapter/Chapter.html) which point me in the right direction: 
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/rust/malloc-xcode-2.png?raw=true)
 

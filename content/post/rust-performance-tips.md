@@ -1,7 +1,7 @@
 ---
 title: "Rust Performance Tips"
 date: 2020-06-13T07:54:49+01:00
-draft: false
+draft: true
 tags: [Programming, Performance, Rust]
 ---
 
