@@ -38,9 +38,9 @@ du -sh
 We found our image weight to much (474MB) relative to the amount of code we are running just (8 Byte).
 
 ```js
-require('http').createServer((req, res) => {
-  res.end('Hello World')
-}).listen(8080)
+  require('http').createServer((req, res) => {
+    res.end('Hello World')
+  }).listen(8080)
 ```
 
 This happens because the tools we used at build (gcc, g++, npm, yum cache, etc.) are still present in the image inflating its final size. If you are just getting started as a developer in Openshift it may not be a big of a deal; also for quick proof of concepts is totally fine but it may have a cost for later stages like production that you may take into consideration.
@@ -54,7 +54,7 @@ Some disadvantages of having a huge image are:
 - They add more stress on the cluster network.
 - Maintenance overhead. (You may end up maintaining dependencies your are not using)  
 
-If you need more reasons for more smaller containers: 
+If you need more reasons for more smaller containers:
 
 [![Smaller Containers](https://img.youtube.com/vi/wGz_cbtCiEA/0.jpg)](https://www.youtube.com/watch?v=wGz_cbtCiEA))
 
