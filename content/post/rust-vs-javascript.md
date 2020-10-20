@@ -4,10 +4,12 @@ date: 2020-10-20T10:55:00+02:00
 draft: false
 ---
 
+A while ago I wrote a [blog post](https://cesarvr.io/post/rust-performance/) post about my learning adventure with Rust, to make thing interesting I was trying to use Rust to solve some [programming puzzle](https://adventofcode.com/2018/day/5) and by curiosity I decided to use this puzzle as a benchmark to measure what language was faster Rust or Javascript.
 
-A while ago I wrote a blog post about my learning adventure with Rust by solving some programming puzzle, to my disappointment I found that this naive implementation I wrote wasn’t performant enough to beat a similar one I’ve done in Javascript.
+On paper the winner should be Rust by a mile, but I found out that that wasn’t the case and JS was faster. Looking for the reason for this I started to profile the Rust code looking for bottlenecks and found that interestingly I was using the [slowest function to turn characters lowercase](https://cesarvr.io/post/rust-performance/), giving my naive Rust code a temporary victory.
 
-To fix that I profiled the code and found that I was using the slowest function to turn characters lowercase and I ended up replacing that to obtain a symbolic victory, but then discovered that this victory was only in Linux, when I move the code to my MacOS machine I got this:
+That was until I move the code to my MacOS machine, which by curiosity I decide to give it try just by chance:
+
 
 ```sh
 Node   0.17s user 0.03s system 101% cpu 0.209 total
@@ -87,14 +89,23 @@ fn main() {
 }
 ```
 
-
-The key part of the [rewrite](https://github.com/cesarvr/AOCRust/blob/master/day-5/rewrite/src/main.rs) is that instead of passing around vector copies I pass instead a reference to the string I want to reduce, and as a small bonus I stopped removing stuff from collections, in other words I just keep it simple this time and look at the benefits:
+The main focus [this time](https://github.com/cesarvr/AOCRust/blob/master/day-5/rewrite/src/main.rs) was to pass the string by reference instead of passing vector copies (looking back now seems like obvious), use the ``string::iterator`` to scan the characters and as a small bonus I simplify the matching and reducing of letters, when I ran this new version and got this:
 
 
 ```sh
 Node   0.17s user 0.03s system 101% cpu 0.209 total
 Rust   0.02s user 0.00s system  82% cpu 0.025 total
 ```
-> 8x faster...
+> 8x faster, not bad :)
 
-So if you need to work on something where low latency is a must then Rust is a good choice, but for Agile microservices JS/NodeJS is my choice after all if you really need performance you can still create a native module to get the best of both worlds. As you see, performance doesn’t come at a free cost. 
+All this happens because of some preconceived ideas I had about Rust, that high level syntax had tricked me to believe that it was a high level language when in reality behind all that syntax sugar it requires you to be aware of not only the low-level details but also how the language implements certain things in order to write efficient software. It was that or just JS had made me softer.
+
+In other words, getting performance out of Rust is not free and I suspect that this learning curve will be the main challenge to become widely adopted. But definitely good choice if you want to write difficult to exploit code with close to C/C++ performance.
+
+Talking about that I wrote a C/C++ version of this puzzle (a very naive version not an expert in C++) and this is what I got:
+
+```sh
+C++ 0.10s user 0.00s system 87% cpu 0.122 total
+```
+
+I will do some experimentations now and see if I can get it faster and maybe try to write a blog entry about it.
