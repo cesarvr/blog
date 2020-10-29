@@ -6,9 +6,9 @@ draft: false
 
 A while ago I wrote a [blog post](https://cesarvr.io/post/rust-performance/) post about my learning adventure with Rust, to make thing interesting I was trying to use Rust to solve some [programming puzzle](https://adventofcode.com/2018/day/5) and by curiosity I decided to use this puzzle as a benchmark to measure what language was faster Rust or Javascript.
 
-On paper the winner should be Rust by a mile, but I found out that that wasn’t the case and JS was faster. Looking for the reason for this I started to profile the Rust code looking for bottlenecks and found that interestingly I was using the [slowest function to turn characters lowercase](https://cesarvr.io/post/rust-performance/), giving my naive Rust code a temporary victory.
+On paper the Rust implementation should win by a mile, surprisingly I found out that I was wrong so I started to profile the code looking for bottlenecks and found something interesting, I was using the [slowest function to turn characters to lowercase](https://cesarvr.io/post/rust-performance/), fixing this issue put things on par.
 
-That was until I move the code to my MacOS machine, which by curiosity I decide to give it try just by chance:
+But that was on Linux, when I moved the code to MacOS I found out that the JS implementation was still performing faster there.
 
 
 ```sh
@@ -16,7 +16,7 @@ Node   0.17s user 0.03s system 101% cpu 0.209 total
 Rust   0.23s user 0.01s system 98% cpu 0.238 total
 ```
 
-This was surprising, but to be honest it was clear that I was just scratching the surface of the problem, so I profiled the code again this time with Instruments on MacOS.  
+Well time to do more profiling this time using [Instruments](https://help.apple.com/instruments/mac/current/) on MacOS, then looking at the samples I found the issue:  
 
 ![](https://github.com/cesarvr/hugo-blog/blob/master/static/rust/malloc-xcode-2.png?raw=true)
 
@@ -24,11 +24,13 @@ It seems that the Rust version is spending the majority of its time doing memory
 
 > [[Clone]](https://doc.rust-lang.org/std/clone/trait.Clone.html) differs from Copy in that Copy is implicit and extremely inexpensive, while Clone is always explicit and may or may not be expensive...
 
-Well it seems that I got the expensive part here, so I decided to look for the part of my code that might trigger a string clone method, and one of those candidates was ``to_vec`` which the documentation defines as:
+Well it seems that I got the expensive part here, so I decided to [look for parts of my code](https://github.com/cesarvr/AOCRust/blob/master/day-5/first/src/main.rs) that might trigger a ``string::clone``, and one of those candidates was ``to_vec`` which the documentation defines as:
 
 > Copies self into a new Vec.
 
-A very economic definition, but I got the idea,  the only problem is that the code was very dependent on ``to_vec`` and I didn’t feel in the mood of starting a discussion with the [borrow checker](https://doc.rust-lang.org/1.8.0/book/references-and-borrowing.html) over how to move things around, so I decided to rewrite the code from scratch.  
+Very economic definition, but this is what happens behind the scene, when you call ``to_vec`` you basically first allocating memory in the heap 
+
+you get the idea, the only problem is that the code was very dependent on ``to_vec`` and I didn’t feel in the mood of starting a discussion with the [borrow checker](https://doc.rust-lang.org/1.8.0/book/references-and-borrowing.html) over how to move things around, so I decided to rewrite the code from scratch.  
 
 
 ```rust
