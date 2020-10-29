@@ -28,9 +28,9 @@ Well it seems that I got the expensive part here, so I decided to [look for part
 
 > Copies self into a new Vec.
 
-Very economic definition, but this is what happens behind the scene, when you call ``to_vec`` you basically first allocating memory in the heap 
+Very economic definition, but is as mentioned before is not really a copy is a cloning, what happens behind the scene is this, when you call ``to_vec``,  first memory is allocated using [here](https://doc.rust-lang.org/beta/src/alloc/slice.rs.html#151) using the [boxed::Boxed](https://doc.rust-lang.org/std/boxed/struct.Box.html) function, which in turns triggers a [malloc](https://github.com/lattera/glibc/blob/master/malloc/malloc.c) which is a slow operation (on MacOSX in particular).
 
-you get the idea, the only problem is that the code was very dependent on ``to_vec`` and I didn’t feel in the mood of starting a discussion with the [borrow checker](https://doc.rust-lang.org/1.8.0/book/references-and-borrowing.html) over how to move things around, so I decided to rewrite the code from scratch.  
+The only problem is that the code was very dependent on ``to_vec`` and I didn’t feel in the mood of starting a discussion with the [borrow checker](https://doc.rust-lang.org/1.8.0/book/references-and-borrowing.html) over how to move things around, so I decided to rewrite the code from scratch.  
 
 
 ```rust
@@ -91,23 +91,21 @@ fn main() {
 }
 ```
 
-The main focus [this time](https://github.com/cesarvr/AOCRust/blob/master/day-5/rewrite/src/main.rs) was to pass the string by reference instead of passing vector copies (looking back now seems like obvious), use the ``string::iterator`` to scan the characters and as a small bonus I simplify the matching and reducing of letters, when I ran this new version and got this:
+My focus [this time](https://github.com/cesarvr/AOCRust/blob/master/day-5/rewrite/src/main.rs) was to pass just the string (by reference) instead of passing expensive vector copies, then I learn that I can use the ``string::iterator`` to scan the characters and also took the time to simplify some part of the code, when I ran this new version and got this:
 
 
 ```sh
 Node   0.17s user 0.03s system 101% cpu 0.209 total
 Rust   0.02s user 0.00s system  82% cpu 0.025 total
 ```
-> 8x faster, not bad :)
+> 8x faster.
 
-All this happens because of some preconceived ideas I had about Rust, that high level syntax had tricked me to believe that it was a high level language when in reality behind all that syntax sugar it requires you to be aware of not only the low-level details but also how the language implements certain things in order to write efficient software. It was that or just JS had made me softer.
+Rust welcoming syntax sugar can trick you to believe that the language will handle those ugly details for you, but as we have seen that’s not the case, you require to invest some time profiling and searching until you hit the sweet spot.
 
-In other words, getting performance out of Rust is not free and I suspect that this learning curve will be the main challenge to become widely adopted. But definitely good choice if you want to write difficult to exploit code with close to C/C++ performance.
-
-Talking about that I wrote a C/C++ version of this puzzle (a very naive version not an expert in C++) and this is what I got:
+Now that Javascript is out of the performance question I wrote a [C/C++ version](https://github.com/cesarvr/AOCRust/blob/master/cpp/2018/day-5/main.cpp) of this puzzle (a very naive and ugly) and this is what I got:
 
 ```sh
 C++ 0.10s user 0.00s system 87% cpu 0.122 total
 ```
 
-I will do some experimentations now and see if I can get it faster and maybe try to write a blog entry about it.
+Not bad, I wonder how elegant and fast can I keep both code bases and of course who could be made faster.
